@@ -1,0 +1,30 @@
+# gitleaks config for PasskeyBridge-LLC/satus (PUBLIC repository). Used by
+# .github/workflows/secret-scan.yml. Default rules plus the allowlists below.
+#
+# Every allowlist is a genuine false positive, pinned to a path AND a pattern
+# so it cannot hide a real credential elsewhere. No value appears here.
+#
+# SECURITY-NOTES (2026-09-27 audit). Env files were tracked until 2026-09-27
+# and were removed from the tree without rewriting history. Keys that remain
+# in history (last-4 only): Supabase publishable key …UYUq (current; public
+# by design, ships in the bundle), Supabase anon JWT …ZFIk (pre-migration
+# project, no longer resolves in DNS), Stripe publishable keys …uyvV (live)
+# and …0TOu (test), neither used by production. Revocation of the Stripe keys
+# is the owner's call in the Stripe dashboard. Commits older than this gate
+# are not rescanned by CI.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Sample licence key in email-template preview props: the fixed placeholder satus_live_a3f9b8c1..., not a real licence."
+condition = "AND"
+paths = ['''^src/lib/email-templates/[^/]+\.tsx$''']
+regexes = ['''^satus_live_a3f9b8c1d2e3f4a5b6c7d8e9f0a1b2c3$''']
+
+[[allowlists]]
+description = "Ahrefs Web Analytics data-key: a public site identifier embedded in every page by design."
+condition = "AND"
+paths = ['''^src/routes/__root\.tsx$''']
+regexTarget = "line"
+regexes = ['''"data-key":''']
