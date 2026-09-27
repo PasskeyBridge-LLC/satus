@@ -18,10 +18,6 @@ on:
         description: "npm dist-tag to publish under"
         type: string
         default: "latest"
-      oidc_only:
-        description: "Trusted publishing (OIDC) only: withhold NPM_PUBLISH_TOKEN so the publish cannot fall back to it"
-        type: boolean
-        default: false
 
 jobs:
   publish:
@@ -46,7 +42,7 @@ jobs:
       # Trusted publishing (OIDC) needs npm >= 11.5.1
       # (https://docs.npmjs.com/trusted-publishers). Every Node 24 from
       # 24.5.0 bundles at least that, so this is normally a no-op; it exists
-      # so a stale runner toolcache can't silently drop us back to token auth.
+      # so a stale runner toolcache can't leave us without trusted publishing.
       - name: Ensure npm supports trusted publishing
         run: |
           have=$(npm --version)
@@ -172,40 +168,25 @@ jobs:
             npm publish --access public --dry-run
           fi
 
-      # Auth: npm trusted publishing (OIDC). npm >= 11.5.1 detects GitHub
-      # Actions, exchanges this job's OIDC token for a short-lived publish
-      # token, and only if that exchange fails falls back to the configured
-      # token (docs.npmjs.com/trusted-publishers: "uses them for
-      # authentication before falling back to traditional tokens").
-      #
-      # TRANSITION: NODE_AUTH_TOKEN stays as that fallback until the trusted
-      # publisher is saved on npmjs.com and one release has gone out through
-      # it (the step below reports which path was used). Then delete this
-      # env block and the NPM_PUBLISH_TOKEN secret in a follow-up. The token
-      # expires 2026-10-12; after that the fallback is dead either way.
-      #
-      # --provenance is automatic under OIDC; it stays explicit so the token
-      # path keeps signing provenance too.
-      #
-      # oidc_only (dispatch input): the secret is not handed to this step at
-      # all, and the placeholder token setup-node writes is blanked, so a
-      # failed OIDC exchange fails the publish instead of falling back.
-      # Tag pushes and plain dispatches keep the fallback.
+      # Auth: npm trusted publishing (OIDC) only. npm >= 11.5.1 detects
+      # GitHub Actions and exchanges this job's OIDC token for a short-lived
+      # publish token. The trusted publisher on npmjs.com is
+      # PasskeyBridge-LLC/satus, workflow cli-publish.yml, no environment.
+      # There is no token fallback: no npm token secret exists for this repo,
+      # and NODE_AUTH_TOKEN is blanked so setup-node's placeholder in .npmrc
+      # can't be used either. A rejected OIDC exchange fails the publish
+      # (ENEEDAUTH). First publish through this path: 0.3.11-orgmove.0,
+      # 2026-09-27. --provenance is automatic under OIDC; kept explicit.
       - name: Publish
         if: steps.registry.outputs.published == 'false' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run))
         working-directory: packages/cli
         env:
-          NODE_AUTH_TOKEN: ${{ !(github.event_name == 'workflow_dispatch' && inputs.oidc_only) && secrets.NPM_PUBLISH_TOKEN || '' }}
-          OIDC_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.oidc_only }}
           DIST_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.dist_tag || 'latest' }}
         run: |
           set -euo pipefail
-          if [ "$OIDC_ONLY" = "true" ]; then
-            # Empty rather than unset: setup-node's .npmrc references
-            # ${NODE_AUTH_TOKEN}, and this also overrides its placeholder.
-            export NODE_AUTH_TOKEN=""
-            echo "OIDC only: no npm token is available to this publish."
-          fi
+          # Empty rather than unset: setup-node's .npmrc references
+          # ${NODE_AUTH_TOKEN}; this overrides its placeholder value.
+          export NODE_AUTH_TOKEN=""
           VER=$(node -p "require('./package.json').version")
           case "$VER" in
             *-*) if [ "$DIST_TAG" = "latest" ]; then echo "::error::Refusing to publish prerelease $VER as latest"; exit 1; fi ;;
@@ -213,27 +194,25 @@ jobs:
           npm publish --access public --provenance --tag "$DIST_TAG"
 
       # Read-only, unauthenticated registry lookup. A version published via
-      # trusted publishing carries `_npmUser.trustedPublisher`; one published
-      # with a token does not. This is what tells us the fallback can go.
+      # trusted publishing carries `_npmUser.trustedPublisher`. The registry
+      # can take a few minutes to show it (60 s was too short on 2026-09-27,
+      # run 36333516038), so poll for about 5 minutes before failing.
       - name: Report publish auth path
         if: steps.registry.outputs.published == 'false' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run))
         env:
           VERSION: ${{ steps.registry.outputs.version }}
-          OIDC_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.oidc_only }}
         run: |
           tp=""
-          for i in 1 2 3 4 5 6; do
+          for i in $(seq 1 30); do
             if npm view "@passkeybridge/satus@$VERSION" version > /dev/null 2>&1; then
               tp=$(npm view "@passkeybridge/satus@$VERSION" _npmUser.trustedPublisher.id 2>/dev/null || true)
-              break
+              if [ -n "$tp" ]; then break; fi
             fi
             sleep 10
           done
           if [ -n "$tp" ]; then
-            echo "::notice title=npm auth::@passkeybridge/satus@$VERSION was published via trusted publishing ($tp). The NPM_PUBLISH_TOKEN fallback can be removed."
-          elif [ "$OIDC_ONLY" = "true" ]; then
-            echo "::error title=npm auth::oidc_only run, but @passkeybridge/satus@$VERSION shows no trusted publisher (or is not visible yet)."
-            exit 1
+            echo "::notice title=npm auth::@passkeybridge/satus@$VERSION was published via trusted publishing ($tp)."
           else
-            echo "::warning title=npm auth::@passkeybridge/satus@$VERSION was NOT published via trusted publishing (token fallback, or registry not yet consistent). Check the trusted publisher on npmjs.com before the token expires 2026-10-12."
+            echo "::error title=npm auth::@passkeybridge/satus@$VERSION shows no trusted publisher after ~5 minutes (not visible on the registry yet, or not published via OIDC). Check with: npm view @passkeybridge/satus@$VERSION _npmUser"
+            exit 1
           fi
