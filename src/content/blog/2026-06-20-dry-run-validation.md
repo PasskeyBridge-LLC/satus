@@ -77,7 +77,7 @@ For schemas where the dry-run reports zero findings, the next live run will not 
 
 ## References
 
-- Source: [`packages/cli/src/generate/validate.ts`](https://github.com/passkeybridge/satus/blob/main/packages/cli/src/generate/validate.ts) and [`simulate.ts`](https://github.com/passkeybridge/satus/blob/main/packages/cli/src/generate/simulate.ts).
+- Source: [`packages/cli/src/generate/validate.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/validate.ts) and [`simulate.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/simulate.ts).
 - Cycle handling, in depth: [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild).
 - The 0.3 release notes: [v0.3.0 — Anthropic and machine-readable output](/blog/v0-3-0-anthropic-and-machine-readable-output).
 - PostgreSQL documentation, [pg_catalog.pg_constraint](https://www.postgresql.org/docs/current/catalog-pg-constraint.html).

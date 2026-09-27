@@ -154,7 +154,7 @@ Before merging a new profile, a contributor confirms all of the following, in th
 - Correlations are named and enforced in the runner, not left to the reader to notice.
 - The "does not encode" section is present and specific.
 - Value pools are last in the file and short.
-- The corpus-style structural claims (schema counts, table counts, and so on) in the accompanying blog post cite our own [corpus](https://github.com/passkeybridge/satus/tree/main/corpus) or a named public source, never a vendor blog.
+- The corpus-style structural claims (schema counts, table counts, and so on) in the accompanying blog post cite our own [corpus](https://github.com/PasskeyBridge-LLC/satus/tree/main/corpus) or a named public source, never a vendor blog.
 
 If any of those is missing, the profile is not ready. The runner will accept it, the tests will pass, and it will silently be another value-first faker with slightly better packaging. Nobody needs another one of those.
 

@@ -97,7 +97,7 @@ function SecurityPage() {
           </a>{" "}
           points here for automated tooling, and{" "}
           <a
-            href="https://github.com/passkeybridge/satus/blob/main/SECURITY.md"
+            href="https://github.com/PasskeyBridge-LLC/satus/blob/main/SECURITY.md"
             target="_blank"
             rel="noopener"
             className="underline decoration-[var(--signal)] underline-offset-4"

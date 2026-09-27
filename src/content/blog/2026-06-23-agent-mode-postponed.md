@@ -80,7 +80,7 @@ What we are not committing to in v0.5: a chat UI on the marketing site, planner/
 
 The two assumptions most likely to be wrong are the surface and the wait. If the right surface is a GitHub Action that runs on every preview deploy rather than a CLI subcommand, we want to know before we build the wrong thing. If the 90-day evidence window is overcautious and we are leaving repair-loop value on the floor in the meantime, we want to know that too.
 
-Both questions get easier to answer with telemetry. If you run satus and would let us see anonymised failure classes from your dry-runs, the opt-in flag lands in v0.4. If you have an opinion on the surface, the [GitHub issue tracker](https://github.com/passkeybridge/satus) is the right place; we read everything there.
+Both questions get easier to answer with telemetry. If you run satus and would let us see anonymised failure classes from your dry-runs, the opt-in flag lands in v0.4. If you have an opinion on the surface, the [GitHub issue tracker](https://github.com/PasskeyBridge-LLC/satus) is the right place; we read everything there.
 
 The deterministic CLI is the product. The agent is a layer on top of it. v0.5 is when that layer ships.
 
@@ -92,4 +92,4 @@ The deterministic CLI is the product. The agent is a layer on top of it. v0.5 is
 - [v0.3.0 release notes](/blog/v0-3-0-anthropic-and-machine-readable-output)
 - [AI SDK · Building Agents](https://ai-sdk.dev/docs/agents/building-agents.md)
 - [AI SDK · Loop control and `stopWhen`](https://ai-sdk.dev/docs/agents/loop-control.md)
-- [satus on GitHub](https://github.com/passkeybridge/satus)
+- [satus on GitHub](https://github.com/PasskeyBridge-LLC/satus)

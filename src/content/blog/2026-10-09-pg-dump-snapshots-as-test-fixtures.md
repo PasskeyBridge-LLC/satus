@@ -267,11 +267,11 @@ The [`CREATE DATABASE` reference](https://www.postgresql.org/docs/17/sql-created
 
 ## What the snapshot does not fix
 
-The dump makes the rows repeatable. It does not make them better than the run that produced them. Cross-column arithmetic is not reconciled during generation, so a `subtotal` and a `total` that disagree in the generated rows disagree in the fixture too, on every restore. Multi-column `UNIQUE` constraints are not enforced during generation; Postgres still enforces them on insert, so a collision fails the run and the transaction rolls back rather than landing in a dump. Both are v0.x limits, listed in the [README](https://github.com/passkeybridge/satus#readme) under "Honest limits". The fixture diff is the one place a person reads the generated rows before tests depend on them, which is the reason to review it rather than regenerate and commit blind.
+The dump makes the rows repeatable. It does not make them better than the run that produced them. Cross-column arithmetic is not reconciled during generation, so a `subtotal` and a `total` that disagree in the generated rows disagree in the fixture too, on every restore. Multi-column `UNIQUE` constraints are not enforced during generation; Postgres still enforces them on insert, so a collision fails the run and the transaction rolls back rather than landing in a dump. Both are v0.x limits, listed in the [README](https://github.com/PasskeyBridge-LLC/satus#readme) under "Honest limits". The fixture diff is the one place a person reads the generated rows before tests depend on them, which is the reason to review it rather than regenerate and commit blind.
 
 ## Where satus stops in this workflow
 
-In 0.3.11, satus covers the dry run and the write step. Everything after the write is plain `pg_dump`, `psql` and `createdb`. The [roadmap](https://github.com/passkeybridge/satus/blob/main/docs/ROADMAP.md) lists a `satus snapshot` command that would produce the restorable fixture in one step after a seed run; it is not in 0.3.11.
+In 0.3.11, satus covers the dry run and the write step. Everything after the write is plain `pg_dump`, `psql` and `createdb`. The [roadmap](https://github.com/PasskeyBridge-LLC/satus/blob/main/docs/ROADMAP.md) lists a `satus snapshot` command that would produce the restorable fixture in one step after a seed run; it is not in 0.3.11.
 
 Start with the dry run against your own schema. It needs no key and writes nothing, and the [quickstart](/quickstart) has the install line.
 
@@ -281,5 +281,5 @@ Start with the dry run against your own schema. It needs no key and writes nothi
 - `--data-only`, `--restrict-key`, and `-X` on restore: the [`pg_dump` reference](https://www.postgresql.org/docs/17/app-pgdump.html).
 - `\restrict` and CVE-2025-8714: [PostgreSQL 17.6 release notes](https://www.postgresql.org/docs/release/17.6/).
 - Template copies: the [`CREATE DATABASE` reference](https://www.postgresql.org/docs/17/sql-createdatabase.html).
-- The v0.x limits: the [README](https://github.com/passkeybridge/satus#readme) and the [troubleshooting page](/docs/troubleshooting).
+- The v0.x limits: the [README](https://github.com/PasskeyBridge-LLC/satus#readme) and the [troubleshooting page](/docs/troubleshooting).
 - Earlier on the same question: [Fixtures vs generation, and when each wins](/blog/fixtures-vs-generation-when-each-wins), and the [E2E reset recipe](/recipes).

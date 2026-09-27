@@ -5,7 +5,7 @@
 OpenAI, Anthropic or xAI key; xAI from the CLI release after 0.3.11) for rows that look like a real business, and
 inserts them in a single all-or-nothing transaction.
 
-[![cli-ci](https://github.com/passkeybridge/satus/actions/workflows/cli-ci.yml/badge.svg)](https://github.com/passkeybridge/satus/actions/workflows/cli-ci.yml)
+[![cli-ci](https://github.com/PasskeyBridge-LLC/satus/actions/workflows/cli-ci.yml/badge.svg)](https://github.com/PasskeyBridge-LLC/satus/actions/workflows/cli-ci.yml)
 [![npm](https://img.shields.io/npm/v/%40passkeybridge%2Fsatus)](https://www.npmjs.com/package/@passkeybridge/satus)
 
 Website: [satus.sh](https://satus.sh) · npm: [`@passkeybridge/satus`](https://www.npmjs.com/package/@passkeybridge/satus) · Docs: [satus.sh/docs](https://satus.sh/docs)
@@ -78,7 +78,7 @@ Full walkthrough: [satus.sh/quickstart](https://satus.sh/quickstart).
 | Path | What it is |
 |---|---|
 | `packages/cli/` | The `satus` CLI (published to npm as `@passkeybridge/satus`) |
-| `packages/action/` | Composite GitHub Action — use as `passkeybridge/satus/packages/action@main` |
+| `packages/action/` | Composite GitHub Action — use as `PasskeyBridge-LLC/satus/packages/action@main` |
 | `src/` | satus.sh — TanStack Start site: marketing, docs, blog, checkout, license API |
 | `supabase/` | Database migrations for the backing Supabase project |
 | `corpus/`, `scripts/`, `examples/` | Accuracy-audit corpus, bench/audit tooling, extension pitfall examples |
