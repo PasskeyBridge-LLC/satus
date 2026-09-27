@@ -31,8 +31,10 @@ not survive between steps — start, run, and stop it inside one command.
 
 ## Needs the owner
 
-- **`NPM_PUBLISH_TOKEN` expires 2026-10-12** — 17 days. Rotate in GitHub
-  Secrets; do not handle the value.
+- **Revoke the old npm token on npmjs.com.** Publishing is trusted
+  publishing (OIDC) only since 2026-09-27; the `NPM_PUBLISH_TOKEN` repo
+  secret was deleted. The token itself (granular, publish rights on
+  `@passkeybridge/satus`, expires 2026-10-12) still exists until revoked.
 - **Stage next Friday's post before Friday.** Unwritten: item 11 "pg_dump
   snapshots as test fixtures", item 12 "Seeding Supabase branches in CI".
 - The self-test's pagila fetch is unpinned; upstream broke it twice.
