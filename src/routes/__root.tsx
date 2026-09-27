@@ -213,7 +213,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               logo: "https://satus.sh/favicon.svg",
               email: "support@satus.sh",
               sameAs: [
-                "https://github.com/passkeybridge/satus",
+                "https://github.com/PasskeyBridge-LLC/satus",
                 "https://www.npmjs.com/package/@passkeybridge/satus",
               ],
             },

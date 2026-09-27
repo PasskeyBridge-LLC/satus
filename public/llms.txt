@@ -49,7 +49,7 @@ export OPENAI_API_KEY=sk-...        # or ANTHROPIC_API_KEY=sk-ant-... (pick one)
 
 ## GitHub Action
 
-Use `passkeybridge/satus/packages/action@main` — a composite action that installs the CLI and runs `satus generate` (optionally `--dry-run`) against a workflow-provided DATABASE_URL. Reference: https://satus.sh/docs/github-action.
+Use `PasskeyBridge-LLC/satus/packages/action@main` — a composite action that installs the CLI and runs `satus generate` (optionally `--dry-run`) against a workflow-provided DATABASE_URL. Reference: https://satus.sh/docs/github-action.
 
 ## Pages
 

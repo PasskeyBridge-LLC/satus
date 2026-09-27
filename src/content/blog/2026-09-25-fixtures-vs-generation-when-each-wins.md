@@ -130,7 +130,7 @@ Twenty-five orders drawn from a handful of three-letter currency codes will coll
 
 The validator has four finding classes: `not_null`, `fk_missing_parent`, `unique_duplicate`, and `length_overflow`. That list is in `packages/cli/src/generate/validate.ts`, and so is a note that `CHECK` constraints are planned and not yet introspected. The `status in ('pending','paid','refunded')` constraint on `orders` above is therefore invisible to the dry run. A real run would either satisfy it, because the profile steers the model toward plausible values, or fail the transaction and roll everything back. The dry run cannot tell you which.
 
-Multi-column `UNIQUE` constraints are not enforced during generation either, and cross-column arithmetic is not reconciled: a `subtotal` and a `total` will not add up unless the model happens to make them. These are the v0.x limits, stated in the [README](https://github.com/passkeybridge/satus#readme) under "Honest limits" and on the [troubleshooting page](/docs/troubleshooting), and repeated here because a post about what generation is good at should carry what it is not.
+Multi-column `UNIQUE` constraints are not enforced during generation either, and cross-column arithmetic is not reconciled: a `subtotal` and a `total` will not add up unless the model happens to make them. These are the v0.x limits, stated in the [README](https://github.com/PasskeyBridge-LLC/satus#readme) under "Honest limits" and on the [troubleshooting page](/docs/troubleshooting), and repeated here because a post about what generation is good at should carry what it is not.
 
 ## Where generation loses
 

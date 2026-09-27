@@ -5,7 +5,7 @@
 `satus` is a command-line tool that introspects your Postgres schema, topologically sorts your tables by foreign-key dependency, and writes seed rows that actually look like the product you're building. No more `user_1@example.com`, `Lorem ipsum`, or invoices that reference orders that reference customers that don't exist.
 
 - Website: <https://satus.sh>
-- Marketing repo: [passkeybridge/satus](https://github.com/passkeybridge/satus) (public, source-visible)
+- Marketing repo: [PasskeyBridge-LLC/satus](https://github.com/PasskeyBridge-LLC/satus) (public, source-visible)
 - Contact: <support@satus.sh>
 
 ## Status
@@ -183,7 +183,7 @@ The exact payload is defined by `RunTelemetry` in `packages/cli/src/generate/tel
 ## Development
 
 ```bash
-git clone git@github.com:passkeybridge/satus.git
+git clone git@github.com:PasskeyBridge-LLC/satus.git
 cd satus/packages/cli
 npm install
 npm run dev       # tsup --watch

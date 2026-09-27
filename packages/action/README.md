@@ -1,4 +1,4 @@
-# passkeybridge/satus-action
+# PasskeyBridge-LLC/satus/packages/action
 
 Run [`satus`](https://satus.sh) inside a GitHub Actions workflow. This composite action wraps `npx @passkeybridge/satus@<version> generate --json` and uploads the run manifest as a workflow artifact. No Docker image, no container startup cost.
 
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: passkeybridge/satus/packages/action@main
+      - uses: PasskeyBridge-LLC/satus/packages/action@main
         with:
           database-url: ${{ secrets.PREVIEW_DATABASE_URL }}
           rows: 250
@@ -36,7 +36,7 @@ jobs:
 For an Anthropic-first workflow, swap the two lines that mention OpenAI:
 
 ```yaml
-      - uses: passkeybridge/satus/packages/action@main
+      - uses: PasskeyBridge-LLC/satus/packages/action@main
         with:
           database-url: ${{ secrets.PREVIEW_DATABASE_URL }}
           provider: anthropic
@@ -49,7 +49,7 @@ For an Anthropic-first workflow, swap the two lines that mention OpenAI:
 For xAI, set `provider: xai` and expose `XAI_API_KEY` the same way. The `xai` provider needs a satus CLI release after 0.3.11; until that release is out, the pinned `satus-version` does not include it.
 
 ```yaml
-      - uses: passkeybridge/satus/packages/action@main
+      - uses: PasskeyBridge-LLC/satus/packages/action@main
         with:
           database-url: ${{ secrets.PREVIEW_DATABASE_URL }}
           provider: xai

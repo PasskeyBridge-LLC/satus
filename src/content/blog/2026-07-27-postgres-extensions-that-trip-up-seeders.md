@@ -53,11 +53,11 @@ If you are writing your own seeder and your users have started reporting "the da
 
 ## Reproduce it yourself
 
-The three failure modes above are packaged as runnable SQL in [`examples/extension-pitfalls`](https://github.com/passkeybridge/satus/tree/main/examples/extension-pitfalls) in the satus repository. Each script creates a small schema, runs the seed a type-driven generator would produce (catching and printing the errors so the script continues), then runs the seed that respects the extension's semantics. `./run.sh` executes all three in throwaway Docker containers; a copy-paste GitHub Actions job is in the README.
+The three failure modes above are packaged as runnable SQL in [`examples/extension-pitfalls`](https://github.com/PasskeyBridge-LLC/satus/tree/main/examples/extension-pitfalls) in the satus repository. Each script creates a small schema, runs the seed a type-driven generator would produce (catching and printing the errors so the script continues), then runs the seed that respects the extension's semantics. `./run.sh` executes all three in throwaway Docker containers; a copy-paste GitHub Actions job is in the README.
 
 ## References
 
-- [Runnable examples for this post](https://github.com/passkeybridge/satus/tree/main/examples/extension-pitfalls)—PostGIS, pgvector, and pgcrypto seed scripts with the failure cases included.
+- [Runnable examples for this post](https://github.com/PasskeyBridge-LLC/satus/tree/main/examples/extension-pitfalls)—PostGIS, pgvector, and pgcrypto seed scripts with the failure cases included.
 - [PostGIS documentation](https://postgis.net/documentation/)—geometry types, SRID handling, validity predicates.
 - [PostGIS `ST_IsValid`](https://postgis.net/docs/ST_IsValid.html) and [`ST_GeomFromEWKT`](https://postgis.net/docs/ST_GeomFromEWKT.html)—validity check and text-to-geometry constructor.
 - [pgvector README](https://github.com/pgvector/pgvector)—`vector(n)` type, distance operators, ANN index types.

@@ -64,7 +64,7 @@ The constraint engine cannot catch any of these because there are no constraints
 
 ## How satus handles JSONB today
 
-We owe this section honesty. As of v0.2.0, satus treats every JSONB column as a permissive object and asks the LLM-backed generator for a plausibly-shaped JSON value. The relevant line is in [`packages/cli/src/generate/schema.ts`](https://github.com/passkeybridge/satus/blob/main/packages/cli/src/generate/schema.ts), case `'json' | 'jsonb'` → `{ type: 'object' as const }`. There is no detection for "this JSONB column is secretly an array of foreign keys."
+We owe this section honesty. As of v0.2.0, satus treats every JSONB column as a permissive object and asks the LLM-backed generator for a plausibly-shaped JSON value. The relevant line is in [`packages/cli/src/generate/schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts), case `'json' | 'jsonb'` → `{ type: 'object' as const }`. There is no detection for "this JSONB column is secretly an array of foreign keys."
 
 That means satus, today, produces Failure 1 or Failure 2 on penpot's `participants` column — depending on how well the column name primes the generator. It will not produce Failure 3, because it does not know to pick from `profile.id`, so the IDs it invents will not exist. The visible symptom is that the seeded database loads, the threads exist, the thread participant counts are wrong, and nothing crashes until the application actually consults the field.
 
@@ -135,4 +135,4 @@ That is the work between v0.2.0 and the next minor release. Until it ships, the 
 - ActivityPub object semantics — [W3C ActivityPub §4](https://www.w3.org/TR/activitypub/#objects)
 - listmonk, `subscribers.attribs` declaration — [`schema.sql`](https://github.com/knadh/listmonk/blob/v3.0.0/schema.sql)
 - satus structural audit corpus — [`corpus/audit-2026-06-01.json`](https://satus.sh/corpus/audit-2026-06-01.json)
-- satus JSONB handling, today — [`packages/cli/src/generate/schema.ts`](https://github.com/passkeybridge/satus/blob/main/packages/cli/src/generate/schema.ts)
+- satus JSONB handling, today — [`packages/cli/src/generate/schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts)

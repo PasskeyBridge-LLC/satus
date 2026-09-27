@@ -156,4 +156,4 @@ If you are choosing between the two approaches today, the honest summary is that
 - [Anthropic: tool use overview](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview), including the per-model tool-choice token table
 - [Anthropic: strict tool use](https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use)
 - [OpenAI: structured outputs](https://platform.openai.com/docs/guides/structured-outputs)
-- Our implementations: `packages/cli/src/generate/providers/anthropic.ts` and `openai.ts` in [passkeybridge/satus](https://github.com/passkeybridge/satus)
+- Our implementations: `packages/cli/src/generate/providers/anthropic.ts` and `openai.ts` in [PasskeyBridge-LLC/satus](https://github.com/PasskeyBridge-LLC/satus)
