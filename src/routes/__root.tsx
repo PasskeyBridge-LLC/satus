@@ -179,6 +179,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      {
+        rel: "preload",
+        href: "/fonts/jetbrains-mono-latin.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
       // SVG favicon stays sharp at any DPR; modern browsers prefer it over .ico.
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       // 180×180 PNG fallback for Safari iOS home-screen / pinned-tab. Without
