@@ -40,6 +40,12 @@ export default defineConfig(({ mode }) => ({
 
   css: { transformer: "lightningcss" },
 
+  /* The entry chunk is about 300KB gzipped. Preloading it from <head>
+   * shares the slow-4G pipe with the stylesheet and the LCP font, and
+   * the font is what the largest text is waiting on. The module script
+   * at the end of the body still loads it for hydration. */
+  build: { modulePreload: false },
+
   resolve: {
     alias: { "@": `${process.cwd()}/src` },
     /* React and the TanStack query core must resolve to one copy each.
