@@ -37,9 +37,12 @@
  *                                throwaway address, expect a link back. No
  *                                email is actually sent (generateLink, not
  *                                signInWithOtp).
- *   4. email_queue            —read email_send_state and pg_cron jobs;
- *                                queue is healthy if not rate-limit-paused
- *                                and process-email-queue ran in last 5 min.
+ *   4. email_queue            —read email_send_state.retry_after_until and
+ *                                confirm suppressed_emails answers. Healthy
+ *                                when the send state is not paused and the
+ *                                suppression table is reachable. No mail-drain
+ *                                cron is scheduled, and this check does not
+ *                                pretend one ran.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
