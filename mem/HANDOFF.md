@@ -1,65 +1,51 @@
 # HANDOFF
 
-Written 2026-09-25. Replace this file next session; do not append.
+Written 2026-10-04. Replace this file next session; do not append.
 
 ## State
 
-`main` is production; `@passkeybridge/satus@0.3.11` is npm `latest`. No
-unmerged branches. Gates: tsc clean, eslint 0 errors, 34 site tests, 70 CLI
-tests, six validators (blog, docs, headings, titles, env, language),
-prettier clean.
+`main` is production. `@passkeybridge/satus@0.3.11` is the CLI version in
+`packages/cli/package.json`. Cloud Agent bootstrap is `.cursor/environment.json`:
+Node v24.21.0 and Bun 1.3.11 in `/opt/satus-toolchain`, site via
+`bun install --frozen-lockfile`, CLI via `npm ci`. Dev server is tmux
+session `dev-server` on port 5173. Verify commands and secret names are in
+`AGENTS.md`.
+
+Gates on that toolchain: tsc clean, eslint 0 errors (9 react-refresh
+warnings), 42 site tests, 78 CLI tests, six validators, site build, blog-leak
+check, CLI typecheck/lint/test/build. Homepage and `/pricing` returned 200
+from the dev server.
 
 ## Today
 
-**The Friday post was not staged.** The 08-27 batch ended at 09-18, and the
-previous handoff's "resumes at Q3 item 9" pointed at release notes
-published in August. Item 3 turned out to be already published across
-06-04, 07-31 and 08-21; the plan now says so rather than restating it.
-
-**Item 10 shipped:** "Fixtures vs generation, and when each wins",
-embargoed to 09:00 ET. Every transcript ran on PostgreSQL 16.13 against
-the shipped 0.3.11. No LLM key exists in this environment; `--dry-run`
-needs none, and the post is built on that. Two draft claims failed
-against the source and were fixed before publishing: the runner never
-reads existing rows for an excluded parent (`runner.ts` fails a `NOT
-NULL` FK into one, nulls a nullable one), and the v0.x limits are in the
-README and `/docs/troubleshooting`, not `/security`.
-
-**Local Postgres for the accuracy gate:** `initdb` as `nobody` under the
-scratchpad (`chmod o+x` the path first; it gets reset). The server does
-not survive between steps — start, run, and stop it inside one command.
+Read-only system map, then the agent environment. No product code changed.
+`git branch -r --no-merged origin/main` lists 12 branches; `git cherry` marks
+most as already applied. Non-equivalent leftovers:
+`origin/content/correct-07-17-pg-dump-claims` (4) and `origin/feat/xai-demo` (2).
+The TanStack Start advisory (GHSA-qx66-fv34-fjm8) is on `main` as `9c431bf`
+(`@tanstack/react-start@1.168.60`, lockfile `start-server-core@1.169.39`).
+Whether production is serving that SHA was not checked.
 
 ## Needs the owner
 
-- **Revoke the old npm token on npmjs.com.** Publishing is trusted
-  publishing (OIDC) only since 2026-09-27; the `NPM_PUBLISH_TOKEN` repo
-  secret was deleted. The token itself (granular, publish rights on
-  `@passkeybridge/satus`, expires 2026-10-12) still exists until revoked.
-- **Stage next Friday's post before Friday.** Unwritten: item 11 "pg_dump
-  snapshots as test fixtures", item 12 "Seeding Supabase branches in CI".
-- The self-test's pagila fetch is unpinned; upstream broke it twice.
+- Cursor secrets named in `AGENTS.md`. Leave the two live Stripe secrets off.
+- Revoke the old npm token on npmjs.com (handoff of 2026-09-25; not rechecked).
+- Draft post `src/content/blog/2026-10-09-pg-dump-snapshots-as-test-fixtures.md`
+  is `draft: true`, `publishAt` 2026-10-09 09:00 ET. The build withholds it.
 
 ## Flags, unchanged
 
-CSP absent — ship `Content-Security-Policy-Report-Only` first. e2e-health
-is rate limited, not authenticated. 19 `bun audit` findings, all dev-tree.
-79 poisoned suppression rows, deliberate. `minimumReleaseAge` blocks
-packages under 24h; confirm before bypassing. A `curl` 403 from this
-sandbox is Vercel rate-limiting the sandbox, not production; confirm from
-a second vantage point (`release-and-deploy-traps.md`).
+CSP absent. e2e-health is rate limited, not authenticated. Site `bun audit`
+is 38 findings (1 critical vitest, plus undici/sharp via nitro and the
+Cloudflare plugin). 79 poisoned suppression rows were left in place as of
+2026-09-04; current count not rechecked. `minimumReleaseAge` is 24h.
+Pagila in `action-selftest.yml` is still unpinned.
 
-## Voice
+## Graduated this session
 
-`house-voice.md` §Admitting mistakes, owner's rule of 09-18: say the fact,
-the fix, the version, and stop.
-
-## Do not redo
-
-`strict: true` on the Anthropic tool; the docs-vs-code audit (run the
-validator); purging the app-builder platform (`3abfa27`); the Stripe
-account default API version (moot, both payload shapes handled).
+None.
 
 ## Next
 
-1. Item 11 or 12 for 10-02, staged and gated before Friday.
-2. `(planned)` Team features on `/pricing`, and a support SLA.
+1. Confirm the 2026-10-09 post before Friday, or leave it draft.
+2. CSP report-only, then the e2e-health shared secret.
