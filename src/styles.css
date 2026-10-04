@@ -186,18 +186,9 @@
   transform: scaleX(0.4);
 }
 
-/* Page-load fade */
-@keyframes satus-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-.satus-fade {
-  animation: satus-fade-in 200ms ease both;
-}
+/* The shell used to fade in from opacity 0. Lighthouse does not count that
+ * first frame, so LCP waited on the animation. .satus-fade stays on the
+ * markup and no longer hides it. */
 
 /* Hero install-box: terminal caret blink at the end of the install command.
  * Purely decorative — cancelled under prefers-reduced-motion below. */
@@ -217,12 +208,9 @@
   animation: satus-caret-blink 1.1s steps(1, end) infinite;
 }
 
-/* A11y: respect reduced-motion preference. Cancel the entrance fade and
- * underline transition so vestibular-sensitive users see static UI. */
+/* A11y: respect reduced-motion preference. Cancel the underline transition
+ * and the caret blink so vestibular-sensitive users see static UI. */
 @media (prefers-reduced-motion: reduce) {
-  .satus-fade {
-    animation: none;
-  }
   .link-underline::after {
     transition: none;
   }

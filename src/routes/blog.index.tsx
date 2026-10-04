@@ -10,7 +10,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PageShell } from "@/components/site/chrome";
 import { Section, type SectionMeta } from "@/components/site/primitives";
-import { getPostSummaries, type PostSummary } from "@/lib/blog";
+import type { PostSummary } from "@/lib/blog";
 
 const SITE_URL = "https://satus.sh";
 const PATH = "/blog";
@@ -22,13 +22,16 @@ const SECTIONS: SectionMeta[] = [
 ];
 
 export const Route = createFileRoute("/blog/")({
-  /* Loader is synchronous because all posts are bundled. ensureQueryData is
-   * unnecessary; the parsed POSTS array is in module scope.
+  /* The post module is the bulk of the old entry chunk. Load it only when
+   * this route runs, not on every page.
    *
    * Summaries, not posts: the loader result is serialised into the page, so
    * returning full posts shipped every article body inside the index (630 KB
    * on 2026-09-17). See getPostSummaries. */
-  loader: () => ({ posts: getPostSummaries() }),
+  loader: async () => {
+    const { getPostSummaries } = await import("@/lib/blog");
+    return { posts: getPostSummaries() };
+  },
   head: () => ({
     meta: [
       { title: TITLE },
