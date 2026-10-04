@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-04",
+  "project": "xbnrjwzryuonuinzuomk",
+  "prior_snapshot": null,
+  "tables": [
+    {"name": "e2e_health_log", "rls": true, "forced": false, "policies": ["service role full access e2e_health_log"]},
+    {"name": "email_send_log", "rls": true, "forced": false, "policies": ["Service role can insert send log", "Service role can read send log", "Service role can update send log"]},
+    {"name": "email_send_state", "rls": true, "forced": false, "policies": ["Service role can manage send state"]},
+    {"name": "email_unsubscribe_tokens", "rls": true, "forced": false, "policies": ["Service role can insert tokens", "Service role can mark tokens as used", "Service role can read tokens"]},
+    {"name": "licenses", "rls": true, "forced": false, "policies": ["service role full access licenses"]},
+    {"name": "rate_limit_counters", "rls": true, "forced": false, "policies": []},
+    {"name": "satus_runs", "rls": true, "forced": false, "policies": ["service role full access satus_runs"]},
+    {"name": "suppressed_emails", "rls": true, "forced": false, "policies": ["Service role can insert suppressed emails", "Service role can read suppressed emails"]},
+    {"name": "waitlist_signups", "rls": true, "forced": false, "policies": ["Public waitlist insert with bounded payload"]},
+    {"name": "webhook_alerts_sent", "rls": true, "forced": false, "policies": ["service_role full access"]}
+  ],
+  "grants": "anon and authenticated hold DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on every public table listed above. RLS is enabled on all ten. The only policy that admits anon or authenticated is waitlist_signups INSERT, with length bounds on email, note, source, and user_agent. rate_limit_counters has RLS and no policy.",
+  "advisors": [
+    {"level": "INFO", "name": "rls_enabled_no_policy", "table": "public.rate_limit_counters", "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"},
+    {"level": "WARN", "name": "auth_leaked_password_protection", "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"}
+  ]
+}

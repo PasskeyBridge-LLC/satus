@@ -4,46 +4,40 @@ Written 2026-10-04. Replace this file next session; do not append.
 
 ## State
 
-`main` is production. `@passkeybridge/satus@0.3.11` is the CLI version in
-`packages/cli/package.json`. Cloud Agent bootstrap is `.cursor/environment.json`:
-Node v24.21.0, Bun 1.3.11, Docker (`fuse-overlayfs`), and Supabase CLI 2.119.0.
-`.cursor/start.sh` runs `scripts/test-db.sh` then the site on port 5173 against
-the local stack. `DATABASE_URL` in gitignored `.env.local` is the pagila
-throwaway on `127.0.0.1:5432`, not the hosted project.
+`main` and production are `18e9ce6cf3ab937ff2ddce30af7c78fa32c42e76`. Deployment
+`dpl_9wQcUvepcAQrcFY6VsBUTwxmRYnT` is READY, target production.
+`https://satus.sh/`, `/pricing`, and `/docs` return 200. CLI package version
+is 0.3.11. npm `latest` was not moved. `next` is still `0.3.11-orgmove.0`.
 
-Local proof on this VM: `scripts/test-db.sh --reset` applied 26 migrations and
-`supabase/seed.sql` (one synthetic license, production e2e cron unscheduled).
-License verify against `127.0.0.1:5173` returned valid for the seed key; the
-61st call from one IP in the window was `429 rate_limited` (counter hits 61).
-Webhook POSTs to that same local URL rejected a bad signature and a timestamp
-older than 300s (`400`), and accepted a freshly signed `local.fixture` (`200`).
-No request went to the production payments webhook.
+The ledger is `mem/weekly-e2e/2026-10-04.md`. Shipped: ST-9 #19, ST-7 #20,
+ST-1 #21, ST-5 and ST-6 #22, ST-14 #23, ST-12 and ST-13 #24, ST-4 #25,
+ST-11 #26 and #27. Lighthouse 12, mobile, simulated throttling, after #27:
+`/` LCP 2619 / 2417 / 2415 ms (median 2417) TBT 0; `/pricing` 2416 and 2413,
+TBT 0; `/docs` 2410 and 2411, TBT 0. Before: 3773/293, 3850/283, 3772/203.
 
-## Needs the owner
+## Left open on purpose
 
-- Cursor secrets named in `AGENTS.md`. Leave the two live Stripe secrets off.
-  This environment is still DB-managed (`environmentJsonPath` null), so a
-  dashboard Save is what makes the new install/start the boot default.
-- Revoke the old npm token on npmjs.com (handoff of 2026-09-25; not rechecked).
-- Draft post `src/content/blog/2026-10-09-pg-dump-snapshots-as-test-fixtures.md`
-  is `draft: true`, `publishAt` 2026-10-09 09:00 ET. The build withholds it.
+ST-2 e2e-health has no shared secret. ST-3 verify still fails open when the
+rate-limit RPC errors. ST-8 the 82 suppression rows were not deleted. ST-15
+leaked-password protection was not enabled. Do not merge
+`content/correct-07-17-pg-dump-claims`, `feat/xai-demo`, or
+`ops/weekly-e2e-spec`. Do not move the npm dist-tag from here.
 
-## Flags, unchanged
+## Flags
 
-CSP absent. e2e-health is rate limited, not authenticated. Site `bun audit`
-is 38 findings. 79 poisoned suppression rows were left in place as of
-2026-09-04; current count not rechecked. `minimumReleaseAge` is 24h.
-Pagila in `action-selftest.yml` is still unpinned; the local throwaway uses
-that same URL. `email_queue_dispatch` and `email_queue_wake` are still not
-created by any migration; the 2026-07-01 revoke now skips them when absent
-so a fresh replay can finish.
+`DO_NOT_TRACK` wins. Telemetry stays off unless configured.
+`minimumReleaseAge` is 24h. Report-only Content-Security-Policy is on `/`;
+there is no enforcing policy. `POST /api/public/cli/run` fails closed at 60
+per hour per IP hash. Two moderate vitest mocker findings remain
+(GHSA-82fw-gwwq-j7x9); the patched line is vitest ≥4.1.11. Multi-column
+UNIQUE, cross-column arithmetic, and `--seed` stay documented CLI limits.
 
 ## Graduated this session
 
-Local test database: `scripts/test-db.sh`, `supabase/seed.sql`, and the
-AGENTS.md database section.
+2026-10-04 resolutions, into the ledger. Local test database stays
+`scripts/test-db.sh`.
 
 ## Next
 
-1. Confirm the 2026-10-09 post before Friday, or leave it draft.
-2. CSP report-only, then the e2e-health shared secret.
+1. Confirm the 2026-10-09 draft post before Friday, or leave it draft.
+2. Revoke the old npm token on npmjs.com (handoff of 2026-09-25).
