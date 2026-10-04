@@ -11,7 +11,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { PageShell } from "@/components/site/chrome";
 import { type SectionMeta } from "@/components/site/primitives";
-import { getPostBySlug } from "@/lib/blog";
 
 const SITE_URL = "https://satus.sh";
 
@@ -22,7 +21,8 @@ const SITE_URL = "https://satus.sh";
 const SECTIONS: SectionMeta[] = [{ id: "post", n: "00", label: "Post" }];
 
 export const Route = createFileRoute("/blog/$slug")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
+    const { getPostBySlug } = await import("@/lib/blog");
     const post = getPostBySlug(params.slug);
     if (!post) throw notFound();
     return { post };
