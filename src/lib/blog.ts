@@ -36,6 +36,7 @@
  */
 
 import { marked } from "marked";
+import { focusableScrollRegions } from "./blog-html";
 import { z } from "zod";
 /* Raw markdown keyed by `/src/content/blog/<file>.md`. In `vite build` this
  * holds publishable posts only; in `vite dev` it is every post, and
@@ -164,7 +165,7 @@ function parsePost(rawPath: string, raw: string): Post {
     );
   }
   const fm = result.data;
-  const html = marked.parse(body, { async: false }) as string;
+  const html = focusableScrollRegions(marked.parse(body, { async: false }) as string);
   /* Crude but adequate plain-text derivation for the RSS <description> and
    * the index-page dek. Never rendered as HTML, so stripping tags is safe. */
   const plain = body
