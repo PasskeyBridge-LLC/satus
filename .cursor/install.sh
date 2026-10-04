@@ -61,8 +61,43 @@ PY
   rm -rf "$tmp"
 }
 
+# Supabase CLI 2.119.0, checksum from the GitHub release asset digest.
+SUPABASE_VERSION=2.119.0
+SUPABASE_SHA256=bf1c3ae93be98533eb8a3105dbf4564bd0b2d9dc24690d8a920f980ef975c1b4
+
+install_supabase() {
+  local current=""
+  if [[ -x "$PREFIX/bin/supabase" ]]; then
+    current="$("$PREFIX/bin/supabase" --version 2>/dev/null || true)"
+  fi
+  if [[ "$current" == "$SUPABASE_VERSION" ]]; then
+    sudo ln -sfn "$PREFIX/bin/supabase" /usr/local/bin/supabase
+    return 0
+  fi
+
+  local tmp
+  tmp="$(mktemp -d)"
+  curl -fsSL "https://github.com/supabase/cli/releases/download/v${SUPABASE_VERSION}/supabase_${SUPABASE_VERSION}_linux_amd64.tar.gz" \
+    -o "$tmp/supabase.tar.gz"
+  echo "${SUPABASE_SHA256}  $tmp/supabase.tar.gz" | sha256sum -c -
+  tar -xzf "$tmp/supabase.tar.gz" -C "$tmp"
+  sudo install -m 755 "$tmp/supabase" "$PREFIX/bin/supabase"
+  sudo ln -sfn "$PREFIX/bin/supabase" /usr/local/bin/supabase
+  rm -rf "$tmp"
+}
+
+install_docker() {
+  sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+    -o Dpkg::Options::="--force-confold" \
+    docker.io docker-cli containerd fuse-overlayfs iptables postgresql-client ca-certificates curl
+  sudo usermod -aG docker "$(id -un)" || true
+}
+
 install_node
 install_bun
+install_supabase
+install_docker
 
 sudo tee /etc/profile.d/satus-toolchain.sh >/dev/null <<EOF
 export PATH="${PREFIX}/bin:\$PATH"
