@@ -23,12 +23,13 @@ jobs:
       # the DB user must be `postgres` — anything else aborts the load.
       #
       # pgvector/pgvector:pg18, not postgres:16: the schema is fetched from
-      # pagila's `master` below, and upstream now declares
+      # a pinned pagila commit below, and that commit declares
       # `uuid DEFAULT uuidv7()` (a built-in from PostgreSQL 18) and runs
       # `CREATE EXTENSION vector`. On postgres:16 the load died at `CREATE
       # TABLE customer`; on postgres:18 at the extension. This workflow was
       # red on main from 2026-08-14 to 2026-09-15 for those two reasons and
-      # no other. The fetch is still unpinned, so upstream can do this again.
+      # no other. The fetch is pinned, so a later upstream change stays out
+      # until this SHA moves.
       postgres:
         image: pgvector/pgvector:pg18
         env:
@@ -47,7 +48,7 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/pagila
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       # Pagila is the same fixture the corpus audit uses. Loading only the
       # schema (not the sample data) keeps the run fast and gives satus a
@@ -57,7 +58,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends postgresql-client
-          curl -fsSL https://raw.githubusercontent.com/devrimgunduz/pagila/master/pagila-schema.sql \
+          curl -fsSL https://raw.githubusercontent.com/devrimgunduz/pagila/9baf49c4149e43229f6021e6218d6b2ac8ef4f34/pagila-schema.sql \
             -o /tmp/pagila-schema.sql
           PGPASSWORD=postgres psql -h localhost -U postgres -d pagila -v ON_ERROR_STOP=1 -f /tmp/pagila-schema.sql
           # pagila's `payment` table is RANGE-partitioned by payment_date and

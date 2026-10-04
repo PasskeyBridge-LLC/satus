@@ -105,8 +105,8 @@ ensure_pagila() {
     return 0
   fi
 
-  # Same unpinned schema the action self-test loads. Not production data.
-  curl -fsSL https://raw.githubusercontent.com/devrimgunduz/pagila/master/pagila-schema.sql \
+  # Same commit the action self-test loads. Not production data.
+  curl -fsSL https://raw.githubusercontent.com/devrimgunduz/pagila/9baf49c4149e43229f6021e6218d6b2ac8ef4f34/pagila-schema.sql \
     -o /tmp/pagila-schema.sql
   PGPASSWORD=postgres psql -h 127.0.0.1 -p 5432 -U postgres -d pagila -v ON_ERROR_STOP=1 \
     -f /tmp/pagila-schema.sql >/dev/null
