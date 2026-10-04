@@ -52,7 +52,7 @@ satus generate --profile saas --dry-run   # plan only, no LLM call, no writes
 
 `satus generate` writes rows, so before it writes anything it counts rows in every user table — every table outside `pg_catalog`, `information_schema`, and `pg_toast`, in every schema, not just the one being seeded. If the total exceeds **10,000** the run is refused.
 
-The intent is narrow: catch the case where `DATABASE_URL` was pointed at production by accident. 10,000 is deliberately conservative — a fresh dev database sits at zero, a container with today's migrations sits in the low hundreds, an already-seeded test database sits in the low thousands.
+The intent is narrow: catch the case where `DATABASE_URL` was pointed at production by accident. 10,000 is deliberately conservative — a fresh dev database sits at zero, a container with today's migrations sits in the low hundreds, an already-seeded test database sits in the low thousands. For a local throwaway, `scripts/test-db.sh` in the marketing repo starts pagila on `127.0.0.1:5432` and writes that URL into gitignored `.env.local`. Do not put the hosted project in `DATABASE_URL`.
 
 ```
 Refusing to run: this database already holds more than 10,000 rows across 7 user table(s).

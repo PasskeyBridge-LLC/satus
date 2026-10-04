@@ -22,6 +22,46 @@ If `node -v` is not `v24.21.0`, run:
 export PATH="/opt/satus-toolchain/bin:$PATH"
 ```
 
+## Local databases
+
+`scripts/test-db.sh` starts a free local Supabase stack (Docker) and a
+throwaway Postgres for the CLI. It does not create a hosted project, and it
+does not send events to `https://satus.sh`.
+
+| What | Where |
+|---|---|
+| Supabase API | `http://127.0.0.1:54321` |
+| Supabase Postgres | `127.0.0.1:54322` (user `postgres`, database `postgres`) |
+| CLI `DATABASE_URL` | `postgres://postgres:postgres@127.0.0.1:5432/pagila` |
+
+The throwaway matches `.github/workflows/action-selftest.yml`: image
+`pgvector/pgvector:pg18`, database `pagila`, and the unpinned
+`pagila-schema.sql` from that workflow plus a default `payment` partition.
+`DATABASE_URL` in the generated `.env.local` is this database. Never point
+it at the hosted project.
+
+`supabase/config.toml` is the CLI local config (Postgres 17, API port
+54321, database port 54322). `supabase/seed.sql` inserts one synthetic
+license (`local-seed@example.test`) and unschedules `satus-e2e-health-daily`,
+the migration that would GET the production health hook. Migrations:
+`bash scripts/test-db.sh --reset` replays all of them and the seed.
+`email_queue_dispatch` / `email_queue_wake` are revoked only when present;
+those functions are not created by any file in this repo (they were
+installed on the hosted project with the out-of-band email cron).
+
+Docker on this image needs the `fuse-overlayfs` storage driver (overlay2
+cannot mount here) and `net.bridge.bridge-nf-call-iptables=0` (the legacy
+FORWARD policy drops traffic on user-defined bridges). `.cursor/install.sh`
+installs Docker, `fuse-overlayfs`, the Postgres client, and Supabase CLI
+**2.119.0**. `.cursor/start.sh` starts the daemon, both databases, writes
+gitignored `.env.local` from `supabase status`, and serves the site against
+that file.
+
+```bash
+bash scripts/test-db.sh
+bash scripts/test-db.sh --reset
+```
+
 ## Dev server
 
 `.cursor/start.sh` serves the site in tmux session **`dev-server`**.
