@@ -5,7 +5,9 @@
  * POST { key: string } → { valid: bool, plan?, expires_at?, reason? }
  *
  * Treats canceled-but-still-within-period as valid (grace window).
- * Revoked or past-due keys are rejected.
+ * past_due within the current period is valid billing grace too.
+ * Revoked keys are rejected. A period end in the past is expired,
+ * whatever the status.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
