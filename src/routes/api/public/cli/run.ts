@@ -24,13 +24,26 @@
  * as well, or it only holds for users who upgrade.
  *
  * Public + bounded payload. No auth: the CLI runs on customer machines
- * where we can't ship secrets. Tight zod validation + small INSERTs only.
+ * where we can't ship secrets. Tight zod validation, a fail-closed
+ * per-IP-hash rate limit (`cli_run`, 60/hour), and small INSERTs only.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
 import { TELEMETRY_PROVIDERS } from "@/lib/telemetry-providers";
 import { z } from "zod";
+import crypto from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+// Two posts per generate (running, then success or failed). 60/hour is
+// thirty generates from one address: above interactive use, still a bound
+// on a script that would otherwise fill `satus_runs`. Counted in Postgres
+// via `check_rate_limit`, after the body validates and before any write,
+// so a malformed payload does not spend the budget. Fails closed: a
+// counter that errors or returns a non-number refuses the insert. A public
+// sink that fails open is how the table gets flooded when Postgres hiccups.
+const RATE_BUCKET = "cli_run";
+const RATE_WINDOW_SECONDS = 3600;
+const RATE_LIMIT = 60;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -121,6 +134,32 @@ function toRow(data: z.infer<typeof RunSchema>): Record<string, unknown> {
   return row;
 }
 
+function hashIp(ip: string | null): string {
+  const value = ip && ip.length > 0 ? ip : "unknown";
+  return crypto.createHash("sha256").update(value).digest("hex").slice(0, 32);
+}
+
+function clientIp(request: Request): string | null {
+  return (
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    null
+  );
+}
+
+async function overLimit(ipHash: string): Promise<boolean> {
+  const { data, error } = await supabaseAdmin.rpc("check_rate_limit", {
+    p_bucket: RATE_BUCKET,
+    p_key: ipHash,
+    p_window_seconds: RATE_WINDOW_SECONDS,
+  });
+  if (error || typeof data !== "number") {
+    console.error("[cli/run] rate-limit counter failed", error ?? data);
+    return true;
+  }
+  return data > RATE_LIMIT;
+}
+
 export const Route = createFileRoute("/api/public/cli/run")({
   server: {
     handlers: {
@@ -135,6 +174,9 @@ export const Route = createFileRoute("/api/public/cli/run")({
         const parsed = RunSchema.safeParse(body);
         if (!parsed.success) {
           return json(400, { ok: false, reason: "invalid_payload", issues: parsed.error.issues });
+        }
+        if (await overLimit(hashIp(clientIp(request)))) {
+          return json(429, { ok: false, reason: "rate_limited" });
         }
         const row = toRow(parsed.data);
 
