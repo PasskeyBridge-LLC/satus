@@ -12,8 +12,9 @@ and has no tag.
 
 The ledger is `mem/weekly-e2e/2026-10-05.md`. NEW 1 / FIXED 0 / STILL-OPEN 5 /
 REGRESSED 0. `/recipes` fails axe contrast (4.42:1) and one scrollable `pre`.
-Local fix `81cedf6` on `cursor/recipes-axe-contrast-b38b` was not pushed:
-`git-receive-pack` returned HTTP 401. It is not in production.
+Fix `81cedf6` is on `origin/cursor/recipes-axe-contrast-b38b`. The first push
+returned HTTP 401; a retry succeeded. It is not in production until that
+branch is on `main` and a deployment for the squash SHA is READY.
 
 ## Left open on purpose
 
@@ -42,9 +43,8 @@ were empty.
 
 ## Next
 
-1. Push `cursor/recipes-axe-contrast-b38b` once GitHub credentials work,
-   squash-merge, and confirm a production deployment for that SHA. Re-run axe
-   on `/recipes`.
+1. Squash-merge `cursor/recipes-axe-contrast-b38b`, confirm a production
+   deployment for that SHA, and re-run axe on `/recipes`.
 2. Confirm the 2026-10-09 draft post before Friday, or leave it draft.
 3. Revoke the old npm token on npmjs.com (handoff of 2026-09-25).
 4. Confirm the Auth leaked-password toggle. Do not infer it from the missing
