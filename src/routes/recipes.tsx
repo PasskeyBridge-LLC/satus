@@ -230,7 +230,7 @@ function RecipesPage() {
 function Terminal({ children }: { children: ReactNode }) {
   return (
     <div className="mt-8 max-w-[760px] border-y border-[var(--ink)]">
-      <pre className="overflow-x-auto px-1 py-6 font-mono text-[13px] leading-[1.85]">
+      <pre tabIndex={0} className="overflow-x-auto px-1 py-6 font-mono text-[13px] leading-[1.85]">
         {children}
       </pre>
     </div>
@@ -258,9 +258,8 @@ function Blank() {
 function Note({ children }: { children: ReactNode }) {
   return (
     <div className="mt-6 max-w-[760px] border-l-2 border-[var(--signal)] bg-[var(--ink)]/[0.02] px-5 py-4">
-      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--signal)]">
-        note
-      </div>
+      {/* #b91c1c is 5.92:1 on the tinted note. Signal red (#dc2626) is 4.42:1 at 10px. */}
+      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#b91c1c]">note</div>
       <p className="mt-2 max-w-[62ch] text-[14px] leading-[1.6] text-[var(--ink)]/85 [&_code]:font-mono [&_code]:text-[13px] [&_code]:text-[var(--ink)]">
         {children}
       </p>

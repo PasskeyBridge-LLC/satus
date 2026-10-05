@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-05",
+  "production_sha": "0afb8df00467eb1b0353dc5abd80a37e28f212b9",
+  "deployment": "dpl_AFSzMiQwQPTgNM1ieC5wqNWv2eBM",
+  "lighthouse": {
+    "tool": "lighthouse@12",
+    "throttling": "simulated",
+    "home_mobile": [
+      {"lcp_ms": 2654, "cls": 0, "tbt_ms": 0, "score": 95},
+      {"lcp_ms": 2411, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2414, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "home_mobile_median_lcp_ms": 2414,
+    "pricing_mobile": [
+      {"lcp_ms": 2415, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2412, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "docs_mobile": [
+      {"lcp_ms": 2410, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2412, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "blog_mobile": [
+      {"lcp_ms": 2261, "cls": 0.027672, "tbt_ms": 0, "score": 98},
+      {"lcp_ms": 2418, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "home_desktop": [
+      {"lcp_ms": 2414, "cls": 0, "tbt_ms": 0, "score": 80},
+      {"lcp_ms": 2420, "cls": 0, "tbt_ms": 0, "score": 81}
+    ],
+    "pricing_desktop": [
+      {"lcp_ms": 2411, "cls": 0, "tbt_ms": 0, "score": 81},
+      {"lcp_ms": 2417, "cls": 0, "tbt_ms": 0, "score": 79}
+    ],
+    "docs_desktop": [
+      {"lcp_ms": 2415, "cls": 0, "tbt_ms": 0, "score": 81},
+      {"lcp_ms": 2410, "cls": 0, "tbt_ms": 0, "score": 80}
+    ],
+    "blog_desktop": [
+      {"lcp_ms": 2410, "cls": 0, "tbt_ms": 0, "score": 81},
+      {"lcp_ms": 2413, "cls": 0, "tbt_ms": 0, "score": 80}
+    ],
+    "blog_path": "/blog/v0-3-11-release-notes"
+  },
+  "axe": {
+    "tool": "axe-core 4.13.0",
+    "tags": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"],
+    "browser": "Chrome 148 headless",
+    "serious_or_critical": {
+      "/recipes": [
+        {"id": "color-contrast", "impact": "serious", "nodes": 4, "detail": "10px #dc2626 on #f5f5f2 is 4.42:1"},
+        {"id": "scrollable-region-focusable", "impact": "serious", "nodes": 1, "target": "#preview-branch pre"}
+      ]
+    },
+    "zero_on": ["/", "/pricing", "/checkout", "/checkout/success", "/checkout/cancel", "/cli", "/quickstart", "/docs", "/docs/how-it-works", "/docs/troubleshooting", "/docs/github-action", "/profiles", "/compare", "/demo", "/security", "/privacy", "/terms", "/blog", "/blog/v0-3-11-release-notes"]
+  },
+  "h1": 1,
+  "console_errors": 0,
+  "same_origin_4xx": 0,
+  "demo_pglite": {"ran": true, "rows": 1, "generatePressed": false, "generateRequests": 0}
+}
