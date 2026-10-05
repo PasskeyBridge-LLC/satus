@@ -34,7 +34,7 @@ export const SITE_NAV = [
 
 /* Single source of truth for the upstream repo URL.
  * The CLI ships from PasskeyBridge LLC's GitHub org. */
-export const GITHUB_URL = "https://github.com/passkeybridge/satus";
+export const GITHUB_URL = "https://github.com/PasskeyBridge-LLC/satus";
 
 /* ------------------ TopBar ------------------ */
 

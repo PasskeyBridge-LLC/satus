@@ -133,7 +133,8 @@ function CliPage() {
             <code>ANTHROPIC_API_KEY</code> are exported and no <code>--provider</code> flag or{" "}
             <code>provider</code> config field is set, the run aborts with a clear message —
             auto-detect deliberately refuses to guess so a misplaced key never spends on the wrong
-            invoice.
+            invoice. <code>XAI_API_KEY</code> is auto-detected only when neither of those two is
+            set.
           </p>
         </Prose>
 
@@ -145,13 +146,18 @@ function CliPage() {
           />
           <EnvVar
             name="OPENAI_API_KEY"
-            req="one of two"
+            req="one of three"
             body="Bring-your-own OpenAI key. satus never proxies LLM calls; the request goes directly from your machine to OpenAI. OPENAI_BASE_URL is honored if you need to point at an OpenAI-compatible endpoint (Groq, Together, a local proxy)."
           />
           <EnvVar
             name="ANTHROPIC_API_KEY"
-            req="one of two"
+            req="one of three"
             body="Bring-your-own Anthropic key. The CLI calls api.anthropic.com directly using the pinned Messages API (anthropic-version: 2023-06-01) with tool-use forcing for structured output. ANTHROPIC_BASE_URL is honored if you need a compatible proxy."
+          />
+          <EnvVar
+            name="XAI_API_KEY"
+            req="one of three"
+            body="Bring-your-own xAI key, from the CLI release after 0.3.11. The CLI calls api.x.ai/v1/chat/completions directly with strict json_schema output; the default model is grok-4.20-0309-non-reasoning. XAI_BASE_URL is honored if you need a compatible proxy."
           />
         </ul>
       </Section>
@@ -232,12 +238,12 @@ function CliPage() {
             [
               "--provider <id>",
               "auto-detect",
-              "LLM provider: openai or anthropic. Falls back to env-var auto-detect (errors if both keys are set with no explicit choice).",
+              "LLM provider: openai, anthropic or xai (xai from the CLI release after 0.3.11). Falls back to env-var auto-detect (errors if both the OpenAI and Anthropic keys are set with no explicit choice).",
             ],
             [
               "--model <id>",
               "provider default",
-              "Model id. Defaults to gpt-4o-mini for openai and claude-haiku-4-5 for anthropic. Cross-provider model names are not validated client-side.",
+              "Model id. Defaults to gpt-4o-mini for openai, claude-haiku-4-5 for anthropic and grok-4.20-0309-non-reasoning for xai. Cross-provider model names are not validated client-side.",
             ],
             [
               "--truncate",

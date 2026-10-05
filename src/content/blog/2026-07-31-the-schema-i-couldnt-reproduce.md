@@ -28,7 +28,7 @@ The third property is the expensive one. Our test corpus covers each feature in 
 
 ## Reproduction one: a partitioned table with per-partition foreign keys
 
-The longest reproduction we have had was not a customer schema at all. It was [pagila](https://github.com/devrimgunduz/pagila), which sits in our [audit corpus](https://github.com/passkeybridge/satus/blob/main/corpus/sources.json) and started failing our self-test after we widened the free-tier table cap.
+The longest reproduction we have had was not a customer schema at all. It was [pagila](https://github.com/devrimgunduz/pagila), which sits in our [audit corpus](https://github.com/PasskeyBridge-LLC/satus/blob/main/corpus/sources.json) and started failing our self-test after we widened the free-tier table cap.
 
 Two facts had to be true simultaneously for the failure to appear. Pagila's `payment` table is declared as a partitioned parent, and its foreign keys are declared on the partition children rather than on the parent. In `pg_catalog`, the parent carries `relkind = 'p'` and each child carries `relispartition = true`, and the same logical constraint appears once per child under a distinct `conname`. Our introspection walked `pg_constraint` without accounting for either, so a single logical FK edge arrived at the planner as N duplicated edges pointing at tables the planner had also enumerated as insert targets. Postgres routes an `INSERT` on the parent to the correct partition, so inserting into the children directly is both unnecessary and wrong.
 
@@ -62,7 +62,7 @@ The point is not to identify a schema. It is that two reports carrying the same 
 
 ### 4. A runnable failure fixture, for anything extension-shaped
 
-When the trigger is an extension, prose is not enough. [`examples/extension-pitfalls/`](https://github.com/passkeybridge/satus/tree/main/examples/extension-pitfalls) contains three idempotent SQL scripts that provoke and then correct the PostGIS, pgvector, and pgcrypto failure modes described in [Postgres extensions that trip up seeders](/blog/postgres-extensions-that-trip-up-seeders), plus a Docker runner. Handing a reporter a script that fails identically on their machine and ours converts an argument about behaviour into a diff.
+When the trigger is an extension, prose is not enough. [`examples/extension-pitfalls/`](https://github.com/PasskeyBridge-LLC/satus/tree/main/examples/extension-pitfalls) contains three idempotent SQL scripts that provoke and then correct the PostGIS, pgvector, and pgcrypto failure modes described in [Postgres extensions that trip up seeders](/blog/postgres-extensions-that-trip-up-seeders), plus a Docker runner. Handing a reporter a script that fails identically on their machine and ours converts an argument about behaviour into a diff.
 
 ## The minimal repro we ask for
 
@@ -96,7 +96,7 @@ We have not eliminated the slow ticket. A feature combination we have never seen
 - PostgreSQL documentation, [Table Partitioning](https://www.postgresql.org/docs/current/ddl-partitioning.html), on routing inserts through the parent.
 - PostgreSQL documentation, [`pg_dump`](https://www.postgresql.org/docs/current/app-pgdump.html), for `--schema-only`, `--no-owner`, `--no-privileges`.
 - [pagila](https://github.com/devrimgunduz/pagila)—the partitioned schema in our audit corpus.
-- [`examples/extension-pitfalls/`](https://github.com/passkeybridge/satus/tree/main/examples/extension-pitfalls)—runnable PostGIS, pgvector, and pgcrypto fixtures.
+- [`examples/extension-pitfalls/`](https://github.com/PasskeyBridge-LLC/satus/tree/main/examples/extension-pitfalls)—runnable PostGIS, pgvector, and pgcrypto fixtures.
 - [What pg_dump doesn't tell you about your own schema](/blog/what-pg-dump-doesnt-tell-you).
 - [A $0 dry-run that catches FK and constraint bugs before the LLM call](/blog/dry-run-validation).
 - [Postgres extensions that trip up seeders](/blog/postgres-extensions-that-trip-up-seeders).

@@ -144,8 +144,8 @@ function TermsPage() {
       <Section id="byo-key" n="04" label="BYO key" title={<>you supply your own llm api key.</>}>
         <Prose>
           <p>
-            satus requires an API key from a supported LLM provider (OpenAI or Anthropic) to
-            generate column-level values. You are responsible for:
+            satus requires an API key from a supported LLM provider (OpenAI or Anthropic; xAI from
+            the CLI release after 0.3.11) to generate column-level values. You are responsible for:
           </p>
           <ul className="ml-5 list-disc space-y-1">
             <li>Procuring and paying for your own provider account.</li>
@@ -159,6 +159,10 @@ function TermsPage() {
           <p>
             We are not a sub-processor for your LLM provider. Prompts and completions flow directly
             from your machine to the provider; we never see them.
+          </p>
+          <p>
+            The in-browser demo at satus.sh/demo is the exception: it runs on our API key, and the
+            column names, types and enum labels you enter are sent to xAI to generate rows.
           </p>
         </Prose>
       </Section>

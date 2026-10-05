@@ -67,7 +67,7 @@ const FAQS: Faq[] = [
   // -------- LLM provider --------
   {
     q: "E_LLM_AUTH: provider key missing, malformed, or rejected",
-    a: "Either the variable for the selected provider isn't set (OPENAI_API_KEY or ANTHROPIC_API_KEY), the key has the wrong shape, or the provider rejected it (revoked, billing problem, wrong organisation). Check `echo $OPENAI_API_KEY` (or `$ANTHROPIC_API_KEY`) returns a value, and verify the key in the provider's dashboard. satus never proxies your key—the call goes from your machine directly to the provider.",
+    a: "Either the variable for the selected provider isn't set (OPENAI_API_KEY, ANTHROPIC_API_KEY or XAI_API_KEY), the key has the wrong shape, or the provider rejected it (revoked, billing problem, wrong organisation). Check `echo $OPENAI_API_KEY` (or `$ANTHROPIC_API_KEY`) returns a value, and verify the key in the provider's dashboard. satus never proxies your key—the call goes from your machine directly to the provider.",
   },
   {
     q: "E_LLM_RATE_LIMIT: provider rate-limited the run",
@@ -78,8 +78,8 @@ const FAQS: Faq[] = [
     a: "Use --max-cost <usd> to cap the spend; by default the planner refuses to proceed if the estimated cost exceeds $1.00. Always preview with `satus generate --profile <name> --dry-run` first—the planner prints `estimated cost · $X.XX` before any LLM calls actually fire. For per-batch detail, add `-v` / `--verbose`; for machine-readable summaries pipe `--json` into jq.",
   },
   {
-    q: "Can I use Anthropic or Gemini instead of OpenAI?",
-    a: "Anthropic, yes — as of v0.3.0. Set ANTHROPIC_API_KEY and the CLI picks it up; the default model is claude-haiku-4-5. If both OPENAI_API_KEY and ANTHROPIC_API_KEY are exported, pass --provider openai|anthropic (or set the provider field in satus.config.json) so we know which one to use. Gemini is not supported yet; see the changelog for the active roadmap.",
+    q: "Can I use Anthropic, xAI or Gemini instead of OpenAI?",
+    a: "Anthropic, yes, as of v0.3.0. Set ANTHROPIC_API_KEY and the CLI picks it up; the default model is claude-haiku-4-5. If both OPENAI_API_KEY and ANTHROPIC_API_KEY are exported, pass --provider openai|anthropic (or set the provider field in satus.config.json) so we know which one to use. xAI is supported from the CLI release after 0.3.11: set XAI_API_KEY and pass --provider xai (the default model is grok-4.20-0309-non-reasoning). Gemini is not supported yet; see the changelog for the active roadmap.",
   },
 
   // -------- Runtime & rollback --------
@@ -230,8 +230,9 @@ function TroubleshootingPage() {
       <Section id="llm" n="03" label="LLM provider" title={<>your key. your bill. your retries.</>}>
         <Prose>
           <p>
-            satus calls OpenAI directly from your machine. Authentication and rate-limit errors come
-            straight from the provider; we map them to stable exit codes so CI can branch on them.
+            satus calls your LLM provider directly from your machine. Authentication and rate-limit
+            errors come straight from the provider; we map them to stable exit codes so CI can
+            branch on them.
           </p>
         </Prose>
         <FaqList items={groupFor("llm")} />

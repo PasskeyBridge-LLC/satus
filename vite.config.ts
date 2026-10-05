@@ -20,6 +20,7 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { nitro } from "nitro/vite";
+import { blogPosts } from "./scripts/vite-plugin-blog-posts";
 
 export default defineConfig(({ mode }) => ({
   /* Inline every VITE_* value as a literal, rather than leaning on Vite's
@@ -38,6 +39,12 @@ export default defineConfig(({ mode }) => ({
   ),
 
   css: { transformer: "lightningcss" },
+
+  /* The entry chunk is about 300KB gzipped. Preloading it from <head>
+   * shares the slow-4G pipe with the stylesheet and the LCP font, and
+   * the font is what the largest text is waiting on. The module script
+   * at the end of the body still loads it for hydration. */
+  build: { modulePreload: false },
 
   resolve: {
     alias: { "@": `${process.cwd()}/src` },
@@ -68,6 +75,9 @@ export default defineConfig(({ mode }) => ({
   },
 
   plugins: [
+    /* Blog sources, with drafts and embargoed posts removed at build time
+     * so they never reach any bundle. See the plugin's header. */
+    blogPosts(),
     tailwindcss(),
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({

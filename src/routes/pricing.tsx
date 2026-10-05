@@ -80,7 +80,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Which LLM providers are supported?",
-    a: "OpenAI and Anthropic are supported today. The CLI auto-detects which key is present (OPENAI_API_KEY or ANTHROPIC_API_KEY) and uses structured outputs against the corresponding provider. Google Gemini is not yet supported. Email support@satus.sh if your stack needs another provider.",
+    a: "OpenAI and Anthropic are supported today, and xAI from the CLI release after 0.3.11. The CLI auto-detects which key is present (OPENAI_API_KEY, ANTHROPIC_API_KEY or XAI_API_KEY) and uses structured outputs against the corresponding provider. Google Gemini is not yet supported. Email support@satus.sh if your stack needs another provider.",
   },
   {
     q: "Is there a free trial on Pro?",

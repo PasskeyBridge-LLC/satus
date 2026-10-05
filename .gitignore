@@ -21,10 +21,19 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+# Env files are never tracked (2026-09-27). Values live in the Vercel
+# project env and, locally, in .env.local. Only the names-only template is
+# committed.
+.env*
+!.env.example
 
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/
 
 # Editor directories and files
 .vscode/*

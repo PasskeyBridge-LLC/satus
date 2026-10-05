@@ -1,0 +1,83 @@
+name: scheduled-publish
+
+# Production builds withhold embargoed blog posts (scripts/vite-plugin-blog-posts.ts),
+# so a post with a future `publishAt` goes live only on the first build after
+# that instant. This workflow provides that build: hourly, it checks whether
+# any non-draft post's `publishAt` fell between the last successful run and
+# now, and if so asks Vercel for a production redeploy of `main` through a
+# deploy hook.
+#
+# Setup (owner): create a Vercel deploy hook for project `satus` on branch
+# `main`, and store its URL as the repo secret VERCEL_DEPLOY_HOOK_SATUS.
+# Without the secret this workflow skips with a notice instead of failing.
+
+on:
+  schedule:
+    # Off the hour so it doesn't queue behind every other :00 cron on GitHub.
+    - cron: "7 * * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Redeploy even if no post's publishAt fell in the window"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read # read src/content/blog
+  actions: read # find this workflow's last successful run
+
+concurrency:
+  group: scheduled-publish
+  cancel-in-progress: false
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: main
+          persist-credentials: false
+
+      # Window start = when the last successful run started, so a delayed or
+      # dropped scheduled run is caught up by the next one rather than lost.
+      # Falls back to two hours on the first run.
+      - name: find window
+        id: window
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          since=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow scheduled-publish.yml \
+            --status success --limit 1 --json createdAt --jq '.[0].createdAt // empty')
+          if [ -z "$since" ]; then
+            since=$(date -u -d '-2 hours' +%Y-%m-%dT%H:%M:%SZ)
+          fi
+          echo "since=$since" >> "$GITHUB_OUTPUT"
+
+      - name: any post due?
+        id: due
+        env:
+          SINCE: ${{ steps.window.outputs.since }}
+        run: node scripts/blog-publish-due.mjs --since "$SINCE" >> "$GITHUB_OUTPUT"
+
+      - name: trigger production redeploy
+        if: steps.due.outputs.due == 'true' || inputs.force
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_SATUS }}
+          SLUGS: ${{ steps.due.outputs.slugs }}
+        run: |
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "::notice title=scheduled-publish skipped::Secret VERCEL_DEPLOY_HOOK_SATUS is not set, so no redeploy was triggered. Due: ${SLUGS:-none (forced)}."
+            exit 0
+          fi
+          code=$(curl -sS -X POST -o /dev/null -w '%{http_code}' --max-time 30 "$DEPLOY_HOOK")
+          if [ "${code:0:1}" != "2" ]; then
+            echo "::error title=scheduled-publish::Vercel deploy hook returned HTTP $code"
+            exit 1
+          fi
+          echo "::notice title=scheduled-publish::Production redeploy requested (HTTP $code). Due: ${SLUGS:-none (forced)}."
+
+      - name: nothing due
+        if: steps.due.outputs.due != 'true' && !inputs.force
+        run: echo "No post's publishAt fell in the window; no redeploy."

@@ -27,12 +27,14 @@ export const ConfigSchema = z.object({
   /**
    * LLM provider. When omitted, the CLI auto-detects from which API key
    * env var is set (OPENAI_API_KEY vs ANTHROPIC_API_KEY). If both are
-   * set, the CLI errors and asks the user to be explicit.
+   * set, the CLI errors and asks the user to be explicit. XAI_API_KEY is
+   * only auto-detected when neither of those is set.
    */
-  provider: z.enum(["openai", "anthropic"]).optional(),
+  provider: z.enum(["openai", "anthropic", "xai"]).optional(),
   /**
    * Model id. When omitted, falls back to the selected provider's
-   * default (gpt-4o-mini for openai, claude-haiku-4-5 for anthropic).
+   * default (gpt-4o-mini for openai, claude-haiku-4-5 for anthropic,
+   * grok-4.20-0309-non-reasoning for xai).
    * Cross-provider model names are not validated client-side.
    */
   model: z.string().optional(),

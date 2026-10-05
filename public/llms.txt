@@ -2,7 +2,7 @@
 
 > A CLI that reads your Postgres schema and writes realistic, relationally-coherent seed data that respects foreign keys and constraints. Postgres only. CLI only.
 
-satus is distributed as the npm package `@passkeybridge/satus` (binary: `satus`, Node >= 20). It introspects your live Postgres schema from pg_catalog (tables, columns, PKs, FKs with deferrability, single-column uniques, enums, partitioned tables), builds a dependency DAG from foreign keys, topologically sorts the insert order, breaks FK cycles by deferring a nullable back-edge and back-patching it after all tables are seeded, and generates rows with an LLM you bring your own key for (OpenAI or Anthropic). All inserts for a run happen in one transaction: a failure rolls everything back. Three built-in prompt profiles (`saas`, `ecommerce`, `b2b`) shape tone and value distributions so data looks like a real business instead of `John Doe`.
+satus is distributed as the npm package `@passkeybridge/satus` (binary: `satus`, Node >= 20). It introspects your live Postgres schema from pg_catalog (tables, columns, PKs, FKs with deferrability, single-column uniques, enums, partitioned tables), builds a dependency DAG from foreign keys, topologically sorts the insert order, breaks FK cycles by deferring a nullable back-edge and back-patching it after all tables are seeded, and generates rows with an LLM you bring your own key for (OpenAI or Anthropic; xAI from the CLI release after 0.3.11). All inserts for a run happen in one transaction: a failure rolls everything back. Three built-in prompt profiles (`saas`, `ecommerce`, `b2b`) shape tone and value distributions so data looks like a real business instead of `John Doe`.
 
 ## Canonical commands
 
@@ -30,7 +30,7 @@ satus whoami
 
 ## Flags on `satus generate`
 
-`--profile saas|ecommerce|b2b` · `--rows <n>` (default 50) · `--max-cost <usd>` (default 1.00, aborts + rolls back before overshooting) · `--batch-size <n>` (default 25 rows per LLM call) · `--dsn <url>` · `--schema <name>` (default public) · `--provider openai|anthropic` (auto-detected from which API key env var is set; errors if both are set and no explicit choice) · `--model <id>` (defaults: gpt-4o-mini / claude-haiku-4-5) · `--truncate` (TRUNCATE ... RESTART IDENTITY on target tables before inserting, same transaction; deliberately NO CASCADE — if a table outside the run set has an FK into one inside it, the run errors instead of emptying it) · `--force` (bypass the 10,000-row safety guard) · `--dry-run` · `--verbose` · `--json`
+`--profile saas|ecommerce|b2b` · `--rows <n>` (default 50) · `--max-cost <usd>` (default 1.00, aborts + rolls back before overshooting) · `--batch-size <n>` (default 25 rows per LLM call) · `--dsn <url>` · `--schema <name>` (default public) · `--provider openai|anthropic|xai` (auto-detected from which API key env var is set; errors if both OpenAI and Anthropic keys are set and no explicit choice; XAI_API_KEY is used only when neither is set; xai from the CLI release after 0.3.11) · `--model <id>` (defaults: gpt-4o-mini / claude-haiku-4-5 / grok-4.20-0309-non-reasoning) · `--truncate` (TRUNCATE ... RESTART IDENTITY on target tables before inserting, same transaction; deliberately NO CASCADE: if a table outside the run set has an FK into one inside it, the run errors instead of emptying it) · `--force` (bypass the 10,000-row safety guard) · `--dry-run` · `--verbose` · `--json`
 
 ## Environment
 
@@ -39,7 +39,7 @@ export DATABASE_URL=postgres://user:pass@host:5432/db   # or SATUS_DATABASE_URL,
 export OPENAI_API_KEY=sk-...        # or ANTHROPIC_API_KEY=sk-ant-... (pick one)
 ```
 
-`OPENAI_BASE_URL` / `ANTHROPIC_BASE_URL` override the API endpoints (compatible providers, proxies).
+`OPENAI_BASE_URL` / `ANTHROPIC_BASE_URL` / `XAI_BASE_URL` override the API endpoints (compatible providers, proxies).
 
 ## Tiers, exit codes, limits
 
@@ -49,7 +49,7 @@ export OPENAI_API_KEY=sk-...        # or ANTHROPIC_API_KEY=sk-ant-... (pick one)
 
 ## GitHub Action
 
-Use `passkeybridge/satus/packages/action@main` — a composite action that installs the CLI and runs `satus generate` (optionally `--dry-run`) against a workflow-provided DATABASE_URL. Reference: https://satus.sh/docs/github-action.
+Use `PasskeyBridge-LLC/satus/packages/action@main` — a composite action that installs the CLI and runs `satus generate` (optionally `--dry-run`) against a workflow-provided DATABASE_URL. Reference: https://satus.sh/docs/github-action.
 
 ## Pages
 

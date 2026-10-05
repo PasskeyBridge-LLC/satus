@@ -18,7 +18,7 @@ inputs:
     required: false
     default: "saas"
   provider:
-    description: "LLM provider: openai | anthropic. Auto-detected from env when omitted."
+    description: "LLM provider: openai | anthropic | xai. Auto-detected from env when omitted. xai needs a satus CLI release after 0.3.11."
     required: false
     default: ""
   model:

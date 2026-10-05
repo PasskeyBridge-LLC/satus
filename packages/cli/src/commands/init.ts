@@ -39,8 +39,13 @@ export function registerInit(program: Command): void {
       );
       const schema = await ask("Schema to seed:", "public");
       const profile = await ask("Reference profile (saas | ecommerce | b2b):", "saas");
-      const provider = await ask("LLM provider (openai | anthropic):", "openai");
-      const defaultModel = provider === "anthropic" ? "claude-haiku-4-5" : "gpt-4o-mini";
+      const provider = await ask("LLM provider (openai | anthropic | xai):", "openai");
+      const defaultModel =
+        provider === "anthropic"
+          ? "claude-haiku-4-5"
+          : provider === "xai"
+            ? "grok-4.20-0309-non-reasoning"
+            : "gpt-4o-mini";
       const model = await ask("Model id:", defaultModel);
       // v0.3.11 opt-in: the run record itself. Off by default, and the
       // prompt says what the record contains so consent means something.
@@ -79,7 +84,12 @@ export function registerInit(program: Command): void {
       });
       const written = await writeConfig(cfg);
       console.log(pc.green("\n✓ ") + `wrote ${pc.bold(written)}`);
-      const envVar = provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY";
+      const envVar =
+        provider === "anthropic"
+          ? "ANTHROPIC_API_KEY"
+          : provider === "xai"
+            ? "XAI_API_KEY"
+            : "OPENAI_API_KEY";
       console.log(
         pc.dim(`\nNext: export ${envVar}=... and run \`satus generate --rows 25 --dry-run\``),
       );

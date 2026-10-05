@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:blog-leaks": "node scripts/check-blog-leaks.mjs"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
@@ -50,9 +51,9 @@
     "@supabase/supabase-js": "^2.106.1",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-query": "^5.83.0",
-    "@tanstack/react-router": "1.170.34",
-    "@tanstack/react-start": "1.168.51",
-    "@tanstack/router-plugin": "^1.168.37",
+    "@tanstack/react-router": "1.170.41",
+    "@tanstack/react-start": "1.168.60",
+    "@tanstack/router-plugin": "^1.168.42",
     "@vercel/analytics": "^2.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -96,7 +97,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^7.3.1",
-    "vitest": "^2.1.9"
+    "vitest": "^3.2.7"
   },
   "pnpm": {
     "overrides": {
@@ -105,10 +106,22 @@
   },
   "overrides": {
     "seroval": "^1.5.4",
-    "seroval-plugins": "^1.5.4"
+    "seroval-plugins": "^1.5.4",
+    "fast-uri": "3.1.8",
+    "js-yaml": "4.3.2",
+    "nanoid": "3.3.19",
+    "sharp": "0.35.5",
+    "undici": "7.30.0",
+    "engine.io": "6.6.11"
   },
   "resolutions": {
     "seroval": "^1.5.4",
-    "seroval-plugins": "^1.5.4"
+    "seroval-plugins": "^1.5.4",
+    "fast-uri": "3.1.8",
+    "js-yaml": "4.3.2",
+    "nanoid": "3.3.19",
+    "sharp": "0.35.5",
+    "undici": "7.30.0",
+    "engine.io": "6.6.11"
   }
 }

@@ -5,7 +5,7 @@
  *
  * The /demo page runs the visitor's DDL in PGlite (WASM Postgres in the
  * browser), introspects it there, and sends a compact schema description
- * here. This endpoint makes ONE Anthropic call on our key and returns
+ * here. This endpoint makes ONE xAI (Grok) call on our key and returns
  * generated rows; the browser inserts them into PGlite, injecting FK
  * values client-side from actually-inserted parent PKs (same semantics
  * as the CLI runner — FK columns are never sent to the model).
@@ -14,13 +14,14 @@
  *   - zod caps: ≤6 tables, ≤14 generatable columns/table, ≤5 rows/table
  *   - per-IP rate limit: 10 runs / hour  (check_rate_limit, Postgres)
  *   - global rate limit: 300 runs / day across all visitors
- *   - max_tokens bounded; model pinned to claude-haiku-4-5
+ *   - max_tokens bounded; model pinned to grok-4.20-0309-non-reasoning
  *   - no user text is echoed into the prompt except identifier names and
  *     enum labels, all zod-bounded in length and charset
  *
- * Reads DEMO_ANTHROPIC_API_KEY (falls back to ANTHROPIC_API_KEY). When
- * neither is set the endpoint returns 503 and the demo page says so
- * honestly instead of pretending.
+ * Reads XAI_API_KEY. When it is not set the endpoint returns 503 and the
+ * demo page says so honestly instead of pretending. The call goes to
+ * xAI's OpenAI-style chat completions endpoint with a forced function
+ * call, the same structured-output shape the CLI's providers use.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -108,10 +109,10 @@ const PROFILE_HINTS: Record<string, string> = {
   b2b: "B2B services: mid-market company names, contract values $5k–$250k, PO numbers, NET-30 terms. No consumer language.",
 };
 
-const ANTHROPIC_MODEL = "claude-haiku-4-5";
+const DEMO_MODEL = "grok-4.20-0309-non-reasoning";
 
-function anthropicBase(): string {
-  const raw = process.env.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com/v1";
+function xaiBase(): string {
+  const raw = process.env.XAI_BASE_URL ?? "https://api.x.ai/v1";
   const trimmed = raw.replace(/\/+$/, "");
   return /\/v\d+$/.test(trimmed) ? trimmed : `${trimmed}/v1`;
 }
@@ -161,7 +162,7 @@ export const Route = createFileRoute("/api/public/demo/generate")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
 
       POST: async ({ request }) => {
-        const apiKey = process.env.DEMO_ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_API_KEY;
+        const apiKey = process.env.XAI_API_KEY;
         if (!apiKey) {
           return json(503, { error: "demo_unavailable" });
         }
@@ -203,51 +204,66 @@ export const Route = createFileRoute("/api/public/demo/generate")({
           tables.map((t) => t.name).join(", ") +
           `. Column names, types, and allowed enum values are encoded in the tool schema.`;
 
-        const res = await fetch(`${anthropicBase()}/messages`, {
+        const res = await fetch(`${xaiBase()}/chat/completions`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
+            Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model: ANTHROPIC_MODEL,
+            model: DEMO_MODEL,
             max_tokens: 4096,
-            system,
-            messages: [{ role: "user", content: user }],
+            messages: [
+              { role: "system", content: system },
+              { role: "user", content: user },
+            ],
             tools: [
               {
-                name: "emit_rows",
-                description: "Emit the requested structured rows.",
-                input_schema: toolSchema,
+                type: "function",
+                function: {
+                  name: "emit_rows",
+                  description: "Emit the requested structured rows.",
+                  parameters: toolSchema,
+                },
               },
             ],
-            tool_choice: { type: "tool", name: "emit_rows" },
+            tool_choice: { type: "function", function: { name: "emit_rows" } },
           }),
         });
 
         if (!res.ok) {
           const text = await res.text().catch(() => "");
-          console.error("[demo] anthropic error", res.status, text.slice(0, 300));
+          console.error("[demo] xai error", res.status, text.slice(0, 300));
           return json(502, { error: "generation_failed" });
         }
 
         const payload = (await res.json()) as {
-          content?: Array<{ type: string; name?: string; input?: unknown }>;
-          usage?: { input_tokens?: number; output_tokens?: number };
+          choices?: Array<{
+            message?: {
+              tool_calls?: Array<{ function?: { name?: string; arguments?: string } }>;
+            };
+          }>;
+          usage?: { prompt_tokens?: number; completion_tokens?: number };
         };
-        const toolUse = payload.content?.find(
-          (b) => b.type === "tool_use" && b.name === "emit_rows",
+        const call = payload.choices?.[0]?.message?.tool_calls?.find(
+          (c) => c.function?.name === "emit_rows",
         );
-        if (!toolUse?.input) {
+        let rowsOut: unknown;
+        try {
+          rowsOut = call?.function?.arguments ? JSON.parse(call.function.arguments) : undefined;
+        } catch {
+          rowsOut = undefined;
+        }
+        if (!rowsOut || typeof rowsOut !== "object") {
+          console.error("[demo] xai returned no usable emit_rows call", DEMO_MODEL);
           return json(502, { error: "generation_failed" });
         }
 
         return json(200, {
-          tables: toolUse.input,
+          tables: rowsOut,
           usage: {
-            input_tokens: payload.usage?.input_tokens ?? 0,
-            output_tokens: payload.usage?.output_tokens ?? 0,
+            input_tokens: payload.usage?.prompt_tokens ?? 0,
+            output_tokens: payload.usage?.completion_tokens ?? 0,
           },
         });
       },

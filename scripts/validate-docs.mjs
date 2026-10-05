@@ -84,7 +84,9 @@ const REAL = {
       .filter(Boolean),
   ),
   models: new Set(
-    [...generateCmd.matchAll(/(?:openai|anthropic):\s*['"]([a-z0-9.-]+)['"]/g)].map((m) => m[1]),
+    [...generateCmd.matchAll(/(?:openai|anthropic|xai):\s*['"]([a-z0-9.-]+)['"]/g)].map(
+      (m) => m[1],
+    ),
   ),
 };
 
@@ -200,7 +202,9 @@ for (const file of DOC_FILES) {
 /* ---------- 6. default models ---------- */
 for (const file of DOC_FILES) {
   const text = read(file);
-  for (const m of text.matchAll(/defaults?:?\s*\)?\s*([a-z0-9.-]*(?:gpt|claude)[a-z0-9.-]*)/gi)) {
+  for (const m of text.matchAll(
+    /defaults?:?\s*\)?\s*([a-z0-9.-]*(?:gpt|claude|grok)[a-z0-9.-]*)/gi,
+  )) {
     const model = m[1].toLowerCase();
     if (!REAL.models.has(model)) {
       fail(

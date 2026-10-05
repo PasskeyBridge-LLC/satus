@@ -282,7 +282,8 @@ function HowItWorksPage() {
             </li>
             <li>
               <strong>satus does not resell LLM tokens.</strong> You bring your own provider key —{" "}
-              <code>OPENAI_API_KEY</code> or <code>ANTHROPIC_API_KEY</code>. The request goes
+              <code>OPENAI_API_KEY</code>, <code>ANTHROPIC_API_KEY</code> or{" "}
+              <code>XAI_API_KEY</code> (xAI, from the CLI release after 0.3.11). The request goes
               directly from your machine to the provider you selected (auto-detected from env, or
               pinned with <code>--provider</code>). Cost shows up on <em>your</em> dashboard, never
               ours. Internally, every provider is a thin adapter behind a single{" "}

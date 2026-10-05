@@ -55,7 +55,7 @@ export interface Provider {
    * 'simulated' variant is used by `satus generate --dry-run` to drive the
    * runner without an upstream LLM call (see ../simulate.ts).
    */
-  readonly id: "openai" | "anthropic" | "simulated";
+  readonly id: "openai" | "anthropic" | "xai" | "simulated";
   /** Model id actually being called; surfaces in telemetry and logs. */
   readonly model: string;
   /** Rates used by both the live cost meter and the dry-run estimator. */

@@ -7,11 +7,11 @@
   "homepage": "https://satus.sh",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/passkeybridge/satus.git",
+    "url": "git+https://github.com/PasskeyBridge-LLC/satus.git",
     "directory": "packages/cli"
   },
   "bugs": {
-    "url": "https://github.com/passkeybridge/satus/issues",
+    "url": "https://github.com/PasskeyBridge-LLC/satus/issues",
     "email": "support@satus.sh"
   },
   "bin": {

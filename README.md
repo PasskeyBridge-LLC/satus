@@ -2,10 +2,10 @@
 
 **Realistic, FK-safe seed data for Postgres.** satus reads your schema from
 `pg_catalog`, sorts tables by foreign-key dependency, asks an LLM (your
-OpenAI or Anthropic key) for rows that look like a real business, and
+OpenAI, Anthropic or xAI key; xAI from the CLI release after 0.3.11) for rows that look like a real business, and
 inserts them in a single all-or-nothing transaction.
 
-[![cli-ci](https://github.com/passkeybridge/satus/actions/workflows/cli-ci.yml/badge.svg)](https://github.com/passkeybridge/satus/actions/workflows/cli-ci.yml)
+[![cli-ci](https://github.com/PasskeyBridge-LLC/satus/actions/workflows/cli-ci.yml/badge.svg)](https://github.com/PasskeyBridge-LLC/satus/actions/workflows/cli-ci.yml)
 [![npm](https://img.shields.io/npm/v/%40passkeybridge%2Fsatus)](https://www.npmjs.com/package/@passkeybridge/satus)
 
 Website: [satus.sh](https://satus.sh) · npm: [`@passkeybridge/satus`](https://www.npmjs.com/package/@passkeybridge/satus) · Docs: [satus.sh/docs](https://satus.sh/docs)
@@ -42,7 +42,7 @@ back-patched.
 npm install -g @passkeybridge/satus     # Node >= 20; or use npx
 
 export DATABASE_URL="postgres://user:pass@localhost:5432/app"
-export OPENAI_API_KEY="sk-..."          # or ANTHROPIC_API_KEY
+export OPENAI_API_KEY="sk-..."          # or ANTHROPIC_API_KEY, or XAI_API_KEY
 
 # Plan + validate offline — no LLM calls, no writes, no spend.
 satus generate --profile ecommerce --dry-run
@@ -62,8 +62,8 @@ Full walkthrough: [satus.sh/quickstart](https://satus.sh/quickstart).
 - **Ordering**: Kahn's topological sort over the FK graph. Soft cycles are
   broken by NULLing a nullable back-edge and back-patching it after all
   tables are seeded, inside the same transaction.
-- **Generation**: batched structured-output calls (OpenAI `json_schema`,
-  Anthropic tool-forcing) against a JSON schema built from your columns;
+- **Generation**: batched structured-output calls (OpenAI and xAI
+  `json_schema`, Anthropic tool-forcing) against a JSON schema built from your columns;
   FK values are injected from actually-inserted parent PKs, never invented.
 - **Safety**: refuses to run against a database already holding more than
   10,000 rows (exit `11`, `--force` to override); one transaction per run; a `--max-cost` USD budget that
@@ -78,7 +78,7 @@ Full walkthrough: [satus.sh/quickstart](https://satus.sh/quickstart).
 | Path | What it is |
 |---|---|
 | `packages/cli/` | The `satus` CLI (published to npm as `@passkeybridge/satus`) |
-| `packages/action/` | Composite GitHub Action — use as `passkeybridge/satus/packages/action@main` |
+| `packages/action/` | Composite GitHub Action — use as `PasskeyBridge-LLC/satus/packages/action@main` |
 | `src/` | satus.sh — TanStack Start site: marketing, docs, blog, checkout, license API |
 | `supabase/` | Database migrations for the backing Supabase project |
 | `corpus/`, `scripts/`, `examples/` | Accuracy-audit corpus, bench/audit tooling, extension pitfall examples |

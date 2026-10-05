@@ -2,17 +2,16 @@
 /**
  * Refuse to build if a tracked .env file contains something secret.
  *
- * This repository is public, and `.env`, `.env.development` and
- * `.env.production` are tracked on purpose — they carry the Supabase project
- * URL and the *publishable* key, both of which are meant to sit in a browser
- * bundle. That is fine, and the commit that added them said so.
+ * This repository is public. Until 2026-09-27 `.env`, `.env.development`
+ * and `.env.production` were tracked (Supabase URL + publishable key). They
+ * are gone from the tree now, `.env*` is gitignored, and the only tracked env
+ * file is `.env.example`, which must hold names only. Values live in the
+ * Vercel project env, and locally in `.env.local`.
  *
- * The hazard is the next edit. `.env` is an obvious place to park a real
- * credential, nothing in git objects, and a secret pushed to a public repo
- * is public the moment it lands — rotating it afterwards is the only
- * remedy, and only if someone notices. `*.local` is gitignored, so the safe
- * home for a real secret already exists: put it in `.env.local`, and in the
- * deployment environment.
+ * This check stays as a backstop: if anyone force-adds an env file, or puts a
+ * value into `.env.example`, a secret pushed to a public repo is public the
+ * moment it lands, and rotating it afterwards is the only remedy. The
+ * gitleaks gate in .github/workflows/secret-scan.yml is the broader scanner.
  *
  * Two ways a value gets caught: a key whose *name* says secret, or a value
  * whose *shape* says secret. Neither is exhaustive — this is a backstop for

@@ -10,7 +10,7 @@
  *   3. Topo-sort tables by FK dependency; break soft cycles on a
  *      nullable back-edge, exactly like the CLI's dag.ts.
  *   4. Ask our server (/api/public/demo/generate) for rows — one
- *      Anthropic call on our key, capped at 5 rows x 6 tables. FK
+ *      xAI call on our key, capped at 5 rows x 6 tables. FK
  *      columns are never sent to the model; they're injected here from
  *      actually-inserted parent PKs.
  *   5. INSERT row-by-row so constraint rejections surface per-row, then
@@ -129,7 +129,7 @@ const PHASE_LABEL: Record<Phase, string> = {
   engine: "loading postgres (wasm)...",
   ddl: "running your DDL...",
   introspect: "introspecting pg_catalog...",
-  generate: "generating rows (claude-haiku-4-5)...",
+  generate: "generating rows (grok-4.20-0309-non-reasoning)...",
   insert: "inserting + validating...",
   done: "",
   error: "",

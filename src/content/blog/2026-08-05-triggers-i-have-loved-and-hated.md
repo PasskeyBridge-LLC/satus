@@ -151,7 +151,7 @@ Triggers are the part of a schema that a catalog read cannot summarize. satus wi
 
 - Measured on PostgreSQL 17.9, three-table schema, `pg_ctl`-managed local cluster. All output in this post is verbatim `psql` output.
 - PostgreSQL documentation: [Trigger behavior overview](https://www.postgresql.org/docs/current/trigger-definition.html), [`CREATE TRIGGER`](https://www.postgresql.org/docs/current/sql-createtrigger.html), [`pg_trigger`](https://www.postgresql.org/docs/current/catalog-pg-trigger.html), [`TRUNCATE`](https://www.postgresql.org/docs/current/sql-truncate.html).
-- Source: [`writer.ts`](https://github.com/passkeybridge/satus/blob/main/packages/cli/src/generate/writer.ts) for the transactional insert path, [`schema.ts`](https://github.com/passkeybridge/satus/blob/main/packages/cli/src/generate/schema.ts) for the defaulted-column skip rule.
+- Source: [`writer.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/writer.ts) for the transactional insert path, [`schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts) for the defaulted-column skip rule.
 - Related: [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [CHECK constraints that lie](/blog/check-constraints-that-lie), [Generated columns are load-bearing now](/blog/generated-columns-are-load-bearing-now), [What pg_dump doesn't tell you about your own schema](/blog/what-pg-dump-doesnt-tell-you).
 
 —the satus.sh team

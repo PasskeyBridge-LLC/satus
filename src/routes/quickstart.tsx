@@ -149,10 +149,11 @@ function QuickstartPage() {
             table across 5 tables; a Pro or Team key (<code>satus activate</code>) removes the caps.
           </p>
           <p>
-            Pick one provider: export <code>OPENAI_API_KEY</code> or <code>ANTHROPIC_API_KEY</code>.
-            If both are set, pass <code>--provider openai|anthropic</code> on{" "}
-            <code>satus generate</code>—auto-detect deliberately refuses to guess so a misplaced key
-            never spends on the wrong invoice.
+            Pick one provider: export <code>OPENAI_API_KEY</code>, <code>ANTHROPIC_API_KEY</code> or{" "}
+            <code>XAI_API_KEY</code> (xAI, from the CLI release after 0.3.11). If more than one is
+            set, pass <code>--provider openai|anthropic|xai</code> on <code>satus generate</code>
+            —auto-detect deliberately refuses to guess so a misplaced key never spends on the wrong
+            invoice.
           </p>
         </Prose>
         <Terminal>

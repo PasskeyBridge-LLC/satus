@@ -46,7 +46,7 @@ export interface RunTelemetry {
   status: "running" | "success" | "failed";
   profile?: string;
   /** v0.3.0: which LLM provider ran the generation. */
-  provider?: "openai" | "anthropic";
+  provider?: "openai" | "anthropic" | "xai";
   model?: string;
   /** v0.3.7: how many tables the run touched. Replaces per-table names. */
   table_count?: number;
@@ -134,8 +134,8 @@ export function classifyError(err: unknown): string {
   }
   const msg = typeof e?.message === "string" ? e.message : "";
 
-  // Provider HTTP failures: `OpenAI 429: ...` / `Anthropic 404: ...`.
-  const http = /^(OpenAI|Anthropic) (\d{3}):/.exec(msg);
+  // Provider HTTP failures: `OpenAI 429: ...` / `Anthropic 404: ...` / `xAI 400: ...`.
+  const http = /^(OpenAI|Anthropic|xAI) (\d{3}):/.exec(msg);
   if (http) return `provider_http_${http[2]}`;
 
   // Prefixes we emit ourselves, matched against the literal leading text.
@@ -145,6 +145,7 @@ export function classifyError(err: unknown): string {
   if (msg.startsWith("--truncate cannot run")) return "truncate_blocked";
   if (msg.startsWith("Failed to parse model JSON")) return "provider_bad_json";
   if (msg.startsWith("OpenAI returned no content")) return "provider_empty";
+  if (msg.startsWith("xAI returned no content")) return "provider_empty";
   if (msg.includes("tool_use block")) return "provider_no_tool_use";
 
   return "unknown";

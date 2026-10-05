@@ -1,4 +1,4 @@
-# passkeybridge/satus-action
+# PasskeyBridge-LLC/satus/packages/action
 
 Run [`satus`](https://satus.sh) inside a GitHub Actions workflow. This composite action wraps `npx @passkeybridge/satus@<version> generate --json` and uploads the run manifest as a workflow artifact. No Docker image, no container startup cost.
 
@@ -7,7 +7,7 @@ The action is a thin wrapper around the CLI. If a run works on your laptop it wo
 ## Requirements
 
 - A Postgres database the workflow can reach (a service container, a preview branch on Neon/Supabase/RDS, an ephemeral instance).
-- An OpenAI or Anthropic API key exposed as an environment variable to the step (not as an input — see the security notes below).
+- An OpenAI, Anthropic or xAI API key exposed as an environment variable to the step (not as an input — see the security notes below).
 - A satus license key is only required for runs that exceed the free-tier caps (25 rows/table, 5 tables); dry-runs and small runs do not need one.
 
 ## Usage
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: passkeybridge/satus/packages/action@main
+      - uses: PasskeyBridge-LLC/satus/packages/action@main
         with:
           database-url: ${{ secrets.PREVIEW_DATABASE_URL }}
           rows: 250
@@ -36,7 +36,7 @@ jobs:
 For an Anthropic-first workflow, swap the two lines that mention OpenAI:
 
 ```yaml
-      - uses: passkeybridge/satus/packages/action@main
+      - uses: PasskeyBridge-LLC/satus/packages/action@main
         with:
           database-url: ${{ secrets.PREVIEW_DATABASE_URL }}
           provider: anthropic
@@ -46,6 +46,19 @@ For an Anthropic-first workflow, swap the two lines that mention OpenAI:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
+For xAI, set `provider: xai` and expose `XAI_API_KEY` the same way. The `xai` provider needs a satus CLI release after 0.3.11; until that release is out, the pinned `satus-version` does not include it.
+
+```yaml
+      - uses: PasskeyBridge-LLC/satus/packages/action@main
+        with:
+          database-url: ${{ secrets.PREVIEW_DATABASE_URL }}
+          provider: xai
+          rows: 250
+          max-cost: '0.50'
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+```
+
 ## Inputs
 
 | Name | Required | Default | Description |
@@ -53,7 +66,7 @@ For an Anthropic-first workflow, swap the two lines that mention OpenAI:
 | `database-url` | yes | | Postgres connection string. Pass as a secret. |
 | `rows` | no | `50` | Rows to generate per table. Free tier caps at 25. |
 | `profile` | no | `saas` | Reference profile (`saas`, `ecommerce`, `b2b`). |
-| `provider` | no | auto | `openai` or `anthropic`. Auto-detected from which env key is set. |
+| `provider` | no | auto | `openai`, `anthropic` or `xai`. Auto-detected from which env key is set (`XAI_API_KEY` only when neither of the other two is set). |
 | `model` | no | provider default | Model id override. |
 | `max-cost` | no | `'1.00'` | USD ceiling. Must be quoted so YAML keeps it a string. |
 | `dry-run` | no | `false` | Validate without inserting or spending. |
@@ -87,7 +100,7 @@ The action does not log inputs, does not read the database, and does not send an
 
 ## What this action does not do
 
-- Does not run any hosted-key tier. Bring your own OpenAI or Anthropic key.
+- Does not run any hosted-key tier. Bring your own OpenAI, Anthropic or xAI key.
 - Does not commit generated seed data back to your repository. Seed data belongs in the preview database, not in git.
 - Does not cache generated rows between runs. Every invocation regenerates.
 - Does not ship variants for GitLab CI, CircleCI, or Buildkite. The CLI runs anywhere Node runs.

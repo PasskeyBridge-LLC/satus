@@ -1,5 +1,5 @@
 /**
- * /docs/github-action — reference for passkeybridge/satus/packages/action@main.
+ * /docs/github-action — reference for PasskeyBridge-LLC/satus/packages/action@main.
  *
  * Documents the composite GitHub Action that wraps `satus generate` in a
  * PR-preview workflow. Facts here MUST stay in sync with:
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/docs/github-action")({
       {
         name: "description",
         content:
-          "passkeybridge/satus/packages/action@main: a composite GitHub Action that runs `satus generate` against your PR-preview Postgres database. Inputs, outputs, security notes.",
+          "PasskeyBridge-LLC/satus/packages/action@main: a composite GitHub Action that runs `satus generate` against your PR-preview Postgres database. Inputs, outputs, security notes.",
       },
       {
         property: "og:title",
@@ -61,7 +61,7 @@ export const Route = createFileRoute("/docs/github-action")({
           "@type": "TechArticle",
           headline: "satus GitHub Action reference",
           description:
-            "Reference for the passkeybridge/satus/packages/action@main composite GitHub Action.",
+            "Reference for the PasskeyBridge-LLC/satus/packages/action@main composite GitHub Action.",
           url: SITE_URL + "/docs/github-action",
           inLanguage: "en",
           author: { "@type": "Organization", name: "satus.sh" },
@@ -110,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: passkeybridge/satus/packages/action@main
+      - uses: PasskeyBridge-LLC/satus/packages/action@main
         with:
           database-url: \${{ secrets.PREVIEW_DATABASE_URL }}
           rows: 250
@@ -158,9 +158,9 @@ function GitHubActionPage() {
       >
         <Prose>
           <p>
-            <code>passkeybridge/satus/packages/action@main</code> runs <code>satus generate</code>{" "}
-            inside a GitHub Actions workflow and uploads the run manifest as a workflow artifact. It
-            is a{" "}
+            <code>PasskeyBridge-LLC/satus/packages/action@main</code> runs{" "}
+            <code>satus generate</code> inside a GitHub Actions workflow and uploads the run
+            manifest as a workflow artifact. It is a{" "}
             <a
               href="https://docs.github.com/en/actions/creating-actions/creating-a-composite-action"
               className="underline decoration-[var(--signal)] underline-offset-4"
@@ -192,7 +192,8 @@ function GitHubActionPage() {
           <p>
             Swap <code>OPENAI_API_KEY</code> for <code>ANTHROPIC_API_KEY</code> and add{" "}
             <code>provider: anthropic</code> under <code>with:</code> to drive Anthropic instead.
-            The CLI auto-detects from whichever env key is present.
+            For xAI, use <code>XAI_API_KEY</code> and <code>provider: xai</code> (needs the CLI
+            release after 0.3.11). The CLI auto-detects from whichever env key is present.
           </p>
         </Prose>
       </Section>
@@ -218,7 +219,12 @@ function GitHubActionPage() {
                   cells={["profile", "no", "saas", "Reference profile: saas | ecommerce | b2b."]}
                 />
                 <TableRow
-                  cells={["provider", "no", "auto", "openai | anthropic. Auto-detected from env."]}
+                  cells={[
+                    "provider",
+                    "no",
+                    "auto",
+                    "openai | anthropic | xai. Auto-detected from env.",
+                  ]}
                 />
                 <TableRow cells={["model", "no", "provider default", "Model id override."]} />
                 <TableRow
@@ -341,7 +347,7 @@ function GitHubActionPage() {
         <Prose>
           <ul className="ml-5 list-disc space-y-2">
             <li>
-              <strong>No hosted-key tier.</strong> Bring your own OpenAI or Anthropic key. A
+              <strong>No hosted-key tier.</strong> Bring your own OpenAI, Anthropic or xAI key. A
               managed-key mode is on the roadmap for a later release, not this one.
             </li>
             <li>
@@ -361,10 +367,10 @@ function GitHubActionPage() {
             </li>
           </ul>
           <p className="mt-8 max-w-[62ch] font-mono text-[12.5px] text-[var(--mute)]">
-            Reference for <code>passkeybridge/satus/packages/action@main</code>. If anything here
-            drifts from{" "}
+            Reference for <code>PasskeyBridge-LLC/satus/packages/action@main</code>. If anything
+            here drifts from{" "}
             <a
-              href="https://github.com/passkeybridge/satus/blob/main/packages/action/action.yml"
+              href="https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/action/action.yml"
               className="underline decoration-[var(--signal)] underline-offset-4"
             >
               action.yml

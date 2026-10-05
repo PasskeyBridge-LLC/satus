@@ -26,23 +26,33 @@ import { countUserRows, guardMessage, ROW_LIMIT } from "../generate/guard.js";
 import { E_DB_NOT_EMPTY, E_FK_CYCLE } from "../exit-codes.js";
 import { fingerprint } from "../generate/fingerprint.js";
 import { currentLicense } from "../license.js";
-import { createOpenAiProvider, createAnthropicProvider } from "../generate/providers/index.js";
+import {
+  createOpenAiProvider,
+  createAnthropicProvider,
+  createXaiProvider,
+} from "../generate/providers/index.js";
 import type { Provider } from "../generate/providers/index.js";
 import { createSimulatedProvider } from "../generate/simulate.js";
 import { groupFindings } from "../generate/validate.js";
 
-type ProviderId = "openai" | "anthropic";
+export type ProviderId = "openai" | "anthropic" | "xai";
 
-const DEFAULT_MODELS: Record<ProviderId, string> = {
+const PROVIDER_IDS: readonly ProviderId[] = ["openai", "anthropic", "xai"];
+
+export const DEFAULT_MODELS: Record<ProviderId, string> = {
   openai: "gpt-4o-mini",
   // Pinned 2026-06-20 from Anthropic's model lineup. Override with
   // --model or the `model` field in satus.config.json.
   anthropic: "claude-haiku-4-5",
+  // Pinned 2026-09-26 from xAI's /v1/models. Non-reasoning, so no
+  // reasoning-token spend on a structured-output job.
+  xai: "grok-4.20-0309-non-reasoning",
 };
 
-const PROVIDER_ENV: Record<ProviderId, string> = {
+export const PROVIDER_ENV: Record<ProviderId, string> = {
   openai: "OPENAI_API_KEY",
   anthropic: "ANTHROPIC_API_KEY",
+  xai: "XAI_API_KEY",
 };
 
 /**
@@ -50,16 +60,21 @@ const PROVIDER_ENV: Record<ProviderId, string> = {
  * file, env-var auto-detect. Errors clearly when both keys are set with
  * no explicit choice, so a user never wonders which provider just spent
  * their budget.
+ *
+ * xAI auto-detect is deliberately last and only fires when neither
+ * OPENAI_API_KEY nor ANTHROPIC_API_KEY is set. A user who already had
+ * XAI_API_KEY exported for another tool keeps exactly the provider they
+ * had before xai existed; `--provider xai` always works.
  */
-function resolveProviderId(
+export function resolveProviderId(
   cliProvider: string | undefined,
   cfgProvider: ProviderId | undefined,
 ): ProviderId {
   if (cliProvider) {
-    if (cliProvider !== "openai" && cliProvider !== "anthropic") {
-      throw new Error(`Unknown --provider: ${cliProvider}. Use openai | anthropic.`);
+    if (!(PROVIDER_IDS as readonly string[]).includes(cliProvider)) {
+      throw new Error(`Unknown --provider: ${cliProvider}. Use openai | anthropic | xai.`);
     }
-    return cliProvider;
+    return cliProvider as ProviderId;
   }
   if (cfgProvider) return cfgProvider;
 
@@ -72,6 +87,7 @@ function resolveProviderId(
     );
   }
   if (hasAnthropic) return "anthropic";
+  if (!hasOpenAi && process.env.XAI_API_KEY) return "xai";
   // Default to openai when neither is set so the existing
   // "OPENAI_API_KEY is not set" error keeps firing (backward compat
   // with v0.2.0's error message).
@@ -80,6 +96,7 @@ function resolveProviderId(
 
 function buildProvider(id: ProviderId, apiKey: string, model: string): Provider {
   if (id === "anthropic") return createAnthropicProvider({ apiKey, model });
+  if (id === "xai") return createXaiProvider({ apiKey, model });
   return createOpenAiProvider({ apiKey, model });
 }
 
@@ -122,7 +139,7 @@ export function registerGenerate(program: Command): void {
     .option("--schema <name>", "Postgres schema to seed (overrides config)")
     .option(
       "--provider <id>",
-      "LLM provider (openai | anthropic); auto-detected from env when omitted",
+      "LLM provider (openai | anthropic | xai); auto-detected from env when omitted",
     )
     .option("--model <id>", "model id (overrides config; falls back to the provider default)")
     .option("--truncate", "truncate target tables before inserting")
