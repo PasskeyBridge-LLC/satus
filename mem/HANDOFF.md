@@ -4,17 +4,15 @@ Written 2026-10-05 after the weekly E2E. Replace this file next session; do not 
 
 ## State
 
-Production is `0afb8df00467eb1b0353dc5abd80a37e28f212b9`, deployment
-`dpl_AFSzMiQwQPTgNM1ieC5wqNWv2eBM`, target production, READY. That SHA is
-`origin/main`. The 07-17 pg_dump correction is in it (`42ed098`). CLI is
-0.3.11. npm `latest` was not moved. `next` is still `0.3.11-orgmove.0`
-and has no tag.
+Production for the weekly fix is `a28a31c894a97cd1f4edc76d507fe58a9c68fd57`
+(#29), deployment `dpl_7AGaEELY4C3xbPoxoBTtq72NWkTJ`, target production,
+READY. `https://satus.sh/recipes` serves `#b91c1c` and `tabindex="0"`.
+After this handoff commit, production must match `origin/main`. The 07-17
+pg_dump correction remains in history (`42ed098`). CLI is 0.3.11. npm
+`latest` was not moved. `next` is still `0.3.11-orgmove.0` and has no tag.
 
-The ledger is `mem/weekly-e2e/2026-10-05.md`. NEW 1 / FIXED 0 / STILL-OPEN 5 /
-REGRESSED 0. `/recipes` fails axe contrast (4.42:1) and one scrollable `pre`.
-Fix `81cedf6` is on `origin/cursor/recipes-axe-contrast-b38b`. The first push
-returned HTTP 401; a retry succeeded. It is not in production until that
-branch is on `main` and a deployment for the squash SHA is READY.
+The ledger is `mem/weekly-e2e/2026-10-05.md`. NEW 1 / FIXED 1 / STILL-OPEN 4 /
+REGRESSED 0. The recipes axe finding is fixed.
 
 ## Left open on purpose
 
@@ -43,9 +41,7 @@ were empty.
 
 ## Next
 
-1. Squash-merge `cursor/recipes-axe-contrast-b38b`, confirm a production
-   deployment for that SHA, and re-run axe on `/recipes`.
-2. Confirm the 2026-10-09 draft post before Friday, or leave it draft.
-3. Revoke the old npm token on npmjs.com (handoff of 2026-09-25).
-4. Confirm the Auth leaked-password toggle. Do not infer it from the missing
+1. Confirm the 2026-10-09 draft post before Friday, or leave it draft.
+2. Revoke the old npm token on npmjs.com (handoff of 2026-09-25).
+3. Confirm the Auth leaked-password toggle. Do not infer it from the missing
    advisor warning.
