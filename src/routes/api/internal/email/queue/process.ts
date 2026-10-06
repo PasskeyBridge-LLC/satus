@@ -92,27 +92,38 @@ async function moveToDlq(
 export const Route = createFileRoute("/api/internal/email/queue/process")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        const resendKey = process.env.RESEND_API_KEY;
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      GET: async ({ request }) => handleQueueProcess(request),
+      POST: async ({ request }) => handleQueueProcess(request),
+    },
+  },
+});
 
-        if (!resendKey || !supabaseUrl || !supabaseServiceKey) {
-          console.error("Missing required environment variables");
-          return Response.json({ error: "Server configuration error" }, { status: 500 });
-        }
+async function handleQueueProcess(request: Request) {
+  const resendKey = process.env.RESEND_API_KEY;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const cronSecret = process.env.CRON_SECRET;
 
-        // Verify the caller is authorized with the service role key.
-        // In the TanStack stack, the pg_cron job sends the service role key as a Bearer token.
-        const authHeader = request.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-          return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
+  if (!resendKey || !supabaseUrl || !supabaseServiceKey) {
+    console.error("Missing required environment variables");
+    return Response.json({ error: "Server configuration error" }, { status: 500 });
+  }
 
-        const token = authHeader.slice("Bearer ".length).trim();
-        if (token !== supabaseServiceKey) {
-          return Response.json({ error: "Forbidden" }, { status: 403 });
-        }
+  // Verify the caller is authorized.
+  // Vercel Cron calls via GET and sends `Authorization: Bearer <CRON_SECRET>`.
+  // Internal pg_cron callers use POST and send `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>`.
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const token = authHeader.slice("Bearer ".length).trim();
+  const isCron = cronSecret && token === cronSecret;
+  const isServiceRole = token === supabaseServiceKey;
+  
+  if (!isCron && !isServiceRole) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
 
         const supabase = createEmailQueueClient(supabaseUrl, supabaseServiceKey);
 
@@ -367,7 +378,4 @@ export const Route = createFileRoute("/api/internal/email/queue/process")({
         }
 
         return Response.json({ processed: totalProcessed });
-      },
-    },
-  },
-});
+}
