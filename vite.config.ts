@@ -29,18 +29,6 @@ export default defineConfig(({ mode }) => {
   const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN || allEnv.SENTRY_AUTH_TOKEN;
 
   return {
-    /* Inline every VITE_* value as a literal, rather than leaning on Vite's
-     * implicit import.meta.env handling. Half the readers of these vars are
-     * server route handlers that run in the Nitro worker
-     * (src/routes/email/unsubscribe.ts, the email endpoints,
-     * integrations/supabase/client.server.ts), and an unreplaced
-     * import.meta.env there resolves to undefined at runtime rather than
-     * failing the build. loadEnv picks up prefixed keys from process.env as
-     * well as .env files, which is how the values arrive on Vercel.
-     *
-     * VITE_VERCEL_ENV / VITE_VERCEL_GIT_COMMIT_SHA are aliases of the
-     * platform vars so the client bundle can stamp environment and release
-     * without a second source of truth. */
     define: Object.fromEntries([
       ...Object.entries(viteEnv).map(([k, v]) => [`import.meta.env.${k}`, JSON.stringify(v)]),
       [
@@ -55,17 +43,10 @@ export default defineConfig(({ mode }) => {
 
     css: { transformer: "lightningcss" },
 
-    /* The entry chunk is about 300KB gzipped. Preloading it from <head>
-     * shares the slow-4G pipe with the stylesheet and the LCP font, and
-     * the font is what the largest text is waiting on. The module script
-     * at the end of the body still loads it for hydration. */
     build: { modulePreload: false },
 
     resolve: {
       alias: { "@": `${process.cwd()}/src` },
-      /* React and the TanStack query core must resolve to one copy each.
-       * Two copies of React is the classic "invalid hook call"; two copies of
-       * query-core silently splits the cache. */
       dedupe: [
         "react",
         "react-dom",
@@ -84,26 +65,16 @@ export default defineConfig(({ mode }) => {
         "react/jsx-runtime",
         "react/jsx-dev-runtime",
       ],
-      /* PGlite ships its own wasm + FS bundle; Vite's dep optimizer corrupts
-       * them in dev ("Invalid FS bundle size"). Standard upstream guidance. */
       exclude: ["@electric-sql/pglite"],
     },
 
     plugins: [
-      /* Blog sources, with drafts and embargoed posts removed at build time
-       * so they never reach any bundle. See the plugin's header. */
       blogPosts(),
       tailwindcss(),
       tsConfigPaths({ projects: ["./tsconfig.json"] }),
       tanstackStart({
-        /* Redirect TanStack Start's bundled server entry to src/server.ts (our
-         * SSR error wrapper). @cloudflare/vite-plugin builds from this;
-         * wrangler.jsonc `main` alone is insufficient. */
         server: { entry: "server" },
-        /* Client entry loads Sentry before hydration when VITE_SENTRY_DSN is set. */
         client: { entry: "client" },
-        /* Fail the build if client code imports server-only modules, rather
-         * than shipping a server bundle to the browser. */
         importProtection: {
           behavior: "error",
           client: {
@@ -112,14 +83,8 @@ export default defineConfig(({ mode }) => {
           },
         },
       }),
-      /* `defaultPreset` rather than `preset`: it yields to an explicit
-       * NITRO_PRESET in the environment, which is how the deploy target gets
-       * to disagree with us. Vercel's build produces .output/ from this. */
-      nitro({ defaultPreset: "cloudflare-module" }),
+      nitro({ defaultPreset: "cloudflare-module", inlineDynamicImports: true }),
       viteReact(),
-      /* LAST, and only with an auth token: without it the plugin would emit
-       * hidden source maps into the deploy output. Token is absent today;
-       * the build must stay green. Never log the token. */
       ...(sentryAuthToken
         ? sentryTanstackStart({
             org: "passkeybridge-llc",
