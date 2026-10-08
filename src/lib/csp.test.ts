@@ -31,6 +31,8 @@ describe("report-only content security policy", () => {
     expect(value).toContain("https://analytics.ahrefs.com");
     expect(value).toContain("https://js.stripe.com");
     expect(value).toContain("https://fonts.gstatic.com");
+    expect(value).toContain("https://*.ingest.us.sentry.io");
+    expect(value).toMatch(/connect-src[^;]*https:\/\/\*\.ingest\.us\.sentry\.io/);
     expect(value).not.toMatch(/report-only/i);
   });
 });

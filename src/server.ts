@@ -1,8 +1,12 @@
 import "./lib/error-capture";
 
+import { wrapFetchWithSentry } from "@sentry/tanstackstart-react";
 import { consumeLastCapturedError } from "./lib/error-capture";
+import { instrumentServer } from "./instrument.server";
 import { renderErrorPage } from "./lib/error-page";
 import { stripModulePreloads } from "./lib/strip-modulepreload";
+
+const sentryReady = instrumentServer();
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -82,8 +86,9 @@ async function withoutModulePreload(response: Response): Promise<Response> {
   });
 }
 
-export default {
+const entry = {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    await sentryReady;
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
@@ -94,3 +99,5 @@ export default {
     }
   },
 };
+
+export default wrapFetchWithSentry(entry as Parameters<typeof wrapFetchWithSentry>[0]);

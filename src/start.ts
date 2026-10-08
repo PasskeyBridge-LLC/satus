@@ -1,3 +1,7 @@
+import {
+  sentryGlobalFunctionMiddleware,
+  sentryGlobalRequestMiddleware,
+} from "@sentry/tanstackstart-react";
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
@@ -27,9 +31,11 @@ const errorMiddleware = createMiddleware().server(async ({ next, pathname }) => 
 });
 
 export const startInstance = createStart(() => ({
-  requestMiddleware: [errorMiddleware],
+  // Sentry first so request and serverFn errors are captured before our
+  // branded HTML 500 middleware swallows them.
+  requestMiddleware: [sentryGlobalRequestMiddleware, errorMiddleware],
   // attachSupabaseAuth forwards the user's bearer token on every serverFn
   // RPC. No protected serverFns ship in v1, but the middleware is harmless
   // and keeps any future requireSupabaseAuth route working out of the box.
-  functionMiddleware: [attachSupabaseAuth],
+  functionMiddleware: [sentryGlobalFunctionMiddleware, attachSupabaseAuth],
 }));

@@ -12,5 +12,11 @@ export const getRouter = () => {
     defaultPreloadStaleTime: 0,
   });
 
+  if (!router.isServer && import.meta.env.VITE_SENTRY_DSN) {
+    void import("@sentry/tanstackstart-react").then((Sentry) => {
+      Sentry.addIntegration(Sentry.tanstackRouterBrowserTracingIntegration(router));
+    });
+  }
+
   return router;
 };

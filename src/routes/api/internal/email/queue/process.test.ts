@@ -13,6 +13,21 @@ vi.mock("@supabase/supabase-js", () => ({
   },
 }));
 
+type RouteHandler = (ctx: {
+  request: Request;
+  params: Record<string, string>;
+}) => Promise<Response>;
+
+function handlers(): { GET?: RouteHandler; POST?: RouteHandler } {
+  const found = (
+    Route as unknown as {
+      options?: { server?: { handlers?: { GET?: RouteHandler; POST?: RouteHandler } } };
+    }
+  ).options?.server?.handlers;
+  if (!found) throw new Error("queue/process handlers are not registered");
+  return found;
+}
+
 describe("process-email-queue endpoint", () => {
   it("returns 401 if missing Authorization header (GET)", async () => {
     // Stub env vars so the pre-checks pass
@@ -24,12 +39,12 @@ describe("process-email-queue endpoint", () => {
       method: "GET",
     });
 
-    const handler = Route.options.server?.handlers?.GET;
+    const handler = handlers().GET;
     if (!handler) throw new Error("Missing GET handler");
 
-    const response = await handler({ request, params: {} } as any);
+    const response = await handler({ request, params: {} });
     expect(response.status).toBe(401);
-    
+
     const body = await response.json();
     expect(body).toEqual({ error: "Unauthorized" });
   });
@@ -46,12 +61,12 @@ describe("process-email-queue endpoint", () => {
       },
     });
 
-    const handler = Route.options.server?.handlers?.POST;
+    const handler = handlers().POST;
     if (!handler) throw new Error("Missing POST handler");
 
-    const response = await handler({ request, params: {} } as any);
+    const response = await handler({ request, params: {} });
     expect(response.status).toBe(403);
-    
+
     const body = await response.json();
     expect(body).toEqual({ error: "Forbidden" });
   });
@@ -68,10 +83,12 @@ describe("process-email-queue endpoint", () => {
       },
     });
 
-    const handler = Route.options.server?.handlers?.POST;
+    const handler = handlers().POST;
     if (!handler) throw new Error("Missing POST handler");
 
-    await expect(handler({ request, params: {} } as any)).rejects.toThrow("Auth passed, stopping execution");
+    await expect(handler({ request, params: {} })).rejects.toThrow(
+      "Auth passed, stopping execution",
+    );
   });
 
   it("passes auth if Bearer matches CRON_SECRET (GET)", async () => {
@@ -87,9 +104,11 @@ describe("process-email-queue endpoint", () => {
       },
     });
 
-    const handler = Route.options.server?.handlers?.GET;
+    const handler = handlers().GET;
     if (!handler) throw new Error("Missing GET handler");
 
-    await expect(handler({ request, params: {} } as any)).rejects.toThrow("Auth passed, stopping execution");
+    await expect(handler({ request, params: {} })).rejects.toThrow(
+      "Auth passed, stopping execution",
+    );
   });
 });
