@@ -214,7 +214,7 @@ function PrivacyPage() {
           <p>We use the following sub-processors to operate the Service:</p>
           <ul className="ml-5 list-disc space-y-1">
             <li>
-              <strong>Stripe, Inc.</strong>—payment processing.{" "}
+              <strong>Stripe, LLC</strong>—payment processing.{" "}
               <a
                 href="https://stripe.com/privacy"
                 target="_blank"
