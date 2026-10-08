@@ -13,6 +13,18 @@ import { scrubBreadcrumb, scrubSentryEvent } from "./sentry-scrub";
 
 export type SentryRuntime = "client" | "server";
 
+/** Same-origin only. Anchored so satus.sh.evil.example does not match. */
+export const SATUS_TRACE_PROPAGATION_TARGETS: Array<string | RegExp> = [
+  /^https?:\/\/([a-z0-9-]+\.)*satus\.sh(?=[\/:?#]|$)/i,
+  /^\//,
+];
+
+export function matchesSatusTraceTarget(value: string): boolean {
+  return SATUS_TRACE_PROPAGATION_TARGETS.some((target) =>
+    typeof target === "string" ? value === target : target.test(value),
+  );
+}
+
 export function sentrySharedOptions(runtime: SentryRuntime) {
   const dsn =
     runtime === "client"
@@ -35,9 +47,7 @@ export function sentrySharedOptions(runtime: SentryRuntime) {
     ...(release ? { release } : {}),
     tracesSampleRate: 0.1,
     maxBreadcrumbs: 30,
-    // Same-origin only. Empty would drop useful client traces to our own
-    // APIs; a wildcard would attach sentry-trace to third parties.
-    tracePropagationTargets: [/^https?:\/\/([^/]*\.)?satus\.sh/i, /^\//],
+    tracePropagationTargets: SATUS_TRACE_PROPAGATION_TARGETS,
     beforeSend(event: ErrorEvent, _hint: EventHint) {
       return scrubSentryEvent(event);
     },
