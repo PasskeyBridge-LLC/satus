@@ -18,7 +18,7 @@ import { PageShell } from "@/components/site/chrome";
 import { Prose, Section, type SectionMeta } from "@/components/site/primitives";
 
 const SITE_URL = "https://satus.sh";
-const EFFECTIVE_DATE = "May 26, 2026";
+const EFFECTIVE_DATE = "October 8, 2026";
 
 const SECTIONS: ReadonlyArray<SectionMeta> = [
   { id: "summary", n: "01", label: "Summary" },
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/privacy")({
       {
         name: "description",
         content:
-          "Privacy policy for satus.sh. The CLI runs on your machine; we never see your schemas, your data, or your LLM prompts. Effective May 26, 2026.",
+          "Privacy policy for satus.sh. The CLI runs on your machine; we never see your schemas, your data, or your LLM prompts. Effective October 8, 2026.",
       },
       {
         property: "og:title",
@@ -237,10 +237,14 @@ function PrivacyPage() {
               <strong>Ahrefs Pte. Ltd.</strong>—cookieless web analytics.
             </li>
             <li>
-              <strong>Functional Software, Inc. (Sentry)</strong>—application error monitoring;
-              receives error reports with technical data (browser, OS, page URL without query
-              string, stack trace). Configured not to collect names, emails, IP-derived identity,
-              request bodies, or session recordings (San Francisco, CA, USA).
+              <strong>Functional Software, Inc. (Sentry)</strong>—error monitoring only. Sentry
+              receives a report only when an error occurs on satus.sh: the error message and stack
+              trace; browser, operating system, and runtime information; the page URL without its
+              query string; a short trail of the navigations, clicks, and network requests that
+              preceded the error (URLs without query strings); and the site release and environment.
+              Reports contain no names, email addresses, cookies, request headers or bodies, or
+              session recordings. IP addresses are not stored. We do not use Sentry for performance
+              tracing or session tracking (San Francisco, CA, USA).
             </li>
           </ul>
           <p>

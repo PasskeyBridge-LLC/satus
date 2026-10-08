@@ -21,6 +21,10 @@ export const SENSITIVE_BODY_PATHS = [
 const HEADER_DROP =
   /^(authorization|cookie|set-cookie|x-api-key|apikey|x-supabase|proxy-authorization|x-csrf|stripe-signature)$/i;
 
+/** Headers that carry the client IP or IP-derived location. Never sent. */
+const IP_HEADER_DROP =
+  /^(x-forwarded-for|x-real-ip|forwarded|cf-connecting-ip|true-client-ip|x-client-ip|x-cluster-client-ip|fastly-client-ip|x-vercel-forwarded-for|x-vercel-proxied-for|x-vercel-ip-[a-z0-9-]+)$/i;
+
 const SENSITIVE_KEY =
   /pass(word)?|secret|token|jwt|session|auth|api[-_]?key|otp|code|email|phone|credential|signature/i;
 
@@ -106,8 +110,9 @@ function scrubHeaders(headers: unknown): Record<string, string> | undefined {
   if (!headers || typeof headers !== "object") return undefined;
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(headers as Record<string, unknown>)) {
-    if (HEADER_DROP.test(key)) continue;
-    out[key] = typeof value === "string" ? redactText(value) : String(value);
+    if (HEADER_DROP.test(key) || IP_HEADER_DROP.test(key)) continue;
+    const text = typeof value === "string" ? redactText(value) : String(value);
+    out[key] = /^referer$/i.test(key) ? stripQueryAndFragment(text) : text;
   }
   return out;
 }
