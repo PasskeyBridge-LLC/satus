@@ -40,37 +40,91 @@ describe("sentry init", () => {
     expect(init).toHaveBeenCalledOnce();
     expect(init.mock.calls[0]?.[0]).toMatchObject({
       dsn: "https://example.ingest.us.sentry.io/1",
-      sendDefaultPii: false,
-      tracesSampleRate: 0.1,
+      sendClientReports: false,
+      tracePropagationTargets: [],
+      dataCollection: { userInfo: false },
       environment: "production",
     });
   });
 });
 
-describe("trace propagation targets", () => {
-  it("matches satus.sh, its subdomains and same-origin paths", async () => {
-    const { matchesSatusTraceTarget } = await import("./sentry");
-    for (const url of [
-      "https://satus.sh",
-      "https://satus.sh/",
-      "https://www.satus.sh/api/x?y=1",
-      "https://satus.sh:443/pricing",
-      "https://satus.sh#top",
-      "/api/x",
-    ]) {
-      expect(matchesSatusTraceTarget(url), url).toBe(true);
+describe("error monitoring only", () => {
+  it("propagates trace headers to no origin", async () => {
+    const { SATUS_TRACE_PROPAGATION_TARGETS, sentrySharedOptions } = await import("./sentry");
+    expect(SATUS_TRACE_PROPAGATION_TARGETS).toEqual([]);
+    expect(sentrySharedOptions("server").tracePropagationTargets).toEqual([]);
+    expect(sentrySharedOptions("client").tracePropagationTargets).toEqual([]);
+  });
+
+  it("sets no tracing, no client reports, and collects no personal data", async () => {
+    const { sentrySharedOptions } = await import("./sentry");
+    for (const runtime of ["client", "server"] as const) {
+      const options = sentrySharedOptions(runtime) as Record<string, unknown>;
+      expect(options).not.toHaveProperty("tracesSampleRate");
+      expect(options).not.toHaveProperty("tracesSampler");
+      expect(options).not.toHaveProperty("replaysSessionSampleRate");
+      expect(options).not.toHaveProperty("replaysOnErrorSampleRate");
+      expect(options.sendClientReports).toBe(false);
+      expect(options.traceLifecycle).toBe("static");
+      // Removed in SDK 11; setting it would do nothing.
+      expect(options).not.toHaveProperty("sendDefaultPii");
+      expect(options.dataCollection).toEqual({
+        userInfo: false,
+        cookies: false,
+        httpHeaders: false,
+        httpBodies: [],
+        urlQueryParams: false,
+        graphQL: { document: false, variables: false },
+        genAI: { inputs: false, outputs: false },
+        databaseQueryData: false,
+        queues: false,
+        stackFrameVariables: false,
+      });
     }
   });
 
-  it("does not match look-alike or third-party hosts", async () => {
-    const { matchesSatusTraceTarget } = await import("./sentry");
-    for (const url of [
-      "https://satus.sh.evil.test/",
-      "https://evilsatus.sh/",
-      "https://satus.shop/",
-      "https://api.stripe.com/v1",
-    ]) {
-      expect(matchesSatusTraceTarget(url), url).toBe(false);
-    }
+  it("drops session and tracing integrations and keeps the error ones", async () => {
+    const { errorOnlyIntegrations } = await import("./sentry");
+    const named = (name: string) => ({ name });
+    const extra = named("Http");
+    const kept = errorOnlyIntegrations(
+      [
+        "InboundFilters",
+        "GlobalHandlers",
+        "LinkedErrors",
+        "Dedupe",
+        "BrowserSession",
+        "BrowserTracing",
+        "ProcessSession",
+        "Http",
+        "OnUncaughtException",
+      ].map(named),
+      [extra],
+    ).map((i) => i.name);
+    expect(kept).toEqual([
+      "InboundFilters",
+      "GlobalHandlers",
+      "LinkedErrors",
+      "Dedupe",
+      "OnUncaughtException",
+      "Http",
+    ]);
+  });
+
+  it("passes the error-only integration filter to Sentry.init", async () => {
+    vi.stubEnv("SENTRY_DSN", "https://example.ingest.us.sentry.io/1");
+    const { initSentry } = await import("./sentry");
+    await initSentry("server");
+    const options = init.mock.calls[0]?.[0] as {
+      integrations: (d: Array<{ name: string }>) => Array<{ name: string }>;
+      tracesSampleRate?: number;
+    };
+    expect(options.tracesSampleRate).toBeUndefined();
+    const names = options
+      .integrations([{ name: "BrowserSession" }, { name: "ProcessSession" }, { name: "Dedupe" }])
+      .map((i) => i.name);
+    expect(names).toContain("Dedupe");
+    expect(names).not.toContain("BrowserSession");
+    expect(names).not.toContain("ProcessSession");
   });
 });

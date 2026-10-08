@@ -2,6 +2,31 @@ import { describe, expect, it } from "vitest";
 import { scrubBreadcrumb, scrubSentryEvent } from "./sentry-scrub";
 
 describe("sentry scrubber", () => {
+  it("drops IP-bearing headers and strips the query string from Referer", () => {
+    const event = scrubSentryEvent({
+      request: {
+        url: "https://satus.sh/pricing",
+        headers: {
+          "x-forwarded-for": "203.0.113.9, 10.0.0.1",
+          "X-Real-IP": "203.0.113.9",
+          Forwarded: "for=203.0.113.9",
+          "x-vercel-forwarded-for": "203.0.113.9",
+          "x-vercel-proxied-for": "203.0.113.9",
+          "x-vercel-ip-city": "Casper",
+          "x-vercel-ip-latitude": "42.8",
+          "cf-connecting-ip": "203.0.113.9",
+          "true-client-ip": "203.0.113.9",
+          Referer: "https://satus.sh/docs?ref=abc#top",
+          "User-Agent": "Mozilla/5.0",
+        },
+      },
+    });
+    expect(event.request?.headers).toEqual({
+      Referer: "https://satus.sh/docs",
+      "User-Agent": "Mozilla/5.0",
+    });
+  });
+
   it("strips auth headers, cookies, request body, user, and query strings", () => {
     const event = scrubSentryEvent({
       user: { email: "buyer@example.com", ip_address: "203.0.113.9" },

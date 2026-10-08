@@ -8,6 +8,10 @@
  * middlewares are plain pass-throughs. src/server.ts and src/start.ts go
  * through the helpers below for that reason.
  *
+ * Error monitoring only: no wrapFetchWithSentry (request spans and trace
+ * meta tags). The middlewares capture exceptions and rethrow; the fetch
+ * wrapper only flushes queued error events before the function returns.
+ *
  * Vercel Cron is GET + CRON_SECRET (Authorization: Bearer <CRON_SECRET>).
  * That header is stripped in sentry-scrub.ts, not here.
  */
@@ -22,9 +26,14 @@ export function loadServerSentry(): Promise<SentryServerSdk | null> {
   loading ??= (async () => {
     if (typeof process === "undefined" || !process.env.SENTRY_DSN) return null;
     try {
-      const { initSentry } = await import("./lib/sentry");
-      await initSentry("server");
-      return await import("@sentry/tanstackstart-react");
+      const [{ initSentry }, sdk] = await Promise.all([
+        import("./lib/sentry"),
+        import("@sentry/tanstackstart-react"),
+      ]);
+      // Request isolation and request data for error events, without
+      // request sessions or spans.
+      await initSentry("server", [sdk.httpIntegration({ sessions: false, spans: false })]);
+      return sdk;
     } catch (error) {
       // Monitoring must never take the site down with it.
       console.error("Sentry server SDK failed to load; continuing without it.", error);
@@ -36,38 +45,50 @@ export function loadServerSentry(): Promise<SentryServerSdk | null> {
 
 export type ServerFetch = (request: Request, env: unknown, ctx: unknown) => Promise<Response>;
 
-/** wrapFetchWithSentry when a DSN is set; the handler itself otherwise. */
+/** Flush timeout for queued error events at the end of a request. */
+const FLUSH_TIMEOUT_MS = 2000;
+
+/**
+ * With a DSN: runs the handler, then flushes any queued error events so a
+ * serverless instance does not freeze with them unsent (an empty queue
+ * resolves immediately). Without one: the handler itself.
+ */
 export function withServerSentry(handler: ServerFetch): ServerFetch {
-  let ready: Promise<ServerFetch> | undefined;
   return async (request, env, ctx) => {
-    ready ??= loadServerSentry().then((sdk) => {
-      if (!sdk) return handler;
-      const wrapped = sdk.wrapFetchWithSentry({ fetch: handler } as Parameters<
-        SentryServerSdk["wrapFetchWithSentry"]
-      >[0]) as { fetch: ServerFetch };
-      return wrapped.fetch;
-    });
-    const fetch = await ready;
-    return fetch(request, env, ctx);
+    const sdk = await loadServerSentry();
+    if (!sdk) return handler(request, env, ctx);
+    try {
+      return await handler(request, env, ctx);
+    } finally {
+      await sdk.flush(FLUSH_TIMEOUT_MS);
+    }
   };
 }
 
 type MiddlewareCtx = { next: (...args: never[]) => unknown };
 
+const MECHANISM = {
+  request: "auto.middleware.tanstackstart.request",
+  function: "auto.middleware.tanstackstart.server_function",
+} as const;
+
 /**
- * Body of the global request/function middlewares in src/start.ts. Runs
- * Sentry's own global middleware handler when the SDK is loaded, and just
- * calls next() when it is not.
+ * Body of the global request/function middlewares in src/start.ts. With
+ * the SDK loaded it reports an exception thrown further down the chain
+ * and rethrows it; without the SDK it just calls next(). No spans.
  */
 export async function runSentryMiddleware<C extends MiddlewareCtx>(
   kind: "request" | "function",
   ctx: C,
 ): Promise<Awaited<ReturnType<C["next"]>>> {
   type Result = Awaited<ReturnType<C["next"]>>;
+  const next = ctx.next as () => unknown;
   const sdk = await loadServerSentry();
-  const middleware =
-    kind === "request" ? sdk?.sentryGlobalRequestMiddleware : sdk?.sentryGlobalFunctionMiddleware;
-  const server = (middleware?.options as { server?: (c: C) => unknown } | undefined)?.server;
-  if (!server) return (await (ctx.next as () => unknown)()) as Result;
-  return (await server(ctx)) as Result;
+  if (!sdk) return (await next()) as Result;
+  try {
+    return (await next()) as Result;
+  } catch (error) {
+    sdk.captureException(error, { mechanism: { type: MECHANISM[kind], handled: false } });
+    throw error;
+  }
 }
