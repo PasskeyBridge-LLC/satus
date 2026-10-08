@@ -1,6 +1,7 @@
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
+import { withServerSentry } from "./instrument.server";
 import { renderErrorPage } from "./lib/error-page";
 import { stripModulePreloads } from "./lib/strip-modulepreload";
 
@@ -82,15 +83,16 @@ async function withoutModulePreload(response: Response): Promise<Response> {
   });
 }
 
-export default {
-  async fetch(request: Request, env: unknown, ctx: unknown) {
-    try {
-      const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
-      return await withoutModulePreload(await normalizeCatastrophicSsrResponse(response));
-    } catch (error) {
-      console.error(error);
-      return brandedErrorResponse();
-    }
-  },
-};
+async function handle(request: Request, env: unknown, ctx: unknown): Promise<Response> {
+  try {
+    const handler = await getServerEntry();
+    const response = await handler.fetch(request, env, ctx);
+    return await withoutModulePreload(await normalizeCatastrophicSsrResponse(response));
+  } catch (error) {
+    console.error(error);
+    return brandedErrorResponse();
+  }
+}
+
+// Sentry wraps the handler only when SENTRY_DSN is set (see instrument.server.ts).
+export default { fetch: withServerSentry(handle) };

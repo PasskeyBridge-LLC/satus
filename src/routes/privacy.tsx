@@ -236,6 +236,12 @@ function PrivacyPage() {
             <li>
               <strong>Ahrefs Pte. Ltd.</strong>—cookieless web analytics.
             </li>
+            <li>
+              <strong>Functional Software, Inc. (Sentry)</strong>—application error monitoring;
+              receives error reports with technical data (browser, OS, page URL without query
+              string, stack trace). Configured not to collect names, emails, IP-derived identity,
+              request bodies, or session recordings (San Francisco, CA, USA).
+            </li>
           </ul>
           <p>
             We will notify customers by email at least 30 days before engaging a new sub-processor
