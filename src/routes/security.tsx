@@ -260,7 +260,7 @@ function SecurityPage() {
           <ul className="ml-5 list-disc space-y-1">
             <li>
               <strong>TLS everywhere.</strong> All traffic to <code>satus.sh</code> and to{" "}
-              <code>/api/public/license/verify</code> is served over TLS terminated at Cloudflare.
+              <code>/api/public/license/verify</code> is served over TLS terminated at Vercel.
             </li>
             <li>
               <strong>Encrypted at rest.</strong> License records live in a Supabase-managed
@@ -276,8 +276,9 @@ function SecurityPage() {
               <code>Stripe-Signature</code> HMAC on every request before touching the database.
             </li>
             <li>
-              <strong>Secrets.</strong> Service-role credentials are held in Cloudflare Workers
-              environment variables and are never exposed to the browser bundle.
+              <strong>Secrets.</strong> Service-role credentials are held as Vercel Secret (formerly
+              Sensitive) environment variables, which cannot be read back once saved, and are never
+              exposed to the browser bundle.
             </li>
           </ul>
         </Prose>
