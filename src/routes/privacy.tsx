@@ -296,9 +296,11 @@ function PrivacyPage() {
           <p>
             We are based in the United States and our sub-processors operate globally. Transfers of
             personal data from the EEA, UK, or Switzerland to the United States rely on the European
-            Commission&rsquo;s Standard Contractual Clauses (SCCs) and, where applicable, on
-            Stripe&rsquo;s and Cloudflare&rsquo;s certification under the EU&ndash;U.S. Data Privacy
-            Framework.
+            Commission&rsquo;s Standard Contractual Clauses (SCCs) and, where applicable, on the
+            recipient&rsquo;s certification under the EU&ndash;U.S. Data Privacy Framework, its UK
+            Extension, and the Swiss&ndash;U.S. Data Privacy Framework. Vercel Inc., Stripe, LLC,
+            Functional Software, Inc. (Sentry), and Cloudflare, Inc. are listed as active
+            participants in all three frameworks.
           </p>
         </Prose>
       </Section>
