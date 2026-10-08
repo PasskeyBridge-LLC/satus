@@ -1,26 +1,22 @@
 /**
- * Client entry. When VITE_SENTRY_DSN is set, the Sentry SDK is loaded
- * before hydration so errors during boot are captured. When it is empty
- * the SDK chunk is never requested.
+ * Client entry. When VITE_SENTRY_DSN is set, the SDK chunk starts loading
+ * but hydration does not wait on it. An empty DSN never requests the chunk.
  */
 import { StartClient } from "@tanstack/react-start/client";
 import { StrictMode, startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 
-async function boot(): Promise<void> {
-  if (import.meta.env.VITE_SENTRY_DSN) {
-    const { initSentry } = await import("./lib/sentry");
+if (import.meta.env.VITE_SENTRY_DSN) {
+  void import("./lib/sentry").then(({ initSentry }) => {
     initSentry("client");
-  }
-
-  startTransition(() => {
-    hydrateRoot(
-      document,
-      <StrictMode>
-        <StartClient />
-      </StrictMode>,
-    );
   });
 }
 
-void boot();
+startTransition(() => {
+  hydrateRoot(
+    document,
+    <StrictMode>
+      <StartClient />
+    </StrictMode>,
+  );
+});
