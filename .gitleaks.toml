@@ -28,3 +28,12 @@ condition = "AND"
 paths = ['''^src/routes/__root\.tsx$''']
 regexTarget = "line"
 regexes = ['''"data-key":''']
+
+[[allowlists]]
+description = "Fake env fixtures in the email-queue route test: a sequential-digit Resend-style placeholder and a bare JWT header ending in '...' (no payload or signature). Neither is a credential."
+condition = "AND"
+paths = ['''^src/routes/api/internal/email/queue/process\.test\.ts$''']
+regexes = [
+  '''^re_12345678901234567890$''',
+  '''^eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.\.\.$''',
+]
