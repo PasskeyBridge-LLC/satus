@@ -214,7 +214,7 @@ function PrivacyPage() {
           <p>We use the following sub-processors to operate the Service:</p>
           <ul className="ml-5 list-disc space-y-1">
             <li>
-              <strong>Stripe, Inc.</strong>—payment processing.{" "}
+              <strong>Stripe, LLC</strong>—payment processing.{" "}
               <a
                 href="https://stripe.com/privacy"
                 target="_blank"
@@ -226,8 +226,13 @@ function PrivacyPage() {
               .
             </li>
             <li>
-              <strong>Cloudflare, Inc.</strong>—hosting, edge runtime, and DDoS protection for
-              satus.sh.
+              <strong>Vercel Inc.</strong>—hosting, content delivery, and serverless functions for
+              satus.sh. Every page and API request to satus.sh is served by Vercel, which processes
+              the visitor&rsquo;s IP address and request metadata to deliver it (Covina, CA, USA).
+            </li>
+            <li>
+              <strong>Cloudflare, Inc.</strong>—DNS for satus.sh only. Visitor traffic does not pass
+              through Cloudflare (San Francisco, CA, USA).
             </li>
             <li>
               <strong>Supabase, Inc.</strong>—database hosting for license records and transactional
@@ -291,9 +296,11 @@ function PrivacyPage() {
           <p>
             We are based in the United States and our sub-processors operate globally. Transfers of
             personal data from the EEA, UK, or Switzerland to the United States rely on the European
-            Commission&rsquo;s Standard Contractual Clauses (SCCs) and, where applicable, on
-            Stripe&rsquo;s and Cloudflare&rsquo;s certification under the EU&ndash;U.S. Data Privacy
-            Framework.
+            Commission&rsquo;s Standard Contractual Clauses (SCCs) and, where applicable, on the
+            recipient&rsquo;s certification under the EU&ndash;U.S. Data Privacy Framework, its UK
+            Extension, and the Swiss&ndash;U.S. Data Privacy Framework. Vercel Inc., Stripe, LLC,
+            Functional Software, Inc. (Sentry), and Cloudflare, Inc. are listed as active
+            participants in all three frameworks.
           </p>
         </Prose>
       </Section>
