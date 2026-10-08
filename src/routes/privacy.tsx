@@ -226,8 +226,13 @@ function PrivacyPage() {
               .
             </li>
             <li>
-              <strong>Cloudflare, Inc.</strong>—hosting, edge runtime, and DDoS protection for
-              satus.sh.
+              <strong>Vercel Inc.</strong>—hosting, content delivery, and serverless functions for
+              satus.sh. Every page and API request to satus.sh is served by Vercel, which processes
+              the visitor&rsquo;s IP address and request metadata to deliver it (Covina, CA, USA).
+            </li>
+            <li>
+              <strong>Cloudflare, Inc.</strong>—DNS for satus.sh only. Visitor traffic does not pass
+              through Cloudflare (San Francisco, CA, USA).
             </li>
             <li>
               <strong>Supabase, Inc.</strong>—database hosting for license records and transactional
