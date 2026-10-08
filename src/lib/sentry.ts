@@ -2,20 +2,19 @@
  * Sentry init options shared by the client and server instrument files.
  *
  * `initSentry` is the only place that calls `Sentry.init`. An empty DSN
- * is a true no-op: the caller must not import this module (and therefore
- * the SDK) until a DSN is present. The instrument files dynamic-import
- * this module for that reason.
+ * is a true no-op: the SDK is never imported. The instrument files also
+ * dynamic-import this module only when a DSN is present.
  */
 
 import type { Breadcrumb, ErrorEvent, EventHint, TransactionEvent } from "@sentry/core";
-import * as Sentry from "@sentry/tanstackstart-react";
+import type * as SentrySdk from "@sentry/tanstackstart-react";
 import { scrubBreadcrumb, scrubSentryEvent } from "./sentry-scrub";
 
 export type SentryRuntime = "client" | "server";
 
 /** Same-origin only. Anchored so satus.sh.evil.example does not match. */
 export const SATUS_TRACE_PROPAGATION_TARGETS: Array<string | RegExp> = [
-  /^https?:\/\/([a-z0-9-]+\.)*satus\.sh(?=[\/:?#]|$)/i,
+  /^https?:\/\/([a-z0-9-]+\.)*satus\.sh(?=[/:?#]|$)/i,
   /^\//,
 ];
 
@@ -60,8 +59,16 @@ export function sentrySharedOptions(runtime: SentryRuntime) {
   };
 }
 
-export function initSentry(runtime: SentryRuntime): ReturnType<typeof Sentry.init> | undefined {
+/**
+ * The SDK itself is imported here, dynamically, and only after the DSN check.
+ * A static import would be hoisted into the server bundle (Nitro inlines
+ * dynamic imports) and evaluate the SDK on every cold start, DSN or not.
+ */
+export async function initSentry(
+  runtime: SentryRuntime,
+): Promise<ReturnType<typeof SentrySdk.init> | undefined> {
   const options = sentrySharedOptions(runtime);
   if (!options.dsn) return undefined;
+  const Sentry = await import("@sentry/tanstackstart-react");
   return Sentry.init(options);
 }

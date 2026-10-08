@@ -100,7 +100,9 @@ export default defineConfig(({ mode }) => {
          * SSR error wrapper). @cloudflare/vite-plugin builds from this;
          * wrangler.jsonc `main` alone is insufficient. */
         server: { entry: "server" },
-        /* Client entry loads Sentry before hydration when VITE_SENTRY_DSN is set. */
+        /* src/client.tsx: hydrates immediately. With VITE_SENTRY_DSN set it
+         * starts the Sentry import without awaiting it; without one the SDK
+         * chunk is never requested. */
         client: { entry: "client" },
         /* Fail the build if client code imports server-only modules, rather
          * than shipping a server bundle to the browser. */
