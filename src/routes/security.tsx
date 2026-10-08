@@ -57,7 +57,7 @@ export const Route = createFileRoute("/security")({
           name: "satus security policy",
           url: SITE_URL + "/security",
           inLanguage: "en",
-          dateModified: "2026-05-26",
+          dateModified: "2026-10-08",
           publisher: {
             "@type": "Organization",
             name: "PasskeyBridge LLC",
@@ -81,7 +81,7 @@ function SecurityPage() {
         <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--mute)]">
           <span className="text-[var(--signal)]">§00</span>
           <span className="mx-3 text-[var(--hairline)]">|</span>
-          <span>Security policy · v1 · 2026-05-26</span>
+          <span>Security policy · v1 · 2026-10-08</span>
         </div>
         <h1 className="mt-5 max-w-[22ch] font-mono text-[34px] font-medium leading-[1.1] tracking-tight text-[var(--ink)] md:text-[44px]">
           report it. we'll fix it. we'll credit you.
