@@ -7,9 +7,7 @@ import { StrictMode, startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 
 if (import.meta.env.VITE_SENTRY_DSN) {
-  void import("./lib/sentry").then(({ initSentry }) => {
-    initSentry("client");
-  });
+  void import("./lib/sentry").then(({ initSentry }) => initSentry("client"));
 }
 
 startTransition(() => {

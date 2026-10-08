@@ -1,9 +1,6 @@
-import {
-  sentryGlobalFunctionMiddleware,
-  sentryGlobalRequestMiddleware,
-} from "@sentry/tanstackstart-react";
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
+import { runSentryMiddleware } from "./instrument.server";
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
@@ -30,12 +27,21 @@ const errorMiddleware = createMiddleware().server(async ({ next, pathname }) => 
   }
 });
 
+/* Sentry's global middlewares, loaded only when SENTRY_DSN is set. Without
+ * a DSN these just call next() and the SDK is never imported. */
+const sentryRequestMiddleware = createMiddleware().server((ctx) =>
+  runSentryMiddleware("request", ctx),
+);
+const sentryFunctionMiddleware = createMiddleware({ type: "function" }).server((ctx) =>
+  runSentryMiddleware("function", ctx),
+);
+
 export const startInstance = createStart(() => ({
   // Sentry first so request and serverFn errors are captured before our
   // branded HTML 500 middleware swallows them.
-  requestMiddleware: [sentryGlobalRequestMiddleware, errorMiddleware],
+  requestMiddleware: [sentryRequestMiddleware, errorMiddleware],
   // attachSupabaseAuth forwards the user's bearer token on every serverFn
   // RPC. No protected serverFns ship in v1, but the middleware is harmless
   // and keeps any future requireSupabaseAuth route working out of the box.
-  functionMiddleware: [sentryGlobalFunctionMiddleware, attachSupabaseAuth],
+  functionMiddleware: [sentryFunctionMiddleware, attachSupabaseAuth],
 }));
