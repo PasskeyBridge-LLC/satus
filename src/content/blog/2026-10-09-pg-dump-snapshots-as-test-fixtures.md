@@ -6,7 +6,7 @@ date: 2026-10-09
 publishAt: 2026-10-09T09:00:00-04:00
 author: satus.sh
 tags: [seeding, testing, fixtures, postgres, pg_dump]
-draft: true
+draft: false
 ---
 
 The [troubleshooting page](/docs/troubleshooting) and [the fixtures-vs-generation post](/blog/fixtures-vs-generation-when-each-wins) give the same answer to the determinism gap: generate once, capture the result with `pg_dump`, and restore that between runs. Neither shows the commands. This post does, along with three places where the obvious commands produce a fixture that changes when nothing changed or a restore that stops halfway. Every transcript below ran on PostgreSQL 17.11, with `pg_dump` and `psql` 17.11, against the shipped `@passkeybridge/satus@0.3.11`.
