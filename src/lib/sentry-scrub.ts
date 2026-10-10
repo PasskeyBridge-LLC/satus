@@ -19,7 +19,7 @@ export const SENSITIVE_BODY_PATHS = [
 ] as const;
 
 const HEADER_DROP =
-  /^(authorization|cookie|set-cookie|x-api-key|apikey|x-supabase|proxy-authorization|x-csrf|stripe-signature)$/i;
+  /^(authorization|cookie|set-cookie|x-api-key|apikey|x-supabase|proxy-authorization|x-csrf|stripe-signature|x-e2e-health-secret)$/i;
 
 /** Headers that carry the client IP or IP-derived location. Never sent. */
 const IP_HEADER_DROP =
