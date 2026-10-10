@@ -1,49 +1,47 @@
 # HANDOFF
 
-Written 2026-10-04. Replace this file next session; do not append.
+Written 2026-10-05 after the weekly E2E. Replace this file next session; do not append.
 
 ## State
 
-`main` is production. `@passkeybridge/satus@0.3.11` is the CLI version in
-`packages/cli/package.json`. Cloud Agent bootstrap is `.cursor/environment.json`:
-Node v24.21.0, Bun 1.3.11, Docker (`fuse-overlayfs`), and Supabase CLI 2.119.0.
-`.cursor/start.sh` runs `scripts/test-db.sh` then the site on port 5173 against
-the local stack. `DATABASE_URL` in gitignored `.env.local` is the pagila
-throwaway on `127.0.0.1:5432`, not the hosted project.
+Production for the weekly fix is `a28a31c894a97cd1f4edc76d507fe58a9c68fd57`
+(#29), deployment `dpl_7AGaEELY4C3xbPoxoBTtq72NWkTJ`, target production,
+READY. `https://satus.sh/recipes` serves `#b91c1c` and `tabindex="0"`.
+After this handoff commit, production must match `origin/main`. The 07-17
+pg_dump correction remains in history (`42ed098`). CLI is 0.3.11. npm
+`latest` was not moved. `next` is still `0.3.11-orgmove.0` and has no tag.
 
-Local proof on this VM: `scripts/test-db.sh --reset` applied 26 migrations and
-`supabase/seed.sql` (one synthetic license, production e2e cron unscheduled).
-License verify against `127.0.0.1:5173` returned valid for the seed key; the
-61st call from one IP in the window was `429 rate_limited` (counter hits 61).
-Webhook POSTs to that same local URL rejected a bad signature and a timestamp
-older than 300s (`400`), and accepted a freshly signed `local.fixture` (`200`).
-No request went to the production payments webhook.
+The ledger is `mem/weekly-e2e/2026-10-05.md`. NEW 1 / FIXED 1 / STILL-OPEN 4 /
+REGRESSED 0. The recipes axe finding is fixed.
 
-## Needs the owner
+## Left open on purpose
 
-- Cursor secrets named in `AGENTS.md`. Leave the two live Stripe secrets off.
-  This environment is still DB-managed (`environmentJsonPath` null), so a
-  dashboard Save is what makes the new install/start the boot default.
-- Revoke the old npm token on npmjs.com (handoff of 2026-09-25; not rechecked).
-- Draft post `src/content/blog/2026-10-09-pg-dump-snapshots-as-test-fixtures.md`
-  is `draft: true`, `publishAt` 2026-10-09 09:00 ET. The build withholds it.
+ST-2 e2e-health has no shared secret. ST-3 verify still fails open when the
+rate-limit RPC errors. ST-8 the 82 suppression rows were not deleted. ST-15
+the leaked-password advisor WARN is absent from this week's payload; the Auth
+setting was not read and was not changed. Do not merge `feat/xai-demo` or
+`ops/weekly-e2e-spec`. Do not move the npm dist-tag. The draft post
+`2026-10-09-pg-dump-snapshots-as-test-fixtures` stays draft until its
+`publishAt`.
 
-## Flags, unchanged
+## Flags
 
-CSP absent. e2e-health is rate limited, not authenticated. Site `bun audit`
-is 38 findings. 79 poisoned suppression rows were left in place as of
-2026-09-04; current count not rechecked. `minimumReleaseAge` is 24h.
-Pagila in `action-selftest.yml` is still unpinned; the local throwaway uses
-that same URL. `email_queue_dispatch` and `email_queue_wake` are still not
-created by any migration; the 2026-07-01 revoke now skips them when absent
-so a fresh replay can finish.
+`DO_NOT_TRACK` wins. Telemetry stays off unless configured.
+`minimumReleaseAge` is 24h. Report-only Content-Security-Policy is on `/`.
+`POST /api/public/cli/run` fails closed at 60 per hour per IP hash. Two
+moderate vitest mocker findings remain (GHSA-82fw-gwwq-j7x9). Multi-column
+UNIQUE, cross-column arithmetic, and `--seed` stay documented CLI limits.
+There is still no `process-email-queue` cron. Both pgmq queues and both DLQs
+were empty.
 
 ## Graduated this session
 
-Local test database: `scripts/test-db.sh`, `supabase/seed.sql`, and the
-AGENTS.md database section.
+2026-10-05 weekly results are in the ledger. Live license rows match three
+`satus.sh` subscriptions. Local test database stays `scripts/test-db.sh`.
 
 ## Next
 
-1. Confirm the 2026-10-09 post before Friday, or leave it draft.
-2. CSP report-only, then the e2e-health shared secret.
+1. Confirm the 2026-10-09 draft post before Friday, or leave it draft.
+2. Revoke the old npm token on npmjs.com (handoff of 2026-09-25).
+3. Confirm the Auth leaked-password toggle. Do not infer it from the missing
+   advisor warning.

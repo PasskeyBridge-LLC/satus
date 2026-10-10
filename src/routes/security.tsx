@@ -57,7 +57,7 @@ export const Route = createFileRoute("/security")({
           name: "satus security policy",
           url: SITE_URL + "/security",
           inLanguage: "en",
-          dateModified: "2026-05-26",
+          dateModified: "2026-10-08",
           publisher: {
             "@type": "Organization",
             name: "PasskeyBridge LLC",
@@ -81,7 +81,7 @@ function SecurityPage() {
         <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--mute)]">
           <span className="text-[var(--signal)]">§00</span>
           <span className="mx-3 text-[var(--hairline)]">|</span>
-          <span>Security policy · v1 · 2026-05-26</span>
+          <span>Security policy · v1 · 2026-10-08</span>
         </div>
         <h1 className="mt-5 max-w-[22ch] font-mono text-[34px] font-medium leading-[1.1] tracking-tight text-[var(--ink)] md:text-[44px]">
           report it. we'll fix it. we'll credit you.
@@ -260,7 +260,7 @@ function SecurityPage() {
           <ul className="ml-5 list-disc space-y-1">
             <li>
               <strong>TLS everywhere.</strong> All traffic to <code>satus.sh</code> and to{" "}
-              <code>/api/public/license/verify</code> is served over TLS terminated at Cloudflare.
+              <code>/api/public/license/verify</code> is served over TLS terminated at Vercel.
             </li>
             <li>
               <strong>Encrypted at rest.</strong> License records live in a Supabase-managed
@@ -276,8 +276,9 @@ function SecurityPage() {
               <code>Stripe-Signature</code> HMAC on every request before touching the database.
             </li>
             <li>
-              <strong>Secrets.</strong> Service-role credentials are held in Cloudflare Workers
-              environment variables and are never exposed to the browser bundle.
+              <strong>Secrets.</strong> Service-role credentials are held as Vercel Secret (formerly
+              Sensitive) environment variables, which cannot be read back once saved, and are never
+              exposed to the browser bundle.
             </li>
           </ul>
         </Prose>

@@ -46,6 +46,7 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-email/components": "^1.0.12",
+    "@sentry/tanstackstart-react": "11.4.0",
     "@stripe/react-stripe-js": "6.2.0",
     "@stripe/stripe-js": "9.2.0",
     "@supabase/supabase-js": "^2.106.1",
@@ -72,6 +73,7 @@
     "react-resizable-panels": "^4.6.5",
     "recharts": "^2.15.4",
     "sonner": "^2.0.7",
+    "source-map-js": "1.2.2",
     "stripe": "22.0.2",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
@@ -97,7 +99,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^7.3.1",
-    "vitest": "^2.1.9"
+    "vitest": "4.1.11"
   },
   "pnpm": {
     "overrides": {
@@ -105,11 +107,25 @@
     }
   },
   "overrides": {
-    "seroval": "^1.5.4",
-    "seroval-plugins": "^1.5.4"
+    "source-map-js": "1.2.2",
+    "seroval": "1.6.3",
+    "seroval-plugins": "1.6.3",
+    "fast-uri": "3.1.8",
+    "js-yaml": "4.3.2",
+    "nanoid": "3.3.19",
+    "sharp": "0.35.5",
+    "undici": "7.30.0",
+    "engine.io": "6.6.11"
   },
   "resolutions": {
-    "seroval": "^1.5.4",
-    "seroval-plugins": "^1.5.4"
+    "source-map-js": "1.2.2",
+    "seroval": "1.6.3",
+    "seroval-plugins": "1.6.3",
+    "fast-uri": "3.1.8",
+    "js-yaml": "4.3.2",
+    "nanoid": "3.3.19",
+    "sharp": "0.35.5",
+    "undici": "7.30.0",
+    "engine.io": "6.6.11"
   }
 }

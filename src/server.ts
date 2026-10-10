@@ -1,7 +1,9 @@
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
+import { withServerSentry } from "./instrument.server";
 import { renderErrorPage } from "./lib/error-page";
+import { stripModulePreloads } from "./lib/strip-modulepreload";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -66,15 +68,31 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   return brandedErrorResponse();
 }
 
-export default {
-  async fetch(request: Request, env: unknown, ctx: unknown) {
-    try {
-      const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
-    } catch (error) {
-      console.error(error);
-      return brandedErrorResponse();
-    }
-  },
-};
+async function withoutModulePreload(response: Response): Promise<Response> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("text/html")) return response;
+  const html = await response.text();
+  const next = stripModulePreloads(html);
+  if (next === html) return new Response(html, response);
+  const headers = new Headers(response.headers);
+  headers.delete("content-length");
+  return new Response(next, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+async function handle(request: Request, env: unknown, ctx: unknown): Promise<Response> {
+  try {
+    const handler = await getServerEntry();
+    const response = await handler.fetch(request, env, ctx);
+    return await withoutModulePreload(await normalizeCatastrophicSsrResponse(response));
+  } catch (error) {
+    console.error(error);
+    return brandedErrorResponse();
+  }
+}
+
+// Sentry wraps the handler only when SENTRY_DSN is set (see instrument.server.ts).
+export default { fetch: withServerSentry(handle) };

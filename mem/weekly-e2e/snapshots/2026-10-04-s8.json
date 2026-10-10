@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-04",
+  "chrome": "148.0.7778.96",
+  "journeys": "one h1, status 200, zero console errors on every HTML page in the spec list. Draft slug pg-dump-snapshots-as-test-fixtures is absent from /blog, /blog/rss.xml, and /sitemap.xml, and the post URL returns 404. /favicon.ico returns 404; the RSS document recorded that request.",
+  "demo": "Rendered. The only run control also calls /api/public/demo/generate, so DDL was not executed.",
+  "checkout": "No payment field was filled. Unknown price and the team lookup key render a refusal. satus_pro_monthly renders the embedded checkout.",
+  "lighthouse_lab": {
+    "note": "lighthouse 12, headless Chrome, simulated throttling, from the agent VM. Numbers are nearly identical across pages.",
+    "thresholds": {"lcp_ms": 2500, "cls": 0.1, "tbt_ms": 200},
+    "results": {
+      "home-mobile": {"lcp_ms": 3763.8, "cls": 0, "tbt_ms": 277},
+      "home-desktop": {"lcp_ms": 3764.9, "cls": 0, "tbt_ms": 290},
+      "pricing-mobile": {"lcp_ms": 3778.7, "cls": 0, "tbt_ms": 284},
+      "pricing-desktop": {"lcp_ms": 3762.7, "cls": 0, "tbt_ms": 286},
+      "docs-mobile": {"lcp_ms": 3772.4, "cls": 0, "tbt_ms": 275},
+      "docs-desktop": {"lcp_ms": 3766.9, "cls": 0, "tbt_ms": 292},
+      "post-mobile": {"lcp_ms": 3766.2, "cls": 0, "tbt_ms": 276},
+      "post-desktop": {"lcp_ms": 3915.2, "cls": 0, "tbt_ms": 278}
+    }
+  },
+  "axe": {
+    "tool": "axe-core 4.13.0 injected into Chrome 148",
+    "tags": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"],
+    "serious_or_critical": {
+      "home": 0,
+      "pricing": 0,
+      "docs": 0,
+      "checkout": 0,
+      "blog_v0_3_11": [{"id": "scrollable-region-focusable", "impact": "serious", "nodes": 1}]
+    }
+  }
+}
