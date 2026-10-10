@@ -108,6 +108,7 @@ integrations, and why:
 | `RESEND_API_KEY` | Outbound mail |
 | `RESEND_WEBHOOK_SECRET` | Inbound Resend signature check |
 | `ALERTS_TO_EMAIL` | Webhook failure mail recipient |
+| `E2E_HEALTH_SECRET` | Shared secret for `/api/public/hooks/e2e-health` (`x-e2e-health-secret` header); also a GitHub Actions secret used by `e2e-health.yml` |
 | `XAI_API_KEY` | `/demo` generation and the action self-test |
 | `OPENAI_API_KEY` | CLI generation against OpenAI |
 | `ANTHROPIC_API_KEY` | CLI generation against Anthropic |

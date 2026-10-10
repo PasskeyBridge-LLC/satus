@@ -1,32 +1,26 @@
 /**
  * Daily E2E health check.
  *
- * Triggered by pg_cron once daily (06:00 UTC, migration 20260805131900).
  * Exercises the four production-critical subsystems and emails
  * support@satus.sh via Resend only on failure. Every run is recorded in
  * `e2e_health_log`.
  *
- * Public route by necessity: the pg_cron job calls it with a bare
- * `net.http_get` and cannot present a credential today (job 4,
- * `satus-e2e-health-daily`). It also accepts GET for manual smoke-testing
- * from a browser.
+ * Called once a day by `.github/workflows/e2e-health.yml` (06:00 UTC),
+ * which presents the shared secret in the `x-e2e-health-secret` header.
+ * The secret lives in the Vercel env var `E2E_HEALTH_SECRET` and the
+ * GitHub Actions secret of the same name. The pg_cron job that used to call
+ * this route with a bare `net.http_get` could not send a credential and was
+ * retired when the secret landed (2026-10-10).
  *
- * This handler is NOT cheap, whatever an earlier version of this comment
- * claimed. One unauthenticated request costs a row in `e2e_health_log`, a
+ * The secret is checked first, with a constant-time compare, before the
+ * rate limiter or any other work. No secret configured is a 503 and a
+ * missing or wrong secret is a 401, so the route fails closed either way.
+ *
+ * The handler is not cheap. One run costs a row in `e2e_health_log`, a
  * Supabase admin `generateLink` call, two outbound HTTP requests to our own
- * API, and — when any check fails — an email to support@satus.sh. The
- * license_verify check runs against our own rate limiter from this
- * function's egress IP, so a flood can push that check into failure and
- * then every further request mails us. Unauthenticated request amplified
- * into unbounded email is the part that matters.
- *
- * So the work is rate limited before any of it happens: per-IP and global,
- * both failing CLOSED, because every side effect below costs something.
- * The daily job needs one call, well inside both caps.
- *
- * This is a mitigation, not the fix. The fix is a shared secret the cron
- * job presents in a header, which needs a new env var in the deployment
- * before the check can be enforced.
+ * API, and, when any check fails, an email to support@satus.sh. The per-IP
+ * and global rate limits stay behind the secret as a second bound; both
+ * fail CLOSED.
  *
  * Checks:
  *   1. license_verify         —POST satus.sh/api/public/license/verify with
@@ -256,9 +250,9 @@ function sanitizeBy(raw: string | null): string {
   return cleaned.length > 0 ? cleaned : "manual";
 }
 
-// Per-IP and global caps. The scheduled job makes one call a day, so these
-// are generous for every legitimate caller and still bound the blast radius
-// of an unauthenticated flood.
+// Per-IP and global caps, behind the shared secret. The scheduled job makes
+// one call a day, so these are generous for every legitimate caller and
+// still bound the blast radius if the secret ever leaks.
 const RATE_BUCKET_IP = "e2e_health_ip";
 const RATE_LIMIT_IP = 10;
 const RATE_WINDOW_IP_SECONDS = 3600;
@@ -310,10 +304,38 @@ async function rateLimitedResponse(request: Request): Promise<Response | null> {
   return null;
 }
 
+export const SECRET_HEADER = "x-e2e-health-secret";
+
+/**
+ * Constant-time comparison. Both sides are hashed to a fixed 32 bytes first,
+ * so neither the content nor the length of the expected secret leaks through
+ * timing, and timingSafeEqual never sees buffers of different lengths.
+ */
+export function secretMatches(provided: string | null, expected: string | undefined): boolean {
+  if (!expected || !provided) return false;
+  const a = crypto.createHash("sha256").update(provided, "utf8").digest();
+  const b = crypto.createHash("sha256").update(expected, "utf8").digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+function unauthorizedResponse(request: Request): Response | null {
+  const expected = process.env.E2E_HEALTH_SECRET;
+  if (!expected) {
+    console.error("[e2e] E2E_HEALTH_SECRET is not set; refusing to run");
+    return Response.json({ error: "not_configured" }, { status: 503 });
+  }
+  if (!secretMatches(request.headers.get(SECRET_HEADER), expected)) {
+    return Response.json({ error: "unauthorized" }, { status: 401 });
+  }
+  return null;
+}
+
 export const Route = createFileRoute("/api/public/hooks/e2e-health")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const denied = unauthorizedResponse(request);
+        if (denied) return denied;
         const limited = await rateLimitedResponse(request);
         if (limited) return limited;
 
@@ -325,6 +347,8 @@ export const Route = createFileRoute("/api/public/hooks/e2e-health")({
         });
       },
       POST: async ({ request }) => {
+        const denied = unauthorizedResponse(request);
+        if (denied) return denied;
         const limited = await rateLimitedResponse(request);
         if (limited) return limited;
 

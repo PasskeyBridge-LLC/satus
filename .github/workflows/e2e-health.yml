@@ -1,0 +1,47 @@
+name: e2e-health
+
+# Daily production health check. Calls /api/public/hooks/e2e-health with the
+# shared secret in the x-e2e-health-secret header (repo secret
+# E2E_HEALTH_SECRET, same value as the Vercel env var). Replaces the pg_cron
+# job satus-e2e-health-daily, which could not send a credential.
+# The route records every run in e2e_health_log and mails support on failure.
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+permissions: {}
+
+concurrency:
+  group: e2e-health
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: call e2e-health
+        env:
+          E2E_HEALTH_SECRET: ${{ secrets.E2E_HEALTH_SECRET }}
+          BY: ${{ github.event_name == 'schedule' && 'gha_cron' || 'gha_manual' }}
+        run: |
+          set -euo pipefail
+          if [ -z "$E2E_HEALTH_SECRET" ]; then
+            echo "::error title=e2e-health::E2E_HEALTH_SECRET is not set"
+            exit 1
+          fi
+          # Header from a file so the secret is never on a command line.
+          hdr="$RUNNER_TEMP/e2e-header"
+          umask 077
+          printf 'x-e2e-health-secret: %s\n' "$E2E_HEALTH_SECRET" > "$hdr"
+          code=$(curl -sS -o "$RUNNER_TEMP/body.json" -w '%{http_code}' --max-time 60 \
+            -H @"$hdr" "https://satus.sh/api/public/hooks/e2e-health?by=$BY")
+          rm -f "$hdr"
+          echo "HTTP $code"
+          jq -c '{status, duration_ms, checks: [.checks[] | {name, ok}]}' "$RUNNER_TEMP/body.json" || true
+          if [ "$code" != "200" ]; then
+            echo "::error title=e2e-health::HTTP $code"
+            exit 1
+          fi
