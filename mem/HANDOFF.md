@@ -1,47 +1,31 @@
 # HANDOFF
 
-Written 2026-10-05 after the weekly E2E. Replace this file next session; do not append.
+Written 2026-10-10 after Joel's open-items batch. Replace this file next session; do not append.
 
 ## State
 
-Production for the weekly fix is `a28a31c894a97cd1f4edc76d507fe58a9c68fd57`
-(#29), deployment `dpl_7AGaEELY4C3xbPoxoBTtq72NWkTJ`, target production,
-READY. `https://satus.sh/recipes` serves `#b91c1c` and `tabindex="0"`.
-After this handoff commit, production must match `origin/main`. The 07-17
-pg_dump correction remains in history (`42ed098`). CLI is 0.3.11. npm
-`latest` was not moved. `next` is still `0.3.11-orgmove.0` and has no tag.
+`main` is `041af82` or later; every merge below deployed to production READY.
 
-The ledger is `mem/weekly-e2e/2026-10-05.md`. NEW 1 / FIXED 1 / STILL-OPEN 4 /
-REGRESSED 0. The recipes axe finding is fixed.
+- #40 `1f080a7`: `/api/public/hooks/e2e-health` requires `x-e2e-health-secret` (`E2E_HEALTH_SECRET`, Vercel production + preview, sensitive; same-name GitHub Actions secret). Constant-time compare before any work: 401 missing or wrong, 503 unset. Daily caller is `.github/workflows/e2e-health.yml` (06:00 UTC). pg_cron `satus-e2e-health-daily` was unscheduled; the migration in this PR records that. Verified: 401 without/with wrong secret, 200 `pass` with it, and from the workflow.
+- #41 `445eae7`: license verify stays fail-open on counter errors; counter and lookup failures raise Sentry warnings, fingerprint `["license-verify", <kind>]`, error code only.
+- #42 `2eda6eb`: CLI vitest 4.1.11 (78 tests green on Node 20 and 24). GHSA-82fw-gwwq-j7x9 cleared.
+- #43 `041af82`: `docs/weekly-e2e/satus-weekly-e2e.md` merged. Its 2026-10-04 facts about pg_cron and an unauthenticated e2e-health are now stale.
+- `feat/xai-demo` deleted (identical to #8). `content/correct-07-17-pg-dump-claims` was already gone (#5).
 
 ## Left open on purpose
 
-ST-2 e2e-health has no shared secret. ST-3 verify still fails open when the
-rate-limit RPC errors. ST-8 the 82 suppression rows were not deleted. ST-15
-the leaked-password advisor WARN is absent from this week's payload; the Auth
-setting was not read and was not changed. Do not merge `feat/xai-demo` or
-`ops/weekly-e2e-spec`. Do not move the npm dist-tag. The draft post
-`2026-10-09-pg-dump-snapshots-as-test-fixtures` stays draft until its
-`publishAt`.
+ST-8: the 82 suppression rows stay (count re-read 2026-10-10). Stripe keys need Joel. npm `next` stays `0.3.11-orgmove.0`. Revoking the old npm token is Joel's. The mail drain is the Vercel Cron in `vercel.json` (every minute, `CRON_SECRET`); no pg_cron `process-email-queue` is needed. Queues were empty.
 
 ## Flags
 
-`DO_NOT_TRACK` wins. Telemetry stays off unless configured.
-`minimumReleaseAge` is 24h. Report-only Content-Security-Policy is on `/`.
-`POST /api/public/cli/run` fails closed at 60 per hour per IP hash. Two
-moderate vitest mocker findings remain (GHSA-82fw-gwwq-j7x9). Multi-column
-UNIQUE, cross-column arithmetic, and `--seed` stay documented CLI limits.
-There is still no `process-email-queue` cron. Both pgmq queues and both DLQs
-were empty.
+`DO_NOT_TRACK` wins. Report-only CSP on `/`. Multi-column UNIQUE, cross-column arithmetic and `--seed` stay documented CLI limits.
 
 ## Graduated this session
 
-2026-10-05 weekly results are in the ledger. Live license rows match three
-`satus.sh` subscriptions. Local test database stays `scripts/test-db.sh`.
+Nothing new under `mem/`; the e2e-health contract is in the route header and AGENTS.md.
 
 ## Next
 
-1. Confirm the 2026-10-09 draft post before Friday, or leave it draft.
-2. Revoke the old npm token on npmjs.com (handoff of 2026-09-25).
-3. Confirm the Auth leaked-password toggle. Do not infer it from the missing
-   advisor warning.
+1. Revoke the old npm token on npmjs.com (Joel).
+2. Confirm the Auth leaked-password toggle (Joel).
+3. Refresh the weekly E2E spec where it describes e2e-health and pg_cron.
