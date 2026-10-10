@@ -14,6 +14,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import crypto from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { loadServerSentry } from "@/instrument.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -44,11 +45,50 @@ async function rateLimited(key: string): Promise<boolean> {
   });
   if (error) {
     // Fail open on counter errors—better to serve a few extra verifies than
-    // to lock everyone out if the counter table hiccups. Logged for triage.
+    // to lock everyone out if the counter table hiccups. Logged for triage,
+    // and alerted, because while this branch runs nothing is rate limited.
     console.error("[license/verify] rate-limit counter failed", error);
+    await reportVerifyFailure("rate_limit_counter", error);
     return false;
   }
   return typeof data === "number" && data > RATE_LIMIT;
+}
+
+export type VerifyFailure = "rate_limit_counter" | "license_lookup";
+
+/** The Postgres/PostgREST error code only (e.g. "42P01"), never the message. */
+function errorCode(error: unknown): string {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code: unknown }).code;
+    if (typeof code === "string" && /^[A-Za-z0-9_]{1,16}$/.test(code)) return code;
+  }
+  return "unknown";
+}
+
+/**
+ * Alert on verify failures through the existing error-only Sentry setup.
+ * Warning level, one stable fingerprint per failure kind so repeats group
+ * into a single issue, and nothing about the caller: no license key, IP, IP
+ * hash, row or error message, only the error code. No-op without a DSN.
+ * Alerting must never change the answer, so every failure here is swallowed.
+ */
+export async function reportVerifyFailure(kind: VerifyFailure, error: unknown): Promise<void> {
+  try {
+    const sdk = await loadServerSentry();
+    if (!sdk) return;
+    sdk.captureMessage(`license_verify ${kind} failed`, {
+      level: "warning",
+      fingerprint: ["license-verify", kind],
+      tags: {
+        route: "license_verify",
+        failure: kind,
+        fail_mode: kind === "rate_limit_counter" ? "open" : "closed",
+        pg_code: errorCode(error),
+      },
+    });
+  } catch {
+    // Swallowed on purpose: monitoring must not take verify down with it.
+  }
 }
 
 function hashIp(ip: string | null): string | null {
@@ -114,6 +154,7 @@ export const Route = createFileRoute("/api/public/license/verify")({
 
         if (error) {
           console.error("[license/verify] lookup failed", error);
+          await reportVerifyFailure("license_lookup", error);
           return json(500, { valid: false, reason: "server_error" });
         }
         if (!data) {
