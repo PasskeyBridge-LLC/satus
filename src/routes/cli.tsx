@@ -15,6 +15,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PageShell } from "@/components/site/chrome";
+import { FURTHER_READING, FurtherReading } from "@/components/site/further-reading";
 import { Prose, Section, type SectionMeta } from "@/components/site/primitives";
 import { SATUS_VERSION, SATUS_VERSION_TAG, SATUS_RELEASED_AT } from "@/lib/version";
 
@@ -31,6 +32,7 @@ const SECTIONS: ReadonlyArray<SectionMeta> = [
   { id: "activate", n: "05", label: "satus activate" },
   { id: "whoami", n: "06", label: "satus whoami" },
   { id: "notes", n: "07", label: "Operational notes" },
+  { id: "further-reading", n: "08", label: "Further reading" },
 ];
 
 export const Route = createFileRoute("/cli")({
@@ -329,6 +331,7 @@ function CliPage() {
           in minor releases.
         </p>
       </Section>
+      <FurtherReading n="08" posts={FURTHER_READING.cli} />
     </PageShell>
   );
 }
