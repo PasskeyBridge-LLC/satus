@@ -21,6 +21,7 @@ const SECTIONS: ReadonlyArray<SectionMeta> = [
   { id: "concepts", n: "03", label: "Concepts" },
   { id: "support", n: "04", label: "Support" },
   { id: "further-reading", n: "05", label: "Further reading" },
+  { id: "more-from-the-blog", n: "06", label: "More from the blog" },
 ];
 
 export const Route = createFileRoute("/docs/")({
@@ -203,6 +204,13 @@ function DocsPage() {
         </Prose>
       </Section>
       <FurtherReading n="05" posts={FURTHER_READING.docs} />
+      <FurtherReading
+        n="06"
+        id="more-from-the-blog"
+        label="More from the blog"
+        title="other posts and release notes."
+        posts={FURTHER_READING.docsArchive}
+      />
     </PageShell>
   );
 }

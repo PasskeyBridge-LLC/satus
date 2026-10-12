@@ -32,6 +32,65 @@ export const FURTHER_READING = {
     },
     { slug: "introducing-the-log", title: "Introducing the satus log" },
   ],
+  // Posts no page outside /blog linked to on 2026-10-12 (checked against the
+  // sitemap and the live HTML of every other page). Listed on /docs so each
+  // has a crawl path from the docs as well as from the blog index.
+  docsArchive: [
+    { slug: "pg-dump-snapshots-as-test-fixtures", title: "pg_dump snapshots as test fixtures" },
+    {
+      slug: "fixtures-vs-generation-when-each-wins",
+      title: "Fixtures vs generation, and when each wins",
+    },
+    {
+      slug: "what-pg-dump-doesnt-tell-you",
+      title: "What pg_dump doesn't tell you about your own schema",
+    },
+    { slug: "the-schema-i-couldnt-reproduce", title: "The schema I couldn't reproduce" },
+    { slug: "triggers-i-have-loved-and-hated", title: "Triggers I have loved and hated" },
+    { slug: "when-uuids-arent-the-answer", title: "When UUIDs aren't the answer" },
+    {
+      slug: "seeding-into-a-multi-tenant-schema",
+      title: "Seeding into a multi-tenant schema without leaking tenants",
+    },
+    {
+      slug: "seeding-stripe-shaped-data-without-stripe",
+      title: "Seeding Stripe-shaped data without Stripe",
+    },
+    {
+      slug: "the-cycle-breaking-heuristic-we-never-shipped",
+      title: "The cycle-breaking heuristic we documented and never shipped",
+    },
+    {
+      slug: "the-1am-deploy-that-only-failed-in-prod",
+      title: "The 1am deploy that only failed in prod",
+    },
+    {
+      slug: "structured-output-from-claude-without-a-json-parser",
+      title: "Structured output from Claude without a JSON parser",
+    },
+    {
+      slug: "cost-estimates-are-guardrails-not-accounting",
+      title: "Cost estimates are guardrails, not accounting",
+    },
+    { slug: "free-tier-priced-honestly", title: "Free tier, priced honestly" },
+    { slug: "agent-mode-postponed", title: "Agent mode, postponed to v0.5" },
+    { slug: "v0-3-11-release-notes", title: "v0.3.11: two claims the code did not support" },
+    { slug: "v0-3-10-release-notes", title: "v0.3.10: the 24-hour license grace is now real" },
+    { slug: "v0-3-9-release-notes", title: "v0.3.9: the safety feature you couldn't turn off" },
+    {
+      slug: "v0-3-8-release-notes",
+      title: "v0.3.8: the safety guard we had already written about",
+    },
+    { slug: "v0-3-7-release-notes", title: "v0.3.7: five bugs, four of them silent" },
+    {
+      slug: "v0-3-6-release-notes",
+      title: "v0.3.6: one fix, for a footgun we stepped on ourselves",
+    },
+    {
+      slug: "v0-3-5-release-notes",
+      title: "v0.3.5: automated npm publishing, two correctness fixes",
+    },
+  ],
   howItWorks: [
     { slug: "cyclic-fks-in-the-wild", title: "Cyclic foreign keys in the wild" },
     {
@@ -116,10 +175,22 @@ export const FURTHER_READING = {
   ],
 } as const satisfies Record<string, readonly ReadingLink[]>;
 
-export function FurtherReading({ n, posts }: { n: string; posts: readonly ReadingLink[] }) {
+export function FurtherReading({
+  n,
+  posts,
+  id = "further-reading",
+  label = "Further reading",
+  title = "from the blog.",
+}: {
+  n: string;
+  posts: readonly ReadingLink[];
+  id?: string;
+  label?: string;
+  title?: string;
+}) {
   if (posts.length === 0) return null;
   return (
-    <Section id="further-reading" n={n} label="Further reading" title={<>from the blog.</>}>
+    <Section id={id} n={n} label={label} title={<>{title}</>}>
       <ul>
         {posts.map((p) => (
           <li key={p.slug}>
