@@ -14,6 +14,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PageShell } from "@/components/site/chrome";
+import { FURTHER_READING, FurtherReading } from "@/components/site/further-reading";
 import { Prose, Section, type SectionMeta } from "@/components/site/primitives";
 
 const SITE_URL = "https://satus.sh";
@@ -25,6 +26,7 @@ const SECTIONS: ReadonlyArray<SectionMeta> = [
   { id: "runtime", n: "04", label: "Runtime & rollback" },
   { id: "license", n: "05", label: "License & billing" },
   { id: "still-stuck", n: "06", label: "Still stuck" },
+  { id: "further-reading", n: "07", label: "Further reading" },
 ];
 
 /* Strict-typed FAQ entries. `q` becomes the FAQPage Question.name; the
@@ -303,6 +305,7 @@ function TroubleshootingPage() {
           </p>
         </Prose>
       </Section>
+      <FurtherReading n="07" posts={FURTHER_READING.troubleshooting} />
     </PageShell>
   );
 }
