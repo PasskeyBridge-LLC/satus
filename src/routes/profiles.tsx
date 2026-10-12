@@ -16,6 +16,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/site/chrome";
+import { FURTHER_READING, FurtherReading } from "@/components/site/further-reading";
 import { Prose, Section, type SectionMeta } from "@/components/site/primitives";
 
 const SITE_URL = "https://satus.sh";
@@ -107,6 +108,7 @@ const PROFILES: Profile[] = [
 const SECTIONS: ReadonlyArray<SectionMeta> = [
   ...PROFILES.map((p) => ({ id: p.id, n: p.n, label: p.label })),
   { id: "byo", n: "04", label: "Bring your own" },
+  { id: "further-reading", n: "05", label: "Further reading" },
 ];
 
 export const Route = createFileRoute("/profiles")({
@@ -229,6 +231,7 @@ function ProfilesPage() {
           </p>
         </Prose>
       </Section>
+      <FurtherReading n="05" posts={FURTHER_READING.profiles} />
     </PageShell>
   );
 }
