@@ -12,6 +12,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PageShell } from "@/components/site/chrome";
+import { FURTHER_READING, FurtherReading } from "@/components/site/further-reading";
 import { Prose, Section, type SectionMeta } from "@/components/site/primitives";
 import { SATUS_VERSION } from "@/lib/version";
 
@@ -24,6 +25,7 @@ const SECTIONS: ReadonlyArray<SectionMeta> = [
   { id: "outputs", n: "04", label: "Outputs" },
   { id: "security", n: "05", label: "Security" },
   { id: "boundaries", n: "06", label: "What it isn't" },
+  { id: "further-reading", n: "07", label: "Further reading" },
 ];
 
 export const Route = createFileRoute("/docs/github-action")({
@@ -379,6 +381,7 @@ function GitHubActionPage() {
           </p>
         </Prose>
       </Section>
+      <FurtherReading n="07" posts={FURTHER_READING.githubAction} />
     </PageShell>
   );
 }

@@ -10,6 +10,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PageShell } from "@/components/site/chrome";
+import { FURTHER_READING, FurtherReading } from "@/components/site/further-reading";
 import { Prose, Section, type SectionMeta } from "@/components/site/primitives";
 
 const SITE_URL = "https://satus.sh";
@@ -19,6 +20,7 @@ const SECTIONS: ReadonlyArray<SectionMeta> = [
   { id: "reference", n: "02", label: "Reference" },
   { id: "concepts", n: "03", label: "Concepts" },
   { id: "support", n: "04", label: "Support" },
+  { id: "further-reading", n: "05", label: "Further reading" },
 ];
 
 export const Route = createFileRoute("/docs/")({
@@ -200,6 +202,7 @@ function DocsPage() {
           </p>
         </Prose>
       </Section>
+      <FurtherReading n="05" posts={FURTHER_READING.docs} />
     </PageShell>
   );
 }
