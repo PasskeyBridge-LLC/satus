@@ -79,10 +79,12 @@ export const Route = createFileRoute("/sitemap.xml")({
           "</urlset>",
         ].join("\n");
 
+        /* max-age=300, not 3600: a deploy refreshes the CDN cache, and this
+         * caps client staleness after a scheduled post's rebuild at 5 min. */
         return new Response(xml, {
           headers: {
             "Content-Type": "application/xml; charset=utf-8",
-            "Cache-Control": "public, max-age=3600",
+            "Cache-Control": "public, max-age=300",
           },
         });
       },

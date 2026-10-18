@@ -108,6 +108,9 @@ integrations, and why:
 | `RESEND_API_KEY` | Outbound mail |
 | `RESEND_WEBHOOK_SECRET` | Inbound Resend signature check |
 | `ALERTS_TO_EMAIL` | Webhook failure mail recipient |
+| `CRON_SECRET` | Vercel Cron bearer for `/api/internal/email/queue/process` and `/api/internal/blog/scheduled-publish` |
+| `SCHEDULED_PUBLISH_DEPLOY_HOOK` | Vercel deploy hook URL (project `satus`, branch `main`), Production only, Sensitive. The scheduled-publish cron POSTs it when a post's `publishAt` passes |
+| `SCHEDULED_PUBLISH_TEST_AT` | Optional, not secret. Comma-separated ISO instants the scheduled-publish cron treats like a `publishAt` (redeploys current `main`, publishes nothing). Unset after a test |
 | `E2E_HEALTH_SECRET` | Shared secret for `/api/public/hooks/e2e-health` (`x-e2e-health-secret` header); also a GitHub Actions secret used by `e2e-health.yml` |
 | `XAI_API_KEY` | `/demo` generation and the action self-test |
 | `OPENAI_API_KEY` | CLI generation against OpenAI |

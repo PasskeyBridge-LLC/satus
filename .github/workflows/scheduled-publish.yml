@@ -1,5 +1,13 @@
 name: scheduled-publish
 
+# BACKUP TRIGGER. The primary trigger is the Vercel Cron route
+# src/routes/api/internal/blog/scheduled-publish.ts (vercel.json, every
+# minute), which redeploys within a minute of a post's publishAt. GitHub runs
+# this "hourly" schedule only every 2-7 hours in practice, so on its own a
+# post could go live hours late. Kept so a Vercel Cron outage still ends in a
+# rebuild; when the cron already rebuilt, this fires one redundant redeploy
+# of the same main, which is harmless.
+#
 # Production builds withhold embargoed blog posts (scripts/vite-plugin-blog-posts.ts),
 # so a post with a future `publishAt` goes live only on the first build after
 # that instant. This workflow provides that build: hourly, it checks whether

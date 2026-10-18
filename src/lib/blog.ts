@@ -12,7 +12,9 @@
  * it imports ships in public JS; until 2026-09-26 it globbed the whole
  * folder and the full markdown of unpublished posts was readable in the
  * browser bundle. An embargoed post goes live on the first build after its
- * `publishAt` (.github/workflows/scheduled-publish.yml triggers one).
+ * `publishAt` (the Vercel Cron route
+ * src/routes/api/internal/blog/scheduled-publish.ts triggers one within a
+ * minute; .github/workflows/scheduled-publish.yml is the backup).
  *
  * Frontmatter contract is documented in `src/content/blog/README.md`.
  * Validation is intentionally strict, and is enforced in two places:

@@ -20,7 +20,7 @@ Two products in one repo: the CLI `packages/cli` (npm `@passkeybridge/satus`, `l
 | `cli-publish.yml` | `v*.*.*` tags or dispatch | npm trusted publishing (OIDC, `--provenance`); the only publish path |
 | `secret-scan.yml` | PR and push | gitleaks 8.30.1, checksum-pinned |
 | `action-selftest.yml` | push, dispatch | ephemeral Postgres, pagila schema from GitHub `master` (unpinned), dry run, then a real xAI seed |
-| `scheduled-publish.yml` | hourly at :07 | Vercel deploy hook when a post's `publishAt` falls in the window |
+| `scheduled-publish.yml` | hourly at :07 (backup; GitHub runs it every 2-7 h) | Vercel deploy hook when a post's `publishAt` falls in the window. Primary trigger: Vercel Cron `/api/internal/blog/scheduled-publish`, every minute |
 | pg_cron `satus-e2e-health-daily` | 06:00 UTC (02:00 ET) | GET `https://satus.sh/api/public/hooks/e2e-health?by=cron`; writes `e2e_health_log`, mails support on failure. Read 2026-10-04: one `pass` row per day for the last 8 days |
 | pg_cron `prune-satus-runs-daily`, `prune-e2e-health-log-daily`, `prune-rate-limit-counters` | 03:00, 03:05 UTC, hourly | retention |
 
