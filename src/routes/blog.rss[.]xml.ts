@@ -2,8 +2,11 @@
  * /blog/rss.xml—RSS 2.0 feed for the blog.
  *
  * RSS still beats email newsletters for the developer audience we target.
- * Cached one hour at the edge; posts are built into the Worker, so the feed
- * only changes on deploy.
+ * Posts are built into the bundle, so the feed only changes on deploy. A
+ * deploy gets a fresh CDN cache, so the edge never serves the old feed after
+ * a scheduled post's rebuild; max-age=300 caps how long a reader or browser
+ * that fetched just before the rebuild keeps the old copy (was 3600, which
+ * could hide a 09:00 post until 10:00).
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -72,7 +75,7 @@ export const Route = createFileRoute("/blog/rss.xml")({
         return new Response(xml, {
           headers: {
             "Content-Type": "application/rss+xml; charset=utf-8",
-            "Cache-Control": "public, max-age=3600",
+            "Cache-Control": "public, max-age=300",
           },
         });
       },

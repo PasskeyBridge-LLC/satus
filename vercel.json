@@ -4,6 +4,10 @@
     {
       "path": "/api/internal/email/queue/process",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/internal/blog/scheduled-publish",
+      "schedule": "* * * * *"
     }
   ],
   "headers": [

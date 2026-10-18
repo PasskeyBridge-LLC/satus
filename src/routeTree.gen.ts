@@ -34,6 +34,7 @@ import { Route as DocsHowItWorksRouteImport } from './routes/docs.how-it-works'
 import { Route as DocsTroubleshootingRouteImport } from './routes/docs.troubleshooting'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ApiPublicWaitlistRouteImport } from './routes/api/public/waitlist'
+import { Route as ApiInternalBlogScheduledPublishRouteImport } from './routes/api/internal/blog/scheduled-publish'
 import { Route as ApiInternalEmailSuppressionRouteImport } from './routes/api/internal/email/suppression'
 import { Route as ApiPublicBillingPortalRouteImport } from './routes/api/public/billing/portal'
 import { Route as ApiPublicCliRunRouteImport } from './routes/api/public/cli/run'
@@ -169,6 +170,12 @@ const ApiPublicWaitlistRoute = ApiPublicWaitlistRouteImport.update({
   path: '/api/public/waitlist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInternalBlogScheduledPublishRoute =
+  ApiInternalBlogScheduledPublishRouteImport.update({
+    id: '/api/internal/blog/scheduled-publish',
+    path: '/api/internal/blog/scheduled-publish',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiInternalEmailSuppressionRoute =
   ApiInternalEmailSuppressionRouteImport.update({
     id: '/api/internal/email/suppression',
@@ -245,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/checkout/': typeof CheckoutIndexRoute
   '/docs/': typeof DocsIndexRoute
   '/api/public/waitlist': typeof ApiPublicWaitlistRoute
+  '/api/internal/blog/scheduled-publish': typeof ApiInternalBlogScheduledPublishRoute
   '/api/internal/email/suppression': typeof ApiInternalEmailSuppressionRoute
   '/api/public/billing/portal': typeof ApiPublicBillingPortalRoute
   '/api/public/cli/run': typeof ApiPublicCliRunRoute
@@ -281,6 +289,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutIndexRoute
   '/docs': typeof DocsIndexRoute
   '/api/public/waitlist': typeof ApiPublicWaitlistRoute
+  '/api/internal/blog/scheduled-publish': typeof ApiInternalBlogScheduledPublishRoute
   '/api/internal/email/suppression': typeof ApiInternalEmailSuppressionRoute
   '/api/public/billing/portal': typeof ApiPublicBillingPortalRoute
   '/api/public/cli/run': typeof ApiPublicCliRunRoute
@@ -318,6 +327,7 @@ export interface FileRoutesById {
   '/checkout/': typeof CheckoutIndexRoute
   '/docs/': typeof DocsIndexRoute
   '/api/public/waitlist': typeof ApiPublicWaitlistRoute
+  '/api/internal/blog/scheduled-publish': typeof ApiInternalBlogScheduledPublishRoute
   '/api/internal/email/suppression': typeof ApiInternalEmailSuppressionRoute
   '/api/public/billing/portal': typeof ApiPublicBillingPortalRoute
   '/api/public/cli/run': typeof ApiPublicCliRunRoute
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/checkout/'
     | '/docs/'
     | '/api/public/waitlist'
+    | '/api/internal/blog/scheduled-publish'
     | '/api/internal/email/suppression'
     | '/api/public/billing/portal'
     | '/api/public/cli/run'
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/docs'
     | '/api/public/waitlist'
+    | '/api/internal/blog/scheduled-publish'
     | '/api/internal/email/suppression'
     | '/api/public/billing/portal'
     | '/api/public/cli/run'
@@ -428,6 +440,7 @@ export interface FileRouteTypes {
     | '/checkout/'
     | '/docs/'
     | '/api/public/waitlist'
+    | '/api/internal/blog/scheduled-publish'
     | '/api/internal/email/suppression'
     | '/api/public/billing/portal'
     | '/api/public/cli/run'
@@ -465,6 +478,7 @@ export interface RootRouteChildren {
   CheckoutIndexRoute: typeof CheckoutIndexRoute
   DocsIndexRoute: typeof DocsIndexRoute
   ApiPublicWaitlistRoute: typeof ApiPublicWaitlistRoute
+  ApiInternalBlogScheduledPublishRoute: typeof ApiInternalBlogScheduledPublishRoute
   ApiInternalEmailSuppressionRoute: typeof ApiInternalEmailSuppressionRoute
   ApiPublicBillingPortalRoute: typeof ApiPublicBillingPortalRoute
   ApiPublicCliRunRoute: typeof ApiPublicCliRunRoute
@@ -653,6 +667,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWaitlistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/blog/scheduled-publish': {
+      id: '/api/internal/blog/scheduled-publish'
+      path: '/api/internal/blog/scheduled-publish'
+      fullPath: '/api/internal/blog/scheduled-publish'
+      preLoaderRoute: typeof ApiInternalBlogScheduledPublishRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/internal/email/suppression': {
       id: '/api/internal/email/suppression'
       path: '/api/internal/email/suppression'
@@ -745,6 +766,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutIndexRoute: CheckoutIndexRoute,
   DocsIndexRoute: DocsIndexRoute,
   ApiPublicWaitlistRoute: ApiPublicWaitlistRoute,
+  ApiInternalBlogScheduledPublishRoute: ApiInternalBlogScheduledPublishRoute,
   ApiInternalEmailSuppressionRoute: ApiInternalEmailSuppressionRoute,
   ApiPublicBillingPortalRoute: ApiPublicBillingPortalRoute,
   ApiPublicCliRunRoute: ApiPublicCliRunRoute,

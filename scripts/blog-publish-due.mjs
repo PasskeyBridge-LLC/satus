@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
- * Is a rebuild due? Used by .github/workflows/scheduled-publish.yml.
+ * Is a rebuild due? Used by .github/workflows/scheduled-publish.yml, the
+ * backup to the per-minute Vercel Cron route
+ * src/routes/api/internal/blog/scheduled-publish.ts.
  *
  * Production builds withhold embargoed posts (scripts/vite-plugin-blog-posts.ts),
  * so a post only goes live on the first build after its `publishAt`. This
