@@ -10,6 +10,13 @@
       "schedule": "* * * * *"
     }
   ],
+  "redirects": [
+    {
+      "source": "/blog/soft-deletes-and-the-deleted-at-trap",
+      "destination": "/blog/null-vs-not-null-is-not-the-question",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
