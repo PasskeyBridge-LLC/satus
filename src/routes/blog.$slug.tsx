@@ -71,7 +71,7 @@ export const Route = createFileRoute("/blog/$slug")({
 
     return {
       meta: [
-        { title: `${post.title}—satus.sh blog` },
+        { title: post.seoTitle ?? `${post.title}—satus.sh blog` },
         { name: "description", content: post.description },
         { name: "author", content: post.author },
         { property: "article:published_time", content: post.date },

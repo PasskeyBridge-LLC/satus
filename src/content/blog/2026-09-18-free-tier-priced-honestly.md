@@ -24,7 +24,7 @@ Every difference between Free and Pro lives in one variable, and that variable i
 
 A clamp on rows, a clamp on tables, and the warnings that announce them. That is the entire commercial boundary.
 
-It follows that everything else is the same binary. The 10,000-row [production safety guard](/blog/v0-3-8-release-notes) runs on Free. So does the relational validator, `--dry-run` with its exit code `2` for CI, the [foreign-key cycle handling](/blog/cyclic-fks-in-the-wild) and its exit code `10`, `--json` output, both providers, and all three profiles (`saas`, `ecommerce`, `b2b`). There is no profile behind the paywall and never has been. If a bug is fixed, it is fixed for Free on the same release.
+It follows that everything else is the same binary. The 10,000-row [production safety guard](/blog/v0-3-8-release-notes) runs on Free. So does the relational validator, [`--dry-run`](/cli) with its exit code `2` for CI, the [foreign-key cycle handling](/blog/cyclic-fks-in-the-wild) and its exit code `10`, `--json` output, both providers, and all three [profiles](/profiles) (`saas`, `ecommerce`, `b2b`). There is no profile behind the paywall and never has been. If a bug is fixed, it is fixed for Free on the same release.
 
 Here are both caps firing on a seven-table schema:
 
