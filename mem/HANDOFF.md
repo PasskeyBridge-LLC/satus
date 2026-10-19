@@ -1,20 +1,24 @@
 # HANDOFF
 
-Written 2026-10-10 after Joel's open-items batch. Replace this file next session; do not append.
+Written 2026-10-19 after the satus Supabase advisor ship. Replace this file next session; do not append.
 
 ## State
 
-`main` is `041af82` or later; every merge below deployed to production READY.
+`main` is `1ee06cf` (PR #49, squash). Production deployment `dpl_HiLZbo178ZfcaJiSgYabMczKQtFv` is READY with `target: production`.
 
-- #40 `1f080a7`: `/api/public/hooks/e2e-health` requires `x-e2e-health-secret` (`E2E_HEALTH_SECRET`, Vercel production + preview, sensitive; same-name GitHub Actions secret). Constant-time compare before any work: 401 missing or wrong, 503 unset. Daily caller is `.github/workflows/e2e-health.yml` (06:00 UTC). pg_cron `satus-e2e-health-daily` was unscheduled; the migration in this PR records that. Verified: 401 without/with wrong secret, 200 `pass` with it, and from the workflow.
-- #41 `445eae7`: license verify stays fail-open on counter errors; counter and lookup failures raise Sentry warnings, fingerprint `["license-verify", <kind>]`, error code only.
-- #42 `2eda6eb`: CLI vitest 4.1.11 (78 tests green on Node 20 and 24). GHSA-82fw-gwwq-j7x9 cleared.
-- #43 `041af82`: `docs/weekly-e2e/satus-weekly-e2e.md` merged. Its 2026-10-04 facts about pg_cron and an unauthenticated e2e-health are now stale.
-- `feat/xai-demo` deleted (identical to #8). `content/correct-07-17-pg-dump-claims` was already gone (#5).
+Applied once to project `xbnrjwzryuonuinzuomk` through `apply_migration`, not `db push`:
+
+- `20261019091540` `archive_satus_demo`
+- `20261019091551` `wrap_auth_rls_initplan`
+- `20261019091555` `drop_unused_email_send_log_recipient_index`
+
+`satus_demo` is gone. `archive_satus_demo.users`, `projects`, and `tasks` have RLS on and no policies. Schema, table, and default ACLs have zero grants for PUBLIC, anon, authenticated, and service_role; only `postgres` remains. The 13 service-role policies use `(SELECT auth.role())`. `idx_email_send_log_recipient` is gone. Nothing was dropped.
+
+Hosted `schema_migrations` is still the 2026-08-05 baseline plus these three. Do not repair that history and do not `db push`.
 
 ## Left open on purpose
 
-ST-8: the 82 suppression rows stay (count re-read 2026-10-10). Stripe keys need Joel. npm `next` stays `0.3.11-orgmove.0`. Revoking the old npm token is Joel's. The mail drain is the Vercel Cron in `vercel.json` (every minute, `CRON_SECRET`); no pg_cron `process-email-queue` is needed. Queues were empty.
+`DROP SCHEMA archive_satus_demo CASCADE` waits for Joel. `rate_limit_counters` stays RLS-on with no policy. Auth stays at an absolute cap of 10 connections. ST-8: the 82 suppression rows stay. Stripe keys need Joel. npm `next` stays `0.3.11-orgmove.0`. Revoking the old npm token is Joel's. The mail drain is the Vercel Cron in `vercel.json` (every minute, `CRON_SECRET`).
 
 ## Flags
 
@@ -22,10 +26,11 @@ ST-8: the 82 suppression rows stay (count re-read 2026-10-10). Stripe keys need 
 
 ## Graduated this session
 
-Nothing new under `mem/`; the e2e-health contract is in the route header and AGENTS.md.
+SAT-1 and the applied SAT-2 notes moved to `mem/followups/satus-supabase-advisor-deferred.md`.
 
 ## Next
 
-1. Revoke the old npm token on npmjs.com (Joel).
-2. Confirm the Auth leaked-password toggle (Joel).
-3. Refresh the weekly E2E spec where it describes e2e-health and pg_cron.
+1. Joel: approve or reject `DROP SCHEMA archive_satus_demo CASCADE`.
+2. Revoke the old npm token on npmjs.com (Joel).
+3. Confirm the Auth leaked-password toggle (Joel).
+4. Refresh the weekly E2E spec where it describes e2e-health and pg_cron.
