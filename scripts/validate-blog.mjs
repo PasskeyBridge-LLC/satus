@@ -44,6 +44,11 @@ const RULES = {
     typeof v === "string" && v.length >= 1 && v.length <= 140
       ? null
       : `title must be 1-140 chars (got ${typeof v === "string" ? v.length : typeof v})`,
+  /* Optional. Used verbatim as the document title, so held to 60. */
+  seoTitle: (v) =>
+    v === undefined || (typeof v === "string" && v.length >= 1 && v.length <= 60)
+      ? null
+      : `seoTitle must be 1-60 chars (got ${typeof v === "string" ? v.length : typeof v})`,
   description: (v) =>
     typeof v === "string" && v.length >= 20 && v.length <= 200
       ? null

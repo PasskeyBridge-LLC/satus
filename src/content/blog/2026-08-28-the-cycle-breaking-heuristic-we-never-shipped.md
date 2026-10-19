@@ -76,7 +76,7 @@ FK cycle detected with no nullable back-edge: a, b
 EXIT=10
 ```
 
-Exit `10` is `E_FK_CYCLE`, the documented "satus declined to act" code. The `DEFAULT` is not consulted.
+Exit `10` is `E_FK_CYCLE`, the [documented](/docs/troubleshooting) "satus declined to act" code. The `DEFAULT` is not consulted.
 
 ## Rule 4: the tiebreaker runs backwards
 

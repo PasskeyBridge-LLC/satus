@@ -35,17 +35,20 @@ export const Route = createFileRoute("/")({
   component: HomePage,
   head: () => ({
     meta: [
-      { title: "satus—relationally-coherent seed data for Postgres" },
+      { title: "satus: Postgres seed data CLI that keeps foreign keys valid" },
       {
         name: "description",
         content:
-          "Reads your Postgres schema and writes realistic seed data that respects every foreign key, constraint, and business rule. Built for demos and QA.",
+          "satus is a CLI that reads your Postgres schema and writes realistic seed data in one transaction. Foreign key values come from the parent rows it inserted.",
       },
-      { property: "og:title", content: "satus—relationally-coherent seed data for Postgres" },
+      {
+        property: "og:title",
+        content: "satus: Postgres seed data CLI that keeps foreign keys valid",
+      },
       {
         property: "og:description",
         content:
-          "Reads your Postgres schema and writes realistic seed data that respects every foreign key, constraint, and business rule. Built for demos and QA.",
+          "satus is a CLI that reads your Postgres schema and writes realistic seed data in one transaction. Foreign key values come from the parent rows it inserted.",
       },
       { property: "og:url", content: SITE_URL + "/" },
       { property: "og:type", content: "website" },

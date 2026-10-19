@@ -61,4 +61,4 @@ The fix we're applying isn't "be more careful." It's that documented behaviour w
 
 That doesn't cover sentences like "Tarjan's algorithm" — you can't unit-test an adjective. For those, the only defence is reading the page next to the code, which is what we did today and will do at each release.
 
-No CLI flag added, removed, or renamed. `satus.config.json` from 0.3.x works unchanged. If your CI branches on exit code `1` specifically for FK-cycle failures, widen it to `!= 0` or add `10`.
+No [CLI flag](/cli) added, removed, or renamed. `satus.config.json` from 0.3.x works unchanged. If your CI branches on exit code `1` specifically for FK-cycle failures, widen it to `!= 0` or add `10`.

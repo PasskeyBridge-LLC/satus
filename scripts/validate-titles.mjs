@@ -86,7 +86,9 @@ for (const path of paths) {
 // --- Blog posts: frontmatter title + the suffix blog.$slug.tsx appends -------
 
 const slugSrc = read("src/routes/blog.$slug.tsx");
-const suffixMatch = /title:\s*`\$\{post\.title\}([^`]*)`/.exec(slugSrc);
+// `title: post.seoTitle ?? `${post.title}<suffix>``: the suffix is read from
+// the template literal; a post with `seoTitle` uses that string verbatim.
+const suffixMatch = /title:[^`\n]*`\$\{post\.title\}([^`]*)`/.exec(slugSrc);
 if (!suffixMatch) {
   console.error("✗ validate-titles: could not read the blog title suffix from blog.$slug.tsx");
   process.exit(1);
@@ -103,7 +105,10 @@ for (const f of readdirSync(join(ROOT, BLOG_DIR))) {
     continue;
   }
   checked++;
-  const title = t[1].trim().replace(/^["']|["']$/g, "") + suffix;
+  const seo = /^seoTitle:\s*(.+)$/m.exec(src);
+  const title = seo
+    ? seo[1].trim().replace(/^["']|["']$/g, "")
+    : t[1].trim().replace(/^["']|["']$/g, "") + suffix;
   // Posts are only held to the floor. Their titles are the post's own
   // headline and several legitimately run past 60; shortening those is an
   // editorial decision, not a build gate.
