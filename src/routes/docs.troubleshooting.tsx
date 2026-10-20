@@ -51,7 +51,7 @@ const FAQS: Faq[] = [
   // -------- Schema errors --------
   {
     q: "E_FK_CYCLE: foreign-key cycle could not be broken automatically",
-    a: "Your schema has a cycle in its foreign keys, and every column on the cycle is NOT NULL with no DEFAULT and is not declared DEFERRABLE. satus refuses to guess which constraint to violate. Fix one of three ways: mark one side of the cycle nullable, add a column DEFAULT, or declare the constraint DEFERRABLE INITIALLY DEFERRED. The /docs/how-it-works page explains why each option works.",
+    a: "Your schema has a cycle in its foreign keys, and every FK column on the cycle is NOT NULL. satus breaks a cycle only by leaving a nullable FK column empty and filling it in a second pass, so it refuses to guess which constraint to violate. A column DEFAULT or a DEFERRABLE INITIALLY DEFERRED constraint does not break the cycle; satus still exits 10. Fix it one of two ways: make one FK column on the cycle nullable, or exclude one of the cycle tables in satus.config.json. The /docs/how-it-works page explains how the cycle breaker works.",
   },
   {
     q: "E_DB_NOT_EMPTY: database has more than 10,000 user rows",

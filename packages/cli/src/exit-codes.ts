@@ -18,9 +18,10 @@ export const E_GENERAL = 1;
 export const E_VALIDATION = 2;
 
 /**
- * A foreign-key cycle exists in which no edge can be broken — every column
- * on the cycle is NOT NULL with no DEFAULT and not DEFERRABLE. satus will
- * not guess which invariant to violate. Nothing was written.
+ * A foreign-key cycle exists in which no edge can be broken: every FK
+ * column on the cycle is NOT NULL. Only a nullable FK column breaks a
+ * cycle (see generate/dag.ts); a DEFAULT or a DEFERRABLE constraint does
+ * not. satus will not guess which invariant to violate. Nothing was written.
  */
 export const E_FK_CYCLE = 10;
 

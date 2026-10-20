@@ -221,7 +221,7 @@ function QuickstartPage() {
           <Issue
             code="E_FK_CYCLE"
             title="Foreign-key cycle could not be broken automatically"
-            body="satus detects cycles in your FK graph at planning time and breaks them automatically by deferring a nullable column and back-patching in pass 2 (see the cyclic FKs post). This error fires when every column on the cycle is NOT NULL with no DEFAULT, so there's nowhere to put a placeholder. Mark one side nullable, add a DEFAULT, or declare the constraint DEFERRABLE."
+            body="satus detects cycles in your FK graph at planning time and breaks them automatically by deferring a nullable column and back-patching in pass 2 (see the cyclic FKs post). This error fires when every FK column on the cycle is NOT NULL, so there is no column to leave empty. A column DEFAULT or a DEFERRABLE constraint does not help. Make one FK column on the cycle nullable, or exclude one of the cycle tables in satus.config.json."
           />
           <Issue
             code="E_NO_PARENT_ROWS"

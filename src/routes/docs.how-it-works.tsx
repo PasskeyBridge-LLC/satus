@@ -163,16 +163,17 @@ function HowItWorksPage() {
             </li>
             <li>
               <strong>Break each cycle on the weakest edge.</strong> Inside a cycle, pick the FK
-              whose column is nullable (or has a DEFAULT, or is declared DEFERRABLE INITIALLY
-              DEFERRED). Insert that side first with the FK column left empty, insert the other side
-              normally, then run a second pass that <code>UPDATE</code>s the empty column with the
-              correct id. Referential integrity holds at every commit point.
+              whose column is nullable. A column DEFAULT or a DEFERRABLE constraint does not make an
+              edge breakable. Insert that side first with the FK column left empty, insert the other
+              side normally, then run a second pass that <code>UPDATE</code>s the empty column with
+              the correct id. Referential integrity holds at every commit point.
             </li>
           </ol>
           <p>
-            When no edge in a cycle is breakable—every column on the cycle is NOT NULL with no
-            DEFAULT and not DEFERRABLE—satus refuses to guess. It exits with code <code>10</code> (
-            <code>E_FK_CYCLE</code>) and tells you which constraint to relax. We&rsquo;d rather fail
+            When no edge in a cycle is breakable, because every FK column on the cycle is NOT NULL,
+            satus refuses to guess. A DEFAULT or a DEFERRABLE constraint does not change this. It
+            exits with code <code>10</code> (<code>E_FK_CYCLE</code>) and names the tables on the
+            cycle. Make one FK column nullable, or exclude one of the tables. We&rsquo;d rather fail
             loudly than ship a workaround that violates an invariant you spent time declaring.
           </p>
           <p>
