@@ -24,17 +24,16 @@ function fakeClient(
   const queries: string[] = [];
   const unreadable = opts.unreadable ?? new Set<string>();
   const client = {
-    async query(sql: string, params?: unknown[]) {
+    async query(sql: string) {
       queries.push(sql);
       if (sql.includes("from pg_class")) {
-        return { rows: tables.map((t) => ({ schema_name: t.schema, table_name: t.name })) };
-      }
-      if (sql.includes("has_table_privilege")) {
-        const row: Record<string, boolean> = {};
-        (params as string[]).forEach((p, i) => {
-          row[`t${i}`] = !unreadable.has(p.replace(/"/g, ""));
-        });
-        return { rows: [row] };
+        return {
+          rows: tables.map((t) => ({
+            schema_name: t.schema,
+            table_name: t.name,
+            readable: !unreadable.has(`${t.schema}.${t.name}`),
+          })),
+        };
       }
       // Counting statement: sum the rows of every table it names, each
       // capped the way the real subquery caps it.
@@ -126,6 +125,21 @@ describe("safety guard: counting", () => {
     expect(r.tablesScanned).toBe(1);
     expect(r.total).toBe(5);
     expect(r.exceeded).toBe(false);
+  });
+
+  it("checks schema USAGE and table SELECT by OID, never by name", async () => {
+    // Casting 'audit.events'::regclass errors with "permission denied for
+    // schema audit" when the role has no USAGE there, which made the guard
+    // exit 1 instead of skipping the table.
+    const { client, queries } = fakeClient([{ schema: "audit", name: "events", rows: 10_001 }], {
+      unreadable: new Set(["audit.events"]),
+    });
+    const r = await countUserRows(client);
+    expect(queries[0]!).toContain("has_schema_privilege(n.oid, 'USAGE')");
+    expect(queries[0]!).toContain("has_table_privilege(c.oid, 'SELECT')");
+    expect(queries.some((q) => q.includes("::regclass"))).toBe(false);
+    expect(queries.some((q) => q.includes('"audit"."events"'))).toBe(false);
+    expect(r).toMatchObject({ tablesSkipped: 1, tablesScanned: 0, exceeded: false });
   });
 
   it("caps per-table work so a huge table cannot cause a full scan", async () => {

@@ -73,11 +73,18 @@ function quoteIdent(s: string): string {
  * Foreign tables ('f') are excluded too — counting one reaches out to
  * another system, which is not something a safety check should do.
  *
- * has_table_privilege keeps an unreadable table from turning the guard into
+ * The readable flag keeps an unreadable table from turning the guard into
  * a hard error. A role that cannot read a table also cannot be seeding it.
+ * It needs USAGE on the schema as well as SELECT on the table, and both
+ * checks take OIDs: resolving a schema-qualified name (for example
+ * `'audit.events'::regclass`) itself fails with "permission denied for
+ * schema" when the role lacks USAGE, which used to exit 1 instead of
+ * skipping the table.
  */
 const TABLE_LIST_SQL = `
-  select n.nspname as schema_name, c.relname as table_name
+  select n.nspname as schema_name, c.relname as table_name,
+         (has_schema_privilege(n.oid, 'USAGE')
+          and has_table_privilege(c.oid, 'SELECT')) as readable
   from pg_class c
   join pg_namespace n on n.oid = c.relnamespace
   where c.relkind = 'r'
@@ -92,26 +99,17 @@ export async function countUserRows(
   client: Client,
   limit: number = ROW_LIMIT,
 ): Promise<GuardResult> {
-  const res = await client.query<{ schema_name: string; table_name: string }>(TABLE_LIST_SQL);
-  const all = res.rows;
+  const res = await client.query<{ schema_name: string; table_name: string; readable: boolean }>(
+    TABLE_LIST_SQL,
+  );
 
-  // Split readable from unreadable up front, in one round trip, so a
-  // permission error can never masquerade as a guard failure.
+  // Readability comes back with the table list, so a permission error can
+  // never masquerade as a guard failure.
   const readable: Array<{ schema_name: string; table_name: string }> = [];
   let tablesSkipped = 0;
-  if (all.length > 0) {
-    const privSql =
-      "select " +
-      all
-        .map((t, i) => `has_table_privilege(${`$${i + 1}`}::regclass, 'SELECT') as t${i}`)
-        .join(", ");
-    const params = all.map((t) => `${quoteIdent(t.schema_name)}.${quoteIdent(t.table_name)}`);
-    const priv = await client.query(privSql, params);
-    const row = priv.rows[0] as Record<string, boolean>;
-    all.forEach((t, i) => {
-      if (row[`t${i}`]) readable.push(t);
-      else tablesSkipped += 1;
-    });
+  for (const t of res.rows) {
+    if (t.readable === true) readable.push(t);
+    else tablesSkipped += 1;
   }
 
   let total = 0;
