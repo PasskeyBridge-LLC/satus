@@ -211,7 +211,7 @@ $ satus generate --dry-run --rows 25 --dsn postgresql://seeder:seeder@localhost/
 error: permission denied for schema audit
 ```
 
-The guard casts each table name to `regclass` to pass it to `has_table_privilege`, and that cast fails for a table in a schema the role has no `USAGE` on. The run exits `1`. With `USAGE` on the schema and still no `SELECT` on the table:
+The guard casts each table name to `regclass` to pass it to `has_table_privilege`, and that cast fails for a table in a schema the role has no `USAGE` on. In 0.3.11 the run exits `1` in this case. With `USAGE` on the schema and still no `SELECT` on the table:
 
 ```
 $ psql -q $DATABASE_URL -c "grant usage on schema audit to seeder"
