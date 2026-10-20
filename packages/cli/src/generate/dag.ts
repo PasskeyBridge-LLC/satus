@@ -16,8 +16,9 @@
  * single transaction, so a failure rolls everything back.
  *
  * NOT NULL cycle edges remain unsupported in v0.2. The user has two
- * paths forward in that case: make the column nullable, or mark the FK
- * `DEFERRABLE INITIALLY DEFERRED` and excludeOne of the cycle members.
+ * paths forward in that case: make the column nullable, or `exclude` one of
+ * the cycle members. A DEFAULT or a DEFERRABLE constraint does not break
+ * the cycle.
  * We surface the unresolved members so the message is actionable.
  */
 import type { Table } from "./introspect.js";

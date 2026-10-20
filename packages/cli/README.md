@@ -75,7 +75,7 @@ The guard is not a permission check (Postgres roles do that better) and not a ro
 | `0` | Success. |
 | `1` | General failure — bad config, connection refused, LLM or database error. |
 | `2` | `--dry-run` completed but the relational validator found errors. Use as a CI gate. |
-| `10` | `E_FK_CYCLE` — a foreign-key cycle exists in which no edge is nullable, defaulted, or deferrable, so satus will not guess which invariant to break. Nothing was written. |
+| `10` | `E_FK_CYCLE` — a foreign-key cycle exists in which no FK column is nullable, so satus will not guess which invariant to break. Nothing was written. |
 | `11` | `E_DB_NOT_EMPTY` — the safety guard refused to run. Nothing was written. |
 
 Codes `10` and `11` both mean "satus declined to act" as opposed to "satus tried and failed" — the distinction a bare `1` cannot carry. They are defined in one place, `packages/cli/src/exit-codes.ts`, and pinned by a test.
