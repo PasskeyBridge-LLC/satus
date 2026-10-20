@@ -196,7 +196,7 @@ FK cycle detected with no nullable back-edge: teams, users
   satus.config.json and re-run.
 ```
 
-Our [how it works](/docs/how-it-works) and [troubleshooting](/docs/troubleshooting) pages, the quickstart and the CLI README say a `DEFAULT` or a `DEFERRABLE` constraint also lets satus break a cycle. The shipped code in [`dag.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/dag.ts) does not; the CLI's own message above is the accurate one. Making the column nullable is the fix that works in 0.3.11:
+The [troubleshooting](/docs/troubleshooting) page says the same: a column `DEFAULT` or a `DEFERRABLE INITIALLY DEFERRED` constraint does not break the cycle, and satus still exits `10`. Making one FK column on the cycle nullable is the fix that works in 0.3.11:
 
 ```sql
 alter table teams alter column owner_id drop not null;
