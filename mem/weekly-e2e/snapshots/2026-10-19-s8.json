@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-19",
+  "production_sha": "ce0d1160733d36fe9d8f27c3efed35163f592f19",
+  "deployment": "dpl_Ht4XAAYeT2d4wqD2XFE347NbUPnE",
+  "lighthouse": {
+    "tool": "lighthouse@12.8.2",
+    "throttling": "simulated",
+    "home_mobile": [
+      {"lcp_ms": 2426.707, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2419.757, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 1829.631, "cls": 0, "tbt_ms": 0, "score": 100}
+    ],
+    "home_mobile_median_lcp_ms": 2419.757,
+    "pricing_mobile": [{"lcp_ms": 2417.516, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "docs_mobile": [{"lcp_ms": 2418.49, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "blog_mobile": [{"lcp_ms": 1820.252, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "home_desktop": [{"lcp_ms": 541.576, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "pricing_desktop": [{"lcp_ms": 577.967, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "docs_desktop": [{"lcp_ms": 582.572, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_desktop": [{"lcp_ms": 577.794, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_path": "/blog/v0-3-11-release-notes"
+  },
+  "axe": {
+    "tool": "axe-core WCAG 2.2 A/AA",
+    "browser": "Chrome 154 headless",
+    "serious_or_critical": {},
+    "zero_on": ["/", "/pricing", "/checkout", "/checkout/success", "/checkout/cancel", "/cli", "/quickstart", "/docs", "/docs/how-it-works", "/docs/troubleshooting", "/docs/github-action", "/profiles", "/recipes", "/compare", "/demo", "/security", "/privacy", "/terms", "/blog", "/blog/pg-dump-snapshots-as-test-fixtures"]
+  },
+  "h1": 1,
+  "console_errors": 0,
+  "same_origin_4xx": 0,
+  "embargoed_404": [
+    "what-satus-0-3-11-checks-before-a-write",
+    "multi-column-uniques-why-v0x-skips-them"
+  ],
+  "demo_pglite": {"ran": false, "generatePressed": false, "generateRequests": 0, "note": "DDL present in the page; generate was not pressed"}
+}
