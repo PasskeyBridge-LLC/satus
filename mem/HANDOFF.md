@@ -1,31 +1,33 @@
 # HANDOFF
 
-Written 2026-10-10 after Joel's open-items batch. Replace this file next session; do not append.
+Written 2026-10-25 after the archive-migration check. Replace this file next session; do not append.
 
 ## State
 
-`main` is `041af82` or later; every merge below deployed to production READY.
+Before these merges, `main` was `7e3a02e`. Production `dpl_G6tosDg468DmmwZMyoFa87Brwtsa` is READY, target production, that SHA.
 
-- #40 `1f080a7`: `/api/public/hooks/e2e-health` requires `x-e2e-health-secret` (`E2E_HEALTH_SECRET`, Vercel production + preview, sensitive; same-name GitHub Actions secret). Constant-time compare before any work: 401 missing or wrong, 503 unset. Daily caller is `.github/workflows/e2e-health.yml` (06:00 UTC). pg_cron `satus-e2e-health-daily` was unscheduled; the migration in this PR records that. Verified: 401 without/with wrong secret, 200 `pass` with it, and from the workflow.
-- #41 `445eae7`: license verify stays fail-open on counter errors; counter and lookup failures raise Sentry warnings, fingerprint `["license-verify", <kind>]`, error code only.
-- #42 `2eda6eb`: CLI vitest 4.1.11 (78 tests green on Node 20 and 24). GHSA-82fw-gwwq-j7x9 cleared.
-- #43 `041af82`: `docs/weekly-e2e/satus-weekly-e2e.md` merged. Its 2026-10-04 facts about pg_cron and an unauthenticated e2e-health are now stale.
-- `feat/xai-demo` deleted (identical to #8). `content/correct-07-17-pg-dump-claims` was already gone (#5).
+Project `xbnrjwzryuonuinzuomk` has the three 2026-10-19 migrations applied: `20261019091540` `archive_satus_demo`, `20261019091551` `wrap_auth_rls_initplan`, `20261019091555` `drop_unused_email_send_log_recipient_index`. The ledger has 11 rows. `satus_demo` and `archive_satus_demo` are absent. Postgres logged `DROP SCHEMA archive_satus_demo CASCADE` at 2026-10-19T10:01:25.473Z (`POST /mcp`). The applied migration only comments that DROP. No ledger row records it. PR #50 said the DROP was still waiting. That was false from 10:01 UTC on 2026-10-19.
+
+Thirteen public service-role policies use `(SELECT auth.role())`. `idx_email_send_log_recipient` is absent. `rate_limit_counters` has RLS on and no policy. The security advisor at 2026-10-25T21:02:52Z lists that one INFO lint.
+
+#54 `d17d662` records the 2026-10-19 weekly ledger and corrects the DROP line. Twenty-five files under `supabase/migrations/` have no ledger row. Do not `db push`.
+
+Thirty-four remote branches were deleted after each tip was either an ancestor of `main` or the exact head of a PR whose squash commit is on `main`. None had a later unmerged commit.
 
 ## Left open on purpose
 
-ST-8: the 82 suppression rows stay (count re-read 2026-10-10). Stripe keys need Joel. npm `next` stays `0.3.11-orgmove.0`. Revoking the old npm token is Joel's. The mail drain is the Vercel Cron in `vercel.json` (every minute, `CRON_SECRET`); no pg_cron `process-email-queue` is needed. Queues were empty.
+The Auth connection cap was not re-read. Suppression rows were not re-counted. Stripe keys, the old npm token, and `next` at `0.3.11-orgmove.0` stay with Joel. `cli-publish.yml` was not changed. The mail drain is the Vercel Cron in `vercel.json`.
 
 ## Flags
 
-`DO_NOT_TRACK` wins. Report-only CSP on `/`. Multi-column UNIQUE, cross-column arithmetic and `--seed` stay documented CLI limits.
+`DO_NOT_TRACK` wins. Report-only CSP on `/`. Multi-column UNIQUE, cross-column arithmetic, and `--seed` stay documented CLI limits.
 
 ## Graduated this session
 
-Nothing new under `mem/`; the e2e-health contract is in the route header and AGENTS.md.
+The archive note is in `mem/followups/satus-supabase-advisor-deferred.md`.
 
 ## Next
 
-1. Revoke the old npm token on npmjs.com (Joel).
-2. Confirm the Auth leaked-password toggle (Joel).
-3. Refresh the weekly E2E spec where it describes e2e-health and pg_cron.
+1. Joel: keep or retire `cli-publish.yml`. The last run is failure [36333516038](https://github.com/PasskeyBridge-LLC/satus/actions/runs/36333516038) (2026-09-27), step "Report publish auth path". Publish succeeded. No other workflow calls this file. The Action and the site install `@passkeybridge/satus` from npm.
+2. Revoke the old npm token (Joel).
+3. Confirm the Auth leaked-password toggle (Joel). It was not read.
