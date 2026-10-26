@@ -212,9 +212,8 @@ function SecurityPage() {
             <li>
               <strong>LLM API key.</strong> Bring-your-own. The key is read from{" "}
               <code>OPENAI_API_KEY</code>, <code>ANTHROPIC_API_KEY</code> or{" "}
-              <code>XAI_API_KEY</code> (xAI, from the CLI release after 0.3.11) at runtime, sent
-              directly from your machine to the provider you selected, and never proxied through
-              satus.sh.
+              <code>XAI_API_KEY</code> (xAI, included in 0.3.12) at runtime, sent directly from your
+              machine to the provider you selected, and never proxied through satus.sh.
             </li>
             <li>
               <strong>Database URL.</strong> Read from <code>DATABASE_URL</code> at runtime. satus

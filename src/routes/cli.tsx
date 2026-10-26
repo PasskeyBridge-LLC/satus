@@ -159,7 +159,7 @@ function CliPage() {
           <EnvVar
             name="XAI_API_KEY"
             req="one of three"
-            body="Bring-your-own xAI key, from the CLI release after 0.3.11. The CLI calls api.x.ai/v1/chat/completions directly with strict json_schema output; the default model is grok-4.20-0309-non-reasoning. XAI_BASE_URL is honored if you need a compatible proxy."
+            body="Bring-your-own xAI key, included in 0.3.12. The CLI calls api.x.ai/v1/chat/completions directly with strict json_schema output; the default model is grok-4.20-0309-non-reasoning. XAI_BASE_URL is honored if you need a compatible proxy."
           />
         </ul>
       </Section>
@@ -240,7 +240,7 @@ function CliPage() {
             [
               "--provider <id>",
               "auto-detect",
-              "LLM provider: openai, anthropic or xai (xai from the CLI release after 0.3.11). Falls back to env-var auto-detect (errors if both the OpenAI and Anthropic keys are set with no explicit choice).",
+              "LLM provider: openai, anthropic or xai (xai is included in 0.3.12). Falls back to env-var auto-detect (errors if both the OpenAI and Anthropic keys are set with no explicit choice).",
             ],
             [
               "--model <id>",

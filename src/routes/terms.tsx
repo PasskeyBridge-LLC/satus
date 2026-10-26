@@ -144,8 +144,8 @@ function TermsPage() {
       <Section id="byo-key" n="04" label="BYO key" title={<>you supply your own llm api key.</>}>
         <Prose>
           <p>
-            satus requires an API key from a supported LLM provider (OpenAI or Anthropic; xAI from
-            the CLI release after 0.3.11) to generate column-level values. You are responsible for:
+            satus requires an API key from a supported LLM provider (OpenAI, Anthropic or xAI; xAI
+            is included in 0.3.12) to generate column-level values. You are responsible for:
           </p>
           <ul className="ml-5 list-disc space-y-1">
             <li>Procuring and paying for your own provider account.</li>

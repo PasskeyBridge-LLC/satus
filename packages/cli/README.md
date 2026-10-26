@@ -10,6 +10,8 @@
 
 ## Status
 
+`v0.3.12` — released 2026-10-26. The `xai` provider is included. `--provider xai`, or `"provider": "xai"` in `satus.config.json`, calls `https://api.x.ai/v1/chat/completions` with strict `json_schema` output and `XAI_API_KEY`. The default model is `grok-4.20-0309-non-reasoning`.
+
 `v0.3.11` — released 2026-08-27. Two corrections, both cases of shipped behaviour not matching a published claim. Run telemetry is now opt-in (`telemetry.enabled`, `SATUS_TELEMETRY=1`, `DO_NOT_TRACK=1` wins), which is what satus.sh/security has always promised and the CLI did not do. And primary keys and unique constraints are read from `pg_catalog` instead of `information_schema`, so a role holding only `SELECT` no longer introspects every table as having no primary key — which made `--dry-run` return a false green as a CI gate.
 
 `v0.3.10` — released 2026-08-14. Enforces the 24-hour license grace as documented: `satus activate` now stores the key locally, `satus generate` re-verifies any cached verdict older than 24 hours, and a verdict that cannot be refreshed falls back to Free-tier caps with a printed reason. Caches written by older versions carry no key; run `satus activate <key>` once to restore paid caps.
@@ -112,7 +114,7 @@ License keys are verified against `https://satus.sh/api/public/license/verify` a
 | Anthropic | `ANTHROPIC_API_KEY` | `claude-haiku-4-5` | <https://console.anthropic.com/settings/keys> |
 | xAI | `XAI_API_KEY` | `grok-4.20-0309-non-reasoning` | <https://console.x.ai> |
 
-The `xai` provider was added after 0.3.11 and ships in the next release. It calls `https://api.x.ai/v1/chat/completions` with strict `json_schema` output. On reasoning models (for example `grok-4.3`) the cost meter counts reasoning tokens as output tokens, because xAI bills them.
+The `xai` provider is included in v0.3.12. It calls `https://api.x.ai/v1/chat/completions` with strict `json_schema` output. On reasoning models (for example `grok-4.3`) the cost meter counts reasoning tokens as output tokens, because xAI bills them.
 
 ### Selecting a provider
 
