@@ -1,7 +1,7 @@
 ---
 slug: v0-3-11-release-notes
 title: "v0.3.11: two claims the code did not support"
-description: Run telemetry is now opt-in, which is what our security page always said. And primary keys are read from pg_catalog, so a read-only CI role no longer gets a false green from --dry-run.
+description: Run telemetry is now opt-in, as our security page said. Primary keys come from pg_catalog, so a read-only CI role no longer gets a false green from --dry-run.
 date: 2026-08-27
 author: satus.sh
 tags: [release, cli, privacy, postgres]

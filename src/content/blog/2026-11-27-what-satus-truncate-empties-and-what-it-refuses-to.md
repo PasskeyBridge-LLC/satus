@@ -1,6 +1,7 @@
 ---
 slug: what-satus-truncate-empties-and-what-it-refuses-to
 title: What satus generate --truncate empties, and what it refuses to
+seoTitle: What satus generate --truncate empties, and what it refuses
 description: satus 0.3.11 truncates only the tables it seeds, never with CASCADE, inside the run's transaction. A blocked truncate or failed run leaves every row in place.
 date: 2026-11-27
 publishAt: 2026-11-27T09:00:00-05:00

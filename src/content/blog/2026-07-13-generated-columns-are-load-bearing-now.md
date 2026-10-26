@@ -2,7 +2,7 @@
 slug: generated-columns-are-load-bearing-now
 title: "Generated columns are load-bearing now"
 seoTitle: "Postgres generated column: cannot insert a non-DEFAULT value"
-description: Postgres GENERATED columns moved from novelty to infrastructure once PG12 shipped STORED and PG18 shipped VIRTUAL. What that means for introspection, INSERT ordering, and seeders.
+description: Postgres GENERATED columns became infrastructure with STORED in PG12 and VIRTUAL in PG18. What that means for introspection, INSERT order and seeders.
 date: 2026-07-13
 author: satus.sh
 tags: [postgres, generated-columns, schema, seeding]

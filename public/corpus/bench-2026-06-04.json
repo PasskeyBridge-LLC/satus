@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-06-04T14:10:00Z",
+  "cli_version": "0.2.0",
+  "previous_version": "0.1.1",
+  "method": "psql -f, wall-clock `time`, 15 iterations after 3-iter warmup. psql process startup + TLS handshake + auth is a fixed cost per invocation (proxied by a `select 1` baseline) and is subtracted out when attributing latency to wire work.",
+  "database": {
+    "host": "aws-1-us-east-1.pooler.supabase.com",
+    "is_remote": true,
+    "target_schema": "public",
+    "tables_in_target_schema": 9,
+    "notes": "Benchmark workload uses pooled Supabase as the high-latency remote target. The cyclic-schema integration test runs against a local Postgres 17 instance (see cycle_breaking.integration_test)."
+  },
+  "introspection_ms": {
+    "iterations": 15,
+    "rtt_select_1": { "median": 603, "min": 599, "max": 626 },
+    "legacy_5_queries": { "median": 981, "min": 963, "max": 1194 },
+    "cte_1_query": { "median": 646, "min": 639, "max": 664 },
+    "wire_only_ms": {
+      "legacy_5_queries": 378,
+      "cte_1_query": 43,
+      "speedup_x": 8.79,
+      "roundtrips_saved": 4
+    },
+    "end_to_end_speedup_x": 1.52
+  },
+  "binary": {
+    "baseline_js_bytes": 32134,
+    "baseline_sourcemap_bytes": 72243,
+    "baseline_total_payload_bytes": 104377,
+    "new_js_bytes": 23403,
+    "new_sourcemap_bytes": 0,
+    "js_reduction_pct": 27.2,
+    "total_payload_reduction_pct": 77.6,
+    "notes": "tsup minify=true, sourcemap=false. Sourcemaps were never consumed by end users (CLI ships as a shebang script) so removing them is a pure win for npm tarball size."
+  },
+  "cycle_breaking": {
+    "algorithm": "After Kahn's topo sort fails, scan the residual edges for an FK column marked nullable. Remove it from the DAG (recorded as a BrokenEdge), retry Kahn's. Repeat until acyclic or no nullable back-edge remains. At runtime the child rows are inserted with NULL on the broken column, and a post-insert UPDATE pass — inside the same transaction, after the parent table is fully seeded — wires each child to a random parent PK. SET CONSTRAINTS ALL DEFERRED is issued before inserts so any DEFERRABLE constraints in the user's schema validate at COMMIT.",
+    "unit_tests": "packages/cli/src/generate/dag.test.ts — 5/5 passing",
+    "integration_test": {
+      "fixture": "two-table cycle: users(primary_org_id -> orgs) and orgs(owner_user_id -> users NOT NULL); users.primary_org_id is nullable, so it is the broken edge.",
+      "postgres_version": "PostgreSQL 17 (local, unix socket)",
+      "command": "satus generate --rows 5 with profile=saas, model=gpt-5-mini",
+      "result": "10 rows inserted across 2 tables; 0/5 NULL FKs on users.primary_org_id after the wire-up pass; both directions of the cycle reference valid parents."
+    },
+    "limitations": "NOT NULL cycle FKs remain unsupported. The CLI fails with an actionable message naming the cycle and suggesting either making the column nullable or excluding one of the cycle members."
+  },
+  "tests": {
+    "typecheck": "pass (tsc --noEmit)",
+    "vitest": "5/5 (packages/cli/src/generate/dag.test.ts)"
+  }
+}

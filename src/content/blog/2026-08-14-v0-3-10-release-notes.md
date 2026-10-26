@@ -1,7 +1,7 @@
 ---
 slug: v0-3-10-release-notes
 title: "v0.3.10: the 24-hour license grace is now real"
-description: satus 0.3.10 makes license verification honest — activation stores the key, generate re-verifies stale verdicts, and a canceled subscription now actually loses paid caps within 24 hours.
+description: satus 0.3.10: activation stores the key, generate re-verifies stale verdicts, and a canceled subscription loses paid caps within 24 hours.
 date: 2026-08-14
 author: satus.sh
 tags: [release, cli, licensing]

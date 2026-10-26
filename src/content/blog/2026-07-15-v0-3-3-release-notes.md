@@ -1,7 +1,7 @@
 ---
 slug: v0-3-3-release-notes
 title: "v0.3.3: the GitHub Action, and opt-in failure fingerprints"
-description: satus 0.3.3 ships passkeybridge/satus/packages/action@main, a composite Action wrapping the CLI for PR-preview databases, plus opt-in schema-shape fingerprints for the v0.4.0 agent eval set.
+description: satus 0.3.3 ships a composite GitHub Action that wraps the CLI for PR-preview databases, plus opt-in schema-shape fingerprints for the v0.4.0 eval set.
 date: 2026-07-15
 author: satus.sh
 tags: [release, ci, github, telemetry]

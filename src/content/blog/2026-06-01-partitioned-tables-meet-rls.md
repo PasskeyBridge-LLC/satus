@@ -1,7 +1,7 @@
 ---
 slug: partitioned-tables-meet-rls
 title: Partitioned tables meet RLS, and nobody wins
-description: RLS policies on a partitioned parent do not protect the children. We hit this in two customer schemas last week. Here is what Postgres actually does, and the two-line workaround satus now prints.
+description: RLS policies on a partitioned parent do not protect the children. What Postgres actually does, and the two-line workaround satus now prints.
 date: 2026-06-01
 author: satus.sh
 tags: [postgres, rls, partitioning, seeding]

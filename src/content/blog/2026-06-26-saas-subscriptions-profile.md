@@ -1,7 +1,8 @@
 ---
 slug: saas-subscriptions-profile
 title: "Inside the saas-subscriptions profile: MRR, churn, and the dunning death spiral"
-description: Subscription lifecycles, plan changes, failed payments, and the states no one documents. What the satus saas-subscriptions profile recommends, and what it leaves to you.
+seoTitle: The satus saas-subscriptions profile: MRR, churn, dunning
+description: Subscription lifecycles, plan changes, failed payments and undocumented states. What the satus saas-subscriptions profile recommends and what it leaves to you.
 date: 2026-06-26
 author: satus.sh
 tags: [profile, saas, billing, postgres, seeding]

@@ -60,12 +60,12 @@ const FrontmatterSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
   title: z.string().min(1).max(140),
   /**
-   * Optional document title, used verbatim in <title> instead of
-   * "<title>—satus.sh blog". For posts whose search queries the headline
-   * does not match. 60 characters or fewer.
+   * Optional document title, used verbatim in <title> instead of the
+   * headline (see src/lib/blog-title.ts). Required when the headline alone
+   * is over 60 characters. 60 characters or fewer.
    */
   seoTitle: z.string().min(1).max(60).optional(),
-  description: z.string().min(20).max(200),
+  description: z.string().min(20).max(160),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date must be ISO YYYY-MM-DD"),
   author: z.string().min(1).max(80).default("satus.sh"),
   tags: z.array(z.string().min(1).max(40)).max(8).default([]),

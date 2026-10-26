@@ -1,7 +1,8 @@
 ---
 slug: information-schema-is-privilege-filtered
 title: information_schema is privilege-filtered, and it made our CI gate lie
-description: A role with SELECT on every table in the schema still sees zero constraints in information_schema. Measured on PostgreSQL 16.13, including the bug it exposed in our own dry-run gate.
+seoTitle: information_schema is privilege-filtered: our CI gate lied
+description: A role with SELECT on every table still sees zero constraints in information_schema. Measured on PostgreSQL 16.13, with the bug it exposed in our dry-run gate.
 date: 2026-08-21
 author: satus.sh
 tags: [postgres, catalogs, introspection, privileges, ci]

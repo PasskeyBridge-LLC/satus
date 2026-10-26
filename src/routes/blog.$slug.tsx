@@ -11,6 +11,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { PageShell } from "@/components/site/chrome";
 import { type SectionMeta } from "@/components/site/primitives";
+import { postDocumentTitle } from "@/lib/blog-title";
 
 const SITE_URL = "https://satus.sh";
 
@@ -71,7 +72,7 @@ export const Route = createFileRoute("/blog/$slug")({
 
     return {
       meta: [
-        { title: post.seoTitle ?? `${post.title}—satus.sh blog` },
+        { title: postDocumentTitle(post) },
         { name: "description", content: post.description },
         { name: "author", content: post.author },
         { property: "article:published_time", content: post.date },

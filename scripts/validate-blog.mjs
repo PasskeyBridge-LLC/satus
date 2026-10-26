@@ -50,9 +50,9 @@ const RULES = {
       ? null
       : `seoTitle must be 1-60 chars (got ${typeof v === "string" ? v.length : typeof v})`,
   description: (v) =>
-    typeof v === "string" && v.length >= 20 && v.length <= 200
+    typeof v === "string" && v.length >= 20 && v.length <= 160
       ? null
-      : `description must be 20-200 chars (got ${typeof v === "string" ? v.length : typeof v})`,
+      : `description must be 20-160 chars (got ${typeof v === "string" ? v.length : typeof v})`,
   date: (v) =>
     typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? null : "date must be ISO YYYY-MM-DD",
   /* Optional. Absent means publish immediately, so undefined passes. */

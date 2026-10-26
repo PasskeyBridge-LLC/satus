@@ -1,7 +1,7 @@
 ---
 slug: v0-3-5-release-notes
 title: "v0.3.5: automated npm publishing, two correctness fixes"
-description: satus 0.3.5 adds tag-triggered npm publishing with provenance, restores deferrable-FK detection in introspection, and fixes the Action selftest to validate the in-repo CLI.
+description: satus 0.3.5 adds tag-triggered npm publishing with provenance, restores deferrable-FK detection, and makes the Action selftest use the in-repo CLI.
 date: 2026-07-16
 author: satus.sh
 tags: [release, ci, github, npm]

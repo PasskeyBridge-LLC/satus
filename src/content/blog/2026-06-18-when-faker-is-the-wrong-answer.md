@@ -1,7 +1,7 @@
 ---
 slug: when-faker-is-the-wrong-answer
 title: "When faker.js is exactly the wrong answer"
-description: faker.js generates 10,000 plausible names. It does not generate 10,000 names whose foreign keys resolve. A field note on the gap between fake values and seed data.
+description: faker.js generates 10,000 plausible names. It does not generate 10,000 names whose foreign keys resolve. The gap between fake values and seed data.
 date: 2026-06-18
 author: satus.sh
 tags: [tooling, faker, postgres, seeding, philosophy]
