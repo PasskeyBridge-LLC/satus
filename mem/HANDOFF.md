@@ -1,20 +1,18 @@
 # HANDOFF
 
-Written 2026-10-26 after the blog inline-wrap fix. Replace this file next session; do not append.
+Written 2026-10-26 after the 0.3.12 published-version pin. Replace this file next session; do not append.
 
 ## State
 
-The wrap fix is on `cursor/blog-inline-wrap-5033`. It is not merged and not deployed. The coordinator merges. CSP was not changed.
+`@passkeybridge/satus@0.3.12` is npm `latest` (published 2026-10-26, gitHead `f4f33a453a9d4c5941596c81acdea31e0ae74c97`). PR #69 (`cursor/action-published-version-0-3-12-0a56`) sets the validate-docs published group to `0.3.12`: `packages/action/action.yml` default, `packages/action/README.md` table, `src/lib/version.ts` `SATUS_VERSION`. `SATUS_RELEASED_AT` is `2026-10-26`. `packages/action` has no `src/` and no committed dist.
 
-`.prose-satus a` and `code` use `overflow-wrap: anywhere` and `word-break: break-word`. `pre`, `pre code`, and `pre a` reset both, so a code block still scrolls inside itself. `.blog-dek` uses the same wrap. The v0.3.3 dek is the plain-text path `passkeybridge/satus/packages/action@main`, which sits outside `.prose-satus` and was widening that post.
+Not merged. Dist-tags were not moved. Nothing was published.
 
-Playwright WebKit and Chromium, all 51 non-draft posts, widths 320, 360, 390, 768, and 1280: 510 checks, `scrollWidth === clientWidth` on every one. Before the change, 63 overflowed. WebKit at 360 on `what-satus-0-3-11-checks-before-a-write` was 373/360 and is 360/360. `packages/cli/src/generate/validate.ts` stays one line at 390 and wider. A `pre` on that post still scrolls internally (724 vs 310 at 360).
-
-`git branch -r --no-merged origin/main` listed nothing.
+`git branch -r --no-merged origin/main` lists this branch.
 
 ## Left open on purpose
 
-Production was not re-checked. This session does not merge or deploy.
+`packages/cli/README.md` still opens on `v0.3.11` and says the `xai` provider ships in the next release. Other pages still say "from the CLI release after 0.3.11". Those lines are outside the published-version group. `next` was not touched.
 
 ## Flags
 
@@ -22,8 +20,8 @@ Production was not re-checked. This session does not merge or deploy.
 
 ## Graduated this session
 
-Joel’s open items (cli-publish.yml, the old npm token, the Auth leaked-password toggle) are in `mem/followups/satus-supabase-advisor-deferred.md`.
+Nothing.
 
 ## Next
 
-1. Coordinator: merge the inline-wrap PR once CI is green.
+1. Merge #69 when its CI is green. Do not publish. Do not move dist-tags.
