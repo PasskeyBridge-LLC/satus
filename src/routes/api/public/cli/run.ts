@@ -74,7 +74,7 @@ const TableReport = z.object({
 const LEGACY_DROPPED_KEYS = ["tables", "target_schema", "error_message", "license_key"] as const;
 
 const RunSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.guid().optional(),
   status: z.enum(["running", "success", "failed"]),
   profile: z.string().min(1).max(32).optional(),
   // v0.3.0 (optional, backward-compatible with v0.2.x clients which omit it).
