@@ -134,7 +134,7 @@ function BlogPostPage() {
           {post.title}
         </h1>
 
-        <p className="mt-4 max-w-[62ch] text-[16px] leading-[1.6] text-[var(--ink)]/75">
+        <p className="blog-dek mt-4 max-w-[62ch] text-[16px] leading-[1.6] text-[var(--ink)]/75">
           {post.description}
         </p>
 

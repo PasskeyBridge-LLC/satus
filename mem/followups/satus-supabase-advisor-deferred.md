@@ -62,3 +62,16 @@ row (the `202605*` through `20260714*` copies, and
 try to apply them. Do not repair that history in passing. `cron.job` has
 no `satus-e2e-health-daily`. Job name, schedule, and active were read.
 The command column was not.
+
+## Owner, still open
+
+Moved out of `mem/HANDOFF.md` on 2026-10-26. None of these were touched
+by the blog wrap change.
+
+- Joel: keep or retire `cli-publish.yml`. The last run is failure
+  [36333516038](https://github.com/PasskeyBridge-LLC/satus/actions/runs/36333516038)
+  (2026-09-27), step "Report publish auth path". Publish succeeded. No
+  other workflow calls this file. The Action and the site install
+  `@passkeybridge/satus` from npm.
+- Revoke the old npm token (Joel).
+- Confirm the Auth leaked-password toggle (Joel). It was not read.
