@@ -20,7 +20,9 @@
  *   4. The safety-guard threshold in the docs matches ROW_LIMIT.
  *   5. Profile names in the docs match the ProfileName union.
  *   6. Default model ids in the docs match DEFAULT_MODELS.
- *   7. The version is identical across all six places that carry it.
+ *   7. The CLI package version is identical across the three CLI files;
+ *      the published version is identical across the site and Action files.
+ *      Those two groups may differ until a release lands on npm.
  *   8. The RFC 9116 security.txt has not expired (and is not about to).
  *
  * It cannot check prose — "Tarjan's algorithm" is still a human's job.
@@ -215,16 +217,17 @@ for (const file of DOC_FILES) {
 }
 
 /* ---------- 7. version consistency ---------- */
-const versions = {
+// Quote-agnostic. A single-quote-only match reports "(unparsed)" rather
+// than a mismatch, so the check goes quiet instead of going red — and
+// prettier rewrote these files to double quotes the first time it ran.
+const cliVersions = {
   "packages/cli/package.json": JSON.parse(read("packages/cli/package.json")).version,
   "packages/cli/package-lock.json": JSON.parse(read("packages/cli/package-lock.json")).version,
-  // Quote-agnostic, here and for action.yml below. A single-quote-only match
-  // reports "(unparsed)" rather than a mismatch, so the check goes quiet
-  // instead of going red — and prettier rewrote both files to double quotes
-  // the first time it ran over the repo.
   "packages/cli/src/version.ts": /version = ['"]([^'"]+)['"]/.exec(
     read("packages/cli/src/version.ts"),
   )?.[1],
+};
+const publishedVersions = {
   "src/lib/version.ts": /SATUS_VERSION = "([^"]+)"/.exec(read("src/lib/version.ts"))?.[1],
   "packages/action/action.yml": /satus-version:[\s\S]*?default: ['"]([^'"]+)['"]/.exec(
     read("packages/action/action.yml"),
@@ -233,15 +236,22 @@ const versions = {
     read("packages/action/README.md"),
   )?.[1],
 };
-const distinct = [...new Set(Object.values(versions))];
-if (distinct.length > 1) {
-  fail(
-    "version drift across release files:\n" +
-      Object.entries(versions)
-        .map(([f, v]) => `        ${v ?? "(unparsed)"}  ${f}`)
-        .join("\n"),
-  );
+const reportGroup = (group) =>
+  Object.entries(group)
+    .map(([f, v]) => `        ${v ?? "(unparsed)"}  ${f}`)
+    .join("\n");
+const distinctCli = [...new Set(Object.values(cliVersions))];
+if (distinctCli.length > 1) {
+  fail("version drift across CLI package files:\n" + reportGroup(cliVersions));
 }
+const distinctPublished = [...new Set(Object.values(publishedVersions))];
+if (distinctPublished.length > 1) {
+  fail("version drift across published (site / Action) files:\n" + reportGroup(publishedVersions));
+}
+const versionLabel =
+  distinctCli[0] === distinctPublished[0]
+    ? `v${distinctCli[0]}`
+    : `cli v${distinctCli[0]}, published v${distinctPublished[0]}`;
 
 /* ---------- 8. security.txt freshness (RFC 9116 §2.5.5) ---------- */
 const SECURITY_TXT = "public/.well-known/security.txt";
@@ -276,5 +286,5 @@ console.log(
   `✓ docs agree with the code ` +
     `(flags, exit codes ${[...REAL.exitCodes].sort((a, b) => a - b).join("/")}, ` +
     `free ${REAL.freeRows}x${REAL.freeTables}, guard ${limitStr}, ` +
-    `v${distinct[0]}, security.txt current)`,
+    `${versionLabel}, security.txt current)`,
 );
