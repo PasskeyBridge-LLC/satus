@@ -290,6 +290,23 @@
   background: color-mix(in oklab, var(--ink) 5%, transparent);
   padding: 1px 4px;
 }
+/* A path, URL, or catalog name is one token. overflow-wrap: anywhere
+ * breaks it only when it would overflow the line, and counts that break
+ * in min-content so WebKit does not widen the page to fit the token.
+ * word-break: break-word is the same rule under the name WebKit applies
+ * to inline boxes. Spaces and hyphens still win, so ordinary words wrap
+ * where they did. pre opts out below: a code block scrolls inside itself. */
+.prose-satus a,
+.prose-satus code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+/* The dek is outside .prose-satus and can still be one unbreakable path
+ * (passkeybridge/satus/packages/action@main). Same rule as inline code. */
+.blog-dek {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .prose-satus pre {
   font-family: var(--font-mono);
   font-size: 13.5px;
@@ -302,6 +319,12 @@
    * Combined with the parent rule above, this guarantees the page never
    * gains horizontal scroll because of a wide code block. */
   max-width: 100%;
+}
+.prose-satus pre,
+.prose-satus pre code,
+.prose-satus pre a {
+  overflow-wrap: normal;
+  word-break: normal;
 }
 .prose-satus pre code {
   background: none;
