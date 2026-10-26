@@ -81,7 +81,7 @@ const FAQS: Faq[] = [
   },
   {
     q: "Can I use Anthropic, xAI or Gemini instead of OpenAI?",
-    a: "Anthropic, yes, as of v0.3.0. Set ANTHROPIC_API_KEY and the CLI picks it up; the default model is claude-haiku-4-5. If both OPENAI_API_KEY and ANTHROPIC_API_KEY are exported, pass --provider openai|anthropic (or set the provider field in satus.config.json) so we know which one to use. xAI is supported from the CLI release after 0.3.11: set XAI_API_KEY and pass --provider xai (the default model is grok-4.20-0309-non-reasoning). Gemini is not supported yet; see the changelog for the active roadmap.",
+    a: "Anthropic, yes, as of v0.3.0. Set ANTHROPIC_API_KEY and the CLI picks it up; the default model is claude-haiku-4-5. If both OPENAI_API_KEY and ANTHROPIC_API_KEY are exported, pass --provider openai|anthropic (or set the provider field in satus.config.json) so we know which one to use. xAI is included in 0.3.12. Set XAI_API_KEY and pass --provider xai (the default model is grok-4.20-0309-non-reasoning). Gemini is not supported yet; see the changelog for the active roadmap.",
   },
 
   // -------- Runtime & rollback --------

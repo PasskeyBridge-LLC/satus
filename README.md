@@ -2,7 +2,7 @@
 
 **Realistic, FK-safe seed data for Postgres.** satus reads your schema from
 `pg_catalog`, sorts tables by foreign-key dependency, asks an LLM (your
-OpenAI, Anthropic or xAI key; xAI from the CLI release after 0.3.11) for rows that look like a real business, and
+OpenAI, Anthropic or xAI key; xAI is included in 0.3.12) for rows that look like a real business, and
 inserts them in a single all-or-nothing transaction.
 
 [![cli-ci](https://github.com/PasskeyBridge-LLC/satus/actions/workflows/cli-ci.yml/badge.svg)](https://github.com/PasskeyBridge-LLC/satus/actions/workflows/cli-ci.yml)

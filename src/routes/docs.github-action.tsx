@@ -72,7 +72,7 @@ export const Route = createFileRoute("/docs/github-action")({
             name: "PasskeyBridge LLC",
             url: "https://passkeybridge.io",
           },
-          dateModified: "2026-07-15",
+          dateModified: "2026-10-26",
           proficiencyLevel: "Intermediate",
           about: [
             { "@type": "Thing", name: "GitHub Actions" },
@@ -194,8 +194,9 @@ function GitHubActionPage() {
           <p>
             Swap <code>OPENAI_API_KEY</code> for <code>ANTHROPIC_API_KEY</code> and add{" "}
             <code>provider: anthropic</code> under <code>with:</code> to drive Anthropic instead.
-            For xAI, use <code>XAI_API_KEY</code> and <code>provider: xai</code> (needs the CLI
-            release after 0.3.11). The CLI auto-detects from whichever env key is present.
+            For xAI, use <code>XAI_API_KEY</code> and <code>provider: xai</code>. The default{" "}
+            <code>satus-version</code> includes the <code>xai</code> provider. The CLI auto-detects
+            from whichever env key is present.
           </p>
         </Prose>
       </Section>
