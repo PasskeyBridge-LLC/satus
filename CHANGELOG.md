@@ -6,9 +6,19 @@ The CLI tarball ships from `packages/cli/` under `@passkeybridge/satus`. The mar
 
 ## [Unreleased]
 
+## [0.3.12] — 2026-10-26
+
 ### Added
 
-- **`xai` provider.** `--provider xai` (or `"provider": "xai"` in `satus.config.json`) generates rows with xAI's Grok models through `https://api.x.ai/v1/chat/completions` and strict `json_schema` output, using your own `XAI_API_KEY`. Default model `grok-4.20-0309-non-reasoning`. `XAI_BASE_URL` overrides the endpoint. On reasoning models the cost meter counts reasoning tokens as output, since xAI bills them. `XAI_API_KEY` is auto-detected only when neither `OPENAI_API_KEY` nor `ANTHROPIC_API_KEY` is set, so existing setups pick the same provider as before. OpenAI and Anthropic are unchanged, and so are their defaults. The GitHub Action accepts `provider: xai`.
+- **`xai` provider.** `--provider xai` (or `"provider": "xai"` in `satus.config.json`) generates rows with xAI's Grok models through `https://api.x.ai/v1/chat/completions` and strict `json_schema` output, using your own `XAI_API_KEY`. Default model `grok-4.20-0309-non-reasoning`. `XAI_BASE_URL` overrides the endpoint. On reasoning models the cost meter counts reasoning tokens as output, since xAI bills them. `XAI_API_KEY` is auto-detected only when neither `OPENAI_API_KEY` nor `ANTHROPIC_API_KEY` is set. The GitHub Action accepts `provider: xai`.
+
+### Changed
+
+- `packages/action/action.yml` pins `satus-version` to `0.3.12`. `packages/action/README.md` and `src/lib/version.ts` use the same version.
+
+### Fixed
+
+- The `zod` dependency is `^4.6.6`. GHSA-mrhx-c7xc-m3w5 applies to `zod` versions before 4.6.6.
 
 ## [0.3.11] — 2026-08-27
 

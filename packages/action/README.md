@@ -46,7 +46,7 @@ For an Anthropic-first workflow, swap the two lines that mention OpenAI:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-For xAI, set `provider: xai` and expose `XAI_API_KEY` the same way. The `xai` provider needs a satus CLI release after 0.3.11; until that release is out, the pinned `satus-version` does not include it.
+For xAI, set `provider: xai` and expose `XAI_API_KEY` the same way. The default `satus-version` includes the `xai` provider.
 
 ```yaml
       - uses: PasskeyBridge-LLC/satus/packages/action@main
@@ -73,7 +73,7 @@ For xAI, set `provider: xai` and expose `XAI_API_KEY` the same way. The `xai` pr
 | `truncate` | no | `false` | TRUNCATE target tables before inserting (RESTART IDENTITY, no CASCADE). |
 | `force` | no | `false` | Bypass the 10,000-row safety guard. Without it satus exits `11` (`E_DB_NOT_EMPTY`) against a database that already holds more than 10,000 rows, and writes nothing. |
 | `working-directory` | no | `.` | Directory to run the CLI in (where `satus.config.json` lives). |
-| `satus-version` | no | `0.3.11` | npm version to install. Pin for reproducibility. |
+| `satus-version` | no | `0.3.12` | npm version to install. Pin for reproducibility. |
 
 ## Outputs
 

@@ -18,7 +18,7 @@ inputs:
     required: false
     default: "saas"
   provider:
-    description: "LLM provider: openai | anthropic | xai. Auto-detected from env when omitted. xai needs a satus CLI release after 0.3.11."
+    description: "LLM provider: openai | anthropic | xai. Auto-detected from env when omitted."
     required: false
     default: ""
   model:
@@ -52,7 +52,7 @@ inputs:
   satus-version:
     description: "npm version of @passkeybridge/satus to install."
     required: false
-    default: "0.3.11"
+    default: "0.3.12"
 
 outputs:
   run-id:
