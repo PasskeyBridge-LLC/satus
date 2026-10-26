@@ -52,9 +52,11 @@ describe("audit upgrades in the lockfile", () => {
     expect(versions("vitest")).toContain("4.1.12");
     expect(versions("@vitest/mocker")).not.toContain("4.1.11");
 
-    expect(versions("zod").some((v) => {
-      const [major, minor, patch] = v.split(".").map(Number);
-      return major < 4 || (major === 4 && (minor < 6 || (minor === 6 && patch < 6)));
-    })).toBe(false);
+    expect(
+      versions("zod").some((v) => {
+        const [major, minor, patch] = v.split(".").map(Number);
+        return major < 4 || (major === 4 && (minor < 6 || (minor === 6 && patch < 6)));
+      }),
+    ).toBe(false);
   });
 });
