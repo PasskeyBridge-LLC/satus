@@ -74,7 +74,9 @@ const TableReport = z.object({
 const LEGACY_DROPPED_KEYS = ["tables", "target_schema", "error_message", "license_key"] as const;
 
 const RunSchema = z.object({
-  id: z.string().uuid().optional(),
+  // Zod 4's z.uuid() requires RFC variant bits. z.guid() keeps the 8-4-4-4-12
+  // hex shape Zod 3 accepted, so older CLI run ids still validate.
+  id: z.guid().optional(),
   status: z.enum(["running", "success", "failed"]),
   profile: z.string().min(1).max(32).optional(),
   // v0.3.0 (optional, backward-compatible with v0.2.x clients which omit it).

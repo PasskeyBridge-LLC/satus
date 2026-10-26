@@ -34,7 +34,7 @@ const json = (status: number, body: unknown) =>
   });
 
 const Payload = z.object({
-  email: z.string().trim().toLowerCase().min(5).max(254).email(),
+  email: z.string().trim().toLowerCase().min(5).max(254).pipe(z.email()),
   tier: z.enum(["pro", "team"]),
   note: z.string().trim().max(500).optional(),
   source: z.string().trim().max(64).optional(),
