@@ -1,7 +1,7 @@
 ---
 slug: structured-output-from-claude-without-a-json-parser
 title: Structured output from Claude without a JSON parser
-description: How satus forces typed rows out of the Messages API with tool_choice, how that differs from OpenAI's json_schema, and the Anthropic feature that landed after we built ours.
+description: How satus forces typed rows out of the Messages API with tool_choice, how that differs from OpenAI's json_schema, and the Anthropic feature that came later.
 date: 2026-09-04
 publishAt: 2026-09-04T09:00:00-04:00
 author: satus.sh

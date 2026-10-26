@@ -1,7 +1,7 @@
 ---
 slug: the-cycle-breaking-heuristic-we-never-shipped
 title: The cycle-breaking heuristic we documented and never shipped
-description: In May we published a four-rule heuristic for choosing which foreign key to defer. Running it against the shipped binary this week, three of the four rules do not exist.
+description: In May we published a four-rule heuristic for choosing which foreign key to defer. Checked against the shipped binary, three of the four rules do not exist.
 date: 2026-08-28
 publishAt: 2026-08-28T09:00:00-04:00
 author: satus.sh

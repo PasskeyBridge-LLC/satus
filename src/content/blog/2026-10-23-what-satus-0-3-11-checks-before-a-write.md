@@ -1,6 +1,7 @@
 ---
 slug: what-satus-0-3-11-checks-before-a-write
 title: What satus 0.3.11 checks before a write, and how to keep order totals correct in Postgres
+seoTitle: What satus 0.3.11 checks before a write to Postgres
 description: satus 0.3.11 checks foreign keys, types and NOT NULL before a write. It does not check totals or CHECK constraints. Postgres enforces CHECKs on insert.
 date: 2026-10-23
 publishAt: 2026-10-23T09:00:00-04:00

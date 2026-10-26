@@ -1,7 +1,7 @@
 ---
 slug: the-citext-trap
 title: The CITEXT trap in Postgres unique indexes
-description: A seed job asked for 10,000 users and inserted 6,200. The unique index on a CITEXT column folded Alice and alice into one row. What CITEXT does, why new schemas avoid it, and what satus generates.
+description: A seed job asked for 10,000 users and inserted 6,200: a CITEXT unique index folded Alice and alice into one row. What CITEXT does and what satus generates.
 date: 2026-06-03
 author: satus.sh
 tags: [postgres, citext, unique, collations, seeding]

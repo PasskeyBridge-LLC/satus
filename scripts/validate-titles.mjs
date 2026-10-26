@@ -12,8 +12,8 @@
  * Ground truth is the sitemap route itself: STATIC_ROUTES is parsed out of
  * `src/routes/sitemap[.]xml.ts`, each path is mapped to its route file, and
  * the literal `{ title: "..." }` in that file's head() is measured. Blog
- * posts are measured from frontmatter plus the suffix `blog.$slug.tsx`
- * appends. A route with no literal title is a failure, not a skip — a
+ * posts are measured from frontmatter with the rule in
+ * `src/lib/blog-title.ts`. A route with no literal title is a failure, not a skip — a
  * template literal would need its own reading, and today none of the
  * sitemap routes uses one.
  */
@@ -83,17 +83,24 @@ for (const path of paths) {
   }
 }
 
-// --- Blog posts: frontmatter title + the suffix blog.$slug.tsx appends -------
+// --- Blog posts: the same rule as src/lib/blog-title.ts ---------------------
+//
+// seoTitle verbatim when set; otherwise headline + suffix when that fits in
+// 60, else the bare headline. Until 2026-10-26 posts were held only to the
+// floor and the suffix pushed 21 of them past 60. Now a post whose headline
+// alone is over 60 fails until it gets a seoTitle.
 
-const slugSrc = read("src/routes/blog.$slug.tsx");
-// `title: post.seoTitle ?? `${post.title}<suffix>``: the suffix is read from
-// the template literal; a post with `seoTitle` uses that string verbatim.
-const suffixMatch = /title:[^`\n]*`\$\{post\.title\}([^`]*)`/.exec(slugSrc);
+const titleSrc = read("src/lib/blog-title.ts");
+const suffixMatch = /export const BLOG_TITLE_SUFFIX = "([^"]*)"/.exec(titleSrc);
 if (!suffixMatch) {
-  console.error("✗ validate-titles: could not read the blog title suffix from blog.$slug.tsx");
+  console.error("✗ validate-titles: could not read BLOG_TITLE_SUFFIX from src/lib/blog-title.ts");
   process.exit(1);
 }
 const suffix = suffixMatch[1];
+if (!/title:\s*postDocumentTitle\(post\)/.test(read("src/routes/blog.$slug.tsx"))) {
+  console.error("✗ validate-titles: blog.$slug.tsx no longer uses postDocumentTitle(post)");
+  process.exit(1);
+}
 
 const BLOG_DIR = "src/content/blog";
 for (const f of readdirSync(join(ROOT, BLOG_DIR))) {
@@ -106,14 +113,16 @@ for (const f of readdirSync(join(ROOT, BLOG_DIR))) {
   }
   checked++;
   const seo = /^seoTitle:\s*(.+)$/m.exec(src);
-  const title = seo
-    ? seo[1].trim().replace(/^["']|["']$/g, "")
-    : t[1].trim().replace(/^["']|["']$/g, "") + suffix;
-  // Posts are only held to the floor. Their titles are the post's own
-  // headline and several legitimately run past 60; shortening those is an
-  // editorial decision, not a build gate.
-  if (title.length < MIN) {
-    failures.push(`/blog/${f}: title is ${title.length} chars (min ${MIN}): "${title}"`);
+  const headline = t[1].trim().replace(/^["']|["']$/g, "");
+  let title;
+  if (seo) title = seo[1].trim().replace(/^["']|["']$/g, "");
+  else if ((headline + suffix).length <= MAX) title = headline + suffix;
+  else title = headline;
+  if (title.length < MIN || title.length > MAX) {
+    failures.push(
+      `/blog/${f}: title is ${title.length} chars (${MIN}–${MAX}): "${title}"` +
+        (title.length > MAX ? " (add a seoTitle)" : ""),
+    );
   }
 }
 

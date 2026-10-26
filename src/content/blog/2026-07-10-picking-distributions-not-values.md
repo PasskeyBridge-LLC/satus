@@ -1,7 +1,7 @@
 ---
 slug: picking-distributions-not-values
 title: "Profile design 101: pick distributions, not values"
-description: The heuristic we use when adding a new vertical to satus. Name the distributions and the correlations first, then, and only then, sample values. An internal design doc, published.
+description: How we add a new vertical to satus: name the distributions and correlations first, and only then sample values. An internal design doc, published.
 date: 2026-07-10
 author: satus.sh
 tags: [profile, methodology, distributions, postgres, seeding]

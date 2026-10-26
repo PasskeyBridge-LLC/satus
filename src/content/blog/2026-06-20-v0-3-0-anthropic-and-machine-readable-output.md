@@ -1,7 +1,8 @@
 ---
 slug: v0-3-0-anthropic-and-machine-readable-output
 title: "v0.3.0: Anthropic as a first-class provider, and machine-readable output"
-description: Anthropic joins OpenAI as a peer provider via tool-use forcing. A new --json flag emits a single snake_case object on stdout so CI can parse it. Token counts are now persisted alongside cost.
+seoTitle: satus v0.3.0: Anthropic provider and --json output
+description: Anthropic joins OpenAI as a peer provider via tool-use forcing. A new --json flag prints one snake_case object for CI. Token counts are stored with cost.
 date: 2026-06-20
 author: satus.sh
 tags: [postgres, satus, release, anthropic, openai, cli]

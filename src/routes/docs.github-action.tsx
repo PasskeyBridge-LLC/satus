@@ -36,7 +36,7 @@ export const Route = createFileRoute("/docs/github-action")({
       {
         name: "description",
         content:
-          "PasskeyBridge-LLC/satus/packages/action@main: a composite GitHub Action that runs `satus generate` against your PR-preview Postgres database. Inputs, outputs, security notes.",
+          "PasskeyBridge-LLC/satus/packages/action@main runs `satus generate` against your PR-preview Postgres database in CI. Inputs, outputs and security notes.",
       },
       {
         property: "og:title",

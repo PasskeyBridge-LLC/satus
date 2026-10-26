@@ -42,7 +42,7 @@ export const Route = createFileRoute("/cli")({
       { title: "satus CLI reference—every flag and environment variable" },
       {
         name: "description",
-        content: `Complete reference for the satus CLI ${SATUS_VERSION_TAG}: init, generate, activate, whoami. Every flag, every environment variable, taken directly from the published binary.`,
+        content: `Reference for the satus CLI ${SATUS_VERSION_TAG}: init, generate, activate, whoami. Every flag and environment variable, taken from the published binary.`,
       },
       { property: "og:title", content: "satus CLI reference—every flag and environment variable" },
       {

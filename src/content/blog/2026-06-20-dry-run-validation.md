@@ -1,6 +1,7 @@
 ---
 slug: dry-run-validation
 title: A $0 dry-run that catches FK and constraint bugs before the LLM call
+seoTitle: A $0 dry-run that catches FK and constraint bugs early
 description: satus 0.3 ships an offline --dry-run that simulates LLM output and validates against your live Postgres metadata. No API key, no writes, no spend.
 date: 2026-06-20
 author: satus.sh

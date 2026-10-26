@@ -1,7 +1,7 @@
 ---
 slug: agent-mode-postponed
 title: "Agent mode, postponed to v0.5"
-description: Why satus is shipping an opt-in agent mode in v0.5 instead of v0.3, what it will and will not do, and how the 90-day evidence window between now and then shapes the design.
+description: Why satus is shipping an opt-in agent mode in v0.5 instead of v0.3, what it will and will not do, and how a 90-day evidence window shapes the design.
 date: 2026-06-23
 author: satus.sh
 tags: [roadmap, agents, design, postgres]

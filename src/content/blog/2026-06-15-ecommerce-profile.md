@@ -1,7 +1,8 @@
 ---
 slug: ecommerce-profile
 title: "Inside the e-commerce profile: SKUs, carts, and the long tail of returns"
-description: Catalog distributions, basket sizes, return rates, and seasonality the satus e-commerce profile encodes, what it leaves to the user, and why we do not ship a fashion-vs-electronics switch.
+seoTitle: The satus e-commerce profile: SKUs, carts and returns
+description: Catalog distributions, basket sizes, return rates and seasonality in the satus e-commerce profile, and why it has no fashion-vs-electronics switch.
 date: 2026-06-15
 author: satus.sh
 tags: [profile, ecommerce, distributions, postgres, seeding]

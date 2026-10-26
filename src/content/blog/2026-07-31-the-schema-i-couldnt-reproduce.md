@@ -1,7 +1,7 @@
 ---
 slug: the-schema-i-couldnt-reproduce
 title: "The schema I couldn't reproduce"
-description: Schema reproduction is the hardest maintenance task we have. A field note on the two bugs that took longest to reproduce, and the four artifacts we now use to shorten the loop.
+description: Schema reproduction is our hardest maintenance task. The two bugs that took longest to reproduce, and the four artifacts we now use to shorten the loop.
 date: 2026-07-31
 author: satus.sh
 tags: [support, tooling, postgres]

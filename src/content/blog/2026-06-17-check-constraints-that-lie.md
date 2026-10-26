@@ -1,7 +1,7 @@
 ---
 slug: check-constraints-that-lie
 title: "Check constraints that lie"
-description: Postgres CHECK constraints look like rules but often encode wishes. Where they leak (NULL, non-immutable expressions, NOT VALID, domains), why satus has to detect it, and what to write instead.
+description: Postgres CHECK constraints often encode wishes. Where they leak (NULL, non-immutable expressions, NOT VALID, domains) and what to write instead.
 date: 2026-06-17
 author: satus.sh
 tags: [postgres, constraints, schema, seeding]

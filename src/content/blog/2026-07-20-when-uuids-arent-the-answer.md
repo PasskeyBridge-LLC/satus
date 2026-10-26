@@ -1,7 +1,7 @@
 ---
 slug: when-uuids-arent-the-answer
 title: "When UUIDs aren't the answer"
-description: UUIDv7 made the primary-key debate interesting again. What v7 fixes, what it doesn't, and when bigserial or a composite key is still the honest choice for a Postgres schema.
+description: UUIDv7 reopened the primary-key debate. What v7 fixes, what it doesn't, and when bigserial or a composite key is still the right choice in Postgres.
 date: 2026-07-20
 author: satus.sh
 tags: [postgres, primary-keys]

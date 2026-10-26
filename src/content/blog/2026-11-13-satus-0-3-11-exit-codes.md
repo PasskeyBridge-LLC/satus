@@ -1,6 +1,7 @@
 ---
 slug: satus-0-3-11-exit-codes
 title: The exit codes satus 0.3.11 returns, and what each one means in CI
+seoTitle: satus 0.3.11 exit codes and what each one means in CI
 description: satus 0.3.11 exits 0, 1, 2, 10 or 11. Each code reproduced against PostgreSQL 17, with the message it prints and the response a CI pipeline should take.
 date: 2026-11-13
 publishAt: 2026-11-13T09:00:00-05:00

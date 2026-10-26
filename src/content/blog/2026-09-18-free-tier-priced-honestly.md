@@ -1,7 +1,7 @@
 ---
 slug: free-tier-priced-honestly
 title: Free tier, priced honestly
-description: Why the free tier is 25 rows across 5 tables, why those 5 tables are never an arbitrary 5, and the two integers that are the entire difference between Free and Pro.
+description: Why the free tier is 25 rows across 5 tables, why those 5 tables are never arbitrary, and the two integers that are the whole difference between Free and Pro.
 date: 2026-09-18
 publishAt: 2026-09-18T09:00:00-04:00
 author: satus.sh

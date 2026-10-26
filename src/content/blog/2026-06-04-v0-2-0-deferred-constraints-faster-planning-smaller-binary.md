@@ -1,7 +1,8 @@
 ---
 slug: v0-2-0-deferred-constraints-faster-planning-smaller-binary
 title: "v0.2.0: deferred constraints, faster planning, and a smaller binary"
-description: Cyclic foreign keys now seed end-to-end via deferred constraints and a post-insert wire-up pass. Catalog introspection drops from five round-trips to one. The npm tarball is 77.6% smaller.
+seoTitle: satus v0.2.0: deferred constraints and a smaller binary
+description: Cyclic foreign keys now seed end to end via deferred constraints. Introspection drops from five round trips to one. The npm tarball is 77.6% smaller.
 date: 2026-06-04
 author: satus.sh
 tags: [postgres, satus, release, foreign-keys, performance]

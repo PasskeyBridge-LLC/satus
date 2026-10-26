@@ -1,7 +1,8 @@
 ---
 slug: timezone-bugs-found-by-seed-data
 title: Three timezone bugs we found by seeding production-shaped data
-description: Uniformly random timestamps hide timezone bugs. Business-hours-clustered timestamps surface them. Three bugs we have reproduced in support, and the catalog signals that predict each one.
+seoTitle: Three timezone bugs found by seeding production-shaped data
+description: Uniformly random timestamps hide timezone bugs. Business-hours timestamps surface them. Three bugs from support, and the catalog signals that predict each.
 date: 2026-06-12
 author: satus.sh
 tags: [postgres, timezones, testing, seeding]
