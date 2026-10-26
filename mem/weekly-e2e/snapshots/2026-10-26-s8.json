@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-26",
+  "production_sha": "3e2a71da529ba35d2f513839f71c0b257a0d1e24",
+  "deployment": "dpl_9ix2A5yFHC3pjyRK89iBS4TAqCV1",
+  "result": "PASS",
+  "lighthouse": {
+    "tool": "lighthouse@12.8.2",
+    "chrome": "Google Chrome 156.0.8078.47",
+    "throttling": "simulated",
+    "thresholds": {"lcp_ms": 2500, "cls": 0.1, "tbt_ms": 200},
+    "home_mobile": [
+      {"lcp_ms": 3443.426, "cls": 0, "tbt_ms": 0, "score": 88},
+      {"lcp_ms": 2420.604, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2418.054, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "home_mobile_median_lcp_ms": 2420.604,
+    "pricing_mobile": [{"lcp_ms": 2429.47, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "docs_mobile": [{"lcp_ms": 2418.916, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "blog_mobile": [{"lcp_ms": 1971.32, "cls": 0, "tbt_ms": 0, "score": 99}],
+    "home_desktop": [{"lcp_ms": 461.687, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "pricing_desktop": [{"lcp_ms": 582.506, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "docs_desktop": [{"lcp_ms": 540.468, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_desktop": [{"lcp_ms": 432.251, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_path": "/blog/pg-dump-snapshots-as-test-fixtures",
+    "thresholds_met": true,
+    "note": "home-mobile-1 LCP 3443.426 overlapped axe Chrome; median of three is 2420.604"
+  },
+  "axe": {
+    "tool": "axe-core 4.14.0 WCAG 2.2 A/AA",
+    "browser": "Chrome 156.0.8078.47 headless",
+    "serious_or_critical": {},
+    "zero_on": [
+      "/",
+      "/pricing",
+      "/checkout",
+      "/checkout/success",
+      "/checkout/cancel",
+      "/cli",
+      "/quickstart",
+      "/docs",
+      "/docs/how-it-works",
+      "/docs/troubleshooting",
+      "/docs/github-action",
+      "/profiles",
+      "/recipes",
+      "/compare",
+      "/demo",
+      "/security",
+      "/privacy",
+      "/terms",
+      "/blog",
+      "/blog/pg-dump-snapshots-as-test-fixtures",
+      "/blog/what-satus-0-3-11-checks-before-a-write"
+    ]
+  },
+  "h1": 1,
+  "console_errors": 0,
+  "same_origin_4xx": 0,
+  "now_public": ["what-satus-0-3-11-checks-before-a-write"],
+  "embargoed_404": [
+    "multi-column-uniques-why-v0x-skips-them",
+    "how-satus-decides-a-database-is-too-full-to-seed",
+    "satus-0-3-11-exit-codes",
+    "what-satus-0-3-11-does-with-an-enum-column",
+    "what-satus-truncate-empties-and-what-it-refuses-to"
+  ],
+  "rss_items": 46,
+  "sitemap_blog_lastmod": "2026-10-23",
+  "demo_pglite": {"ran": false, "generatePressed": false, "generateRequests": 0, "note": "render only; generate was not pressed"}
+}
