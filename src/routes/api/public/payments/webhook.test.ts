@@ -76,7 +76,7 @@ const dbStub = {
   },
 };
 
-const { handleCheckoutCompleted, ownershipOf, subscriptionIdFromCharge } =
+const { handleCheckoutCompleted, ownershipOf, subscriptionIdFromCharge, Route } =
   await import("./webhook");
 
 const realFetch = globalThis.fetch;
@@ -338,5 +338,76 @@ describe("subscriptionIdFromCharge", () => {
 
     expect(id).toBe("sub_from_invoice");
     expect(ops()).not.toContain("invoicePayments.list");
+  });
+});
+
+type PostHandler = (ctx: { request: Request }) => Promise<Response>;
+
+function postHandler(): PostHandler {
+  const h = (Route as unknown as { options?: { server?: { handlers?: { POST?: PostHandler } } } })
+    .options?.server?.handlers?.POST;
+  if (!h) throw new Error("payments webhook POST handler is not registered");
+  return h;
+}
+
+const WEBHOOK_URL = "https://satus.sh/api/public/payments/webhook";
+const FIXTURE_WEBHOOK_SECRET = "whsec_test_fixture_not_a_real_secret";
+
+function unsignedRequest(): Request {
+  return new Request(WEBHOOK_URL, { method: "POST" });
+}
+
+function mismatchedSignatureRequest(): Request {
+  const ts = Math.floor(Date.now() / 1000);
+  return new Request(WEBHOOK_URL, {
+    method: "POST",
+    headers: { "stripe-signature": `t=${ts},v1=${"ab".repeat(32)}` },
+    body: JSON.stringify({
+      id: "evt_fixture",
+      object: "event",
+      type: "checkout.session.completed",
+      livemode: true,
+      data: { object: { id: "cs_fixture" } },
+    }),
+  });
+}
+
+describe("signature failure log level", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it("logs a request with no signature at warn and returns a generic 400", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const res = await postHandler()({ request: unsignedRequest() });
+
+    expect(res.status).toBe(400);
+    expect(await res.text()).toBe("Invalid signature");
+    expect(warnSpy).toHaveBeenCalledWith("[payments-webhook] unsigned request");
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it("logs a signature mismatch at error and does not include the signing secret", async () => {
+    vi.stubEnv("PAYMENTS_LIVE_WEBHOOK_SECRET", FIXTURE_WEBHOOK_SECRET);
+    vi.stubEnv("PAYMENTS_SANDBOX_WEBHOOK_SECRET", FIXTURE_WEBHOOK_SECRET);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const res = await postHandler()({ request: mismatchedSignatureRequest() });
+    const logged = errorSpy.mock.calls
+      .map((args) =>
+        args.map((arg) => (arg instanceof Error ? arg.message : String(arg))).join(" "),
+      )
+      .join("\n");
+
+    expect(res.status).toBe(400);
+    expect(await res.text()).toBe("Invalid signature");
+    expect(logged).toContain("[payments-webhook] signature verification failed");
+    expect(logged).toContain("Invalid webhook signature");
+    expect(logged).not.toContain(FIXTURE_WEBHOOK_SECRET);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

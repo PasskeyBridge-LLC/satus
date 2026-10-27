@@ -586,10 +586,14 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
         try {
           ({ event, env } = await verifyWebhook(request, hint));
         } catch (err) {
-          // Signature failures are often probe traffic. Log only — alerting
-          // on these would be a spam vector for anyone hitting the public
-          // /api/public/* path with a bogus body.
-          console.error("[payments-webhook] signature verification failed", err);
+          // A request with no signature or no body is probe traffic. Log it
+          // at warn. A request that has a signature and still fails
+          // verification stays at error. Neither path sends an alert.
+          if (err instanceof Error && err.message === "Missing signature or body") {
+            console.warn("[payments-webhook] unsigned request");
+          } else {
+            console.error("[payments-webhook] signature verification failed", err);
+          }
           return new Response("Invalid signature", { status: 400 });
         }
 

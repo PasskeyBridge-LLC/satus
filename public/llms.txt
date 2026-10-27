@@ -2,7 +2,7 @@
 
 > A CLI that reads your Postgres schema and writes realistic, relationally-coherent seed data that respects foreign keys and constraints. Postgres only. CLI only.
 
-satus is distributed as the npm package `@passkeybridge/satus` (binary: `satus`, Node >= 20). It introspects your live Postgres schema from pg_catalog (tables, columns, PKs, FKs with deferrability, single-column uniques, enums, partitioned tables), builds a dependency DAG from foreign keys, topologically sorts the insert order, breaks FK cycles by deferring a nullable back-edge and back-patching it after all tables are seeded, and generates rows with an LLM you bring your own key for (OpenAI or Anthropic; xAI is included in 0.3.12). All inserts for a run happen in one transaction: a failure rolls everything back. Three built-in prompt profiles (`saas`, `ecommerce`, `b2b`) shape tone and value distributions so data looks like a real business instead of `John Doe`.
+satus is distributed as the npm package `@passkeybridge/satus` (binary: `satus`, Node >= 20). It introspects your live Postgres schema from pg_catalog (tables, columns, PKs, FKs with deferrability, single-column uniques, enums, partitioned tables), builds a dependency DAG from foreign keys, topologically sorts the insert order, breaks FK cycles by deferring a nullable back-edge and back-patching it after all tables are seeded, and generates rows with an LLM you bring your own key for (OpenAI, Anthropic or xAI). All inserts for a run happen in one transaction: a failure rolls everything back. Three built-in prompt profiles (`saas`, `ecommerce`, `b2b`) shape tone and value distributions so data looks like a real business instead of `John Doe`.
 
 ## Canonical commands
 

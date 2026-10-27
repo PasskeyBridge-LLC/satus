@@ -1,7 +1,7 @@
 ---
 slug: v0-3-7-release-notes
 title: "v0.3.7: five bugs, four of them silent"
-description: satus 0.3.7 fixes identity columns, FKs to non-PK columns, a TRUNCATE outside the run set, two cost numbers that disagreed, and telemetry that broke a promise.
+description: satus 0.3.7 fixes identity columns, non-PK FKs, out-of-set TRUNCATE, cost mismatch, and telemetry that sent table names, schema names, and error text.
 date: 2026-08-10
 author: satus.sh
 tags: [release, cli, postgres, privacy]

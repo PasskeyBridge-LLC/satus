@@ -1,27 +1,25 @@
 # HANDOFF
 
-Written 2026-10-26 after the 0.3.12 wording fix on PR #69. Replace this file next session; do not append.
+Written 2026-10-27 after the QA-report fixes on `cursor/qa-report-satus-fixes-3691`. Replace this file next session; do not append.
 
 ## State
 
-`@passkeybridge/satus@0.3.12` is npm `latest` (published 2026-10-26, gitHead `f4f33a453a9d4c5941596c81acdea31e0ae74c97`). PR #69 (`cursor/action-published-version-0-3-12-0a56`) sets the validate-docs published group to `0.3.12`: Action `satus-version` default, Action README table, `src/lib/version.ts` `SATUS_VERSION`. `SATUS_RELEASED_AT` is `2026-10-26`.
+`main` is `da6db03` (`@passkeybridge/satus@0.3.12`, PR #69 merged). This session's branch is not merged. Joel reviews and merges. No npm publish. Dist-tags were not moved. `next` still points at `0.3.11-orgmove.0`.
 
-`packages/cli/README.md` opens on `v0.3.12` and says the `xai` provider is included. Live pages name `0.3.12` for xAI. Historical changelog entries and blog posts about past releases were left as written.
-
-Not merged. Dist-tags were not moved. Nothing was published.
+Verified on `da6db03` before editing. Fixed here: C F5 (quickstart auto-detect), C F9 (three blog descriptions), C N1, C N2, D #6 (webhook probe log level). Not in this repo: C F4 (no held-post reminder), C F6 (no chat route; demo 503 is `demo_unavailable`), C F7 (no `@ai-sdk/xai`; chat completions has no `store` field), C F8 (passkeybridge copy).
 
 ## Left open on purpose
 
-`next` still points at `0.3.11-orgmove.0`. It was not moved.
+Nothing. The pricing FAQ now states the same two-key rule as the quickstart.
 
 ## Flags
 
-`DO_NOT_TRACK` wins. Report-only CSP on `/`. Multi-column UNIQUE, cross-column arithmetic, and `--seed` stay documented CLI limits.
+`DO_NOT_TRACK` wins. Report-only CSP on `/` was not changed. Multi-column UNIQUE, cross-column arithmetic, and `--seed` stay documented CLI limits.
 
 ## Graduated this session
 
-Nothing.
+The previous handoff's "merge #69" item. #69 is on `main` (`da6db03`). Nothing else moved into mem/.
 
 ## Next
 
-1. Merge #69 when its CI is green. Do not publish. Do not move dist-tags.
+1. Joel reviews the QA PR and merges. Do not publish. Do not move dist-tags.

@@ -292,7 +292,7 @@ function HowItWorksPage() {
               Internally, every provider is a thin adapter behind a single <code>Provider</code>{" "}
               interface ({" "}
               <code>generate&lt;T&gt;(req): Promise&lt;&#123; data, usage &#125;&gt;</code>), so the
-              runner stays provider-agnostic and adding a third provider is a single new file.
+              runner stays provider-agnostic and adding a provider is a single new file.
             </li>
           </ul>
           <p className="mt-8 max-w-[62ch] font-mono text-[12.5px] text-[var(--mute)]">
