@@ -1,7 +1,7 @@
 ---
 slug: cost-estimates-are-guardrails-not-accounting
 title: Cost estimates are guardrails, not accounting
-description: Our dry-run estimator quotes two cents for a 125-row seed. Three real 125-row runs cost seven hundredths of a cent. The 31x gap is deliberate. The arithmetic.
+description: A 125-row dry run is quoted at two cents. Three measured runs cost seven hundredths of a cent. The estimator over-quotes by 31x; this post shows the arithmetic.
 date: 2026-09-11
 publishAt: 2026-09-11T09:00:00-04:00
 author: satus.sh
