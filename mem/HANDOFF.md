@@ -10,7 +10,7 @@ Verified on `da6db03` before editing. Fixed here: C F5 (quickstart auto-detect),
 
 ## Left open on purpose
 
-`src/routes/pricing.tsx` FAQ still says the CLI auto-detects whichever of the three keys is present. It does not state the two-key rule. `/cli` and `packages/cli/README.md` already state it.
+Nothing. The pricing FAQ now states the same two-key rule as the quickstart.
 
 ## Flags
 
