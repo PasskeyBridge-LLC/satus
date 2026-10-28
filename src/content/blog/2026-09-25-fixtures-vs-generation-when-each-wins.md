@@ -166,5 +166,5 @@ Use a fixture when a test needs to name the row. Use generation when a test need
 - Finding classes and the `CHECK` note: `packages/cli/src/generate/validate.ts`.
 - `--truncate` scope and the refusal to cascade: `packages/cli/src/generate/writer.ts`.
 - `exclude`: `packages/cli/src/generate/config.ts`.
-- Measured run costs: [Cost estimates are guardrails, not accounting](/blog/cost-estimates-are-guardrails-not-accounting).
+- Measured run costs: [How the dry-run cost estimate is calculated](/blog/cost-estimates-are-guardrails-not-accounting).
 - Earlier on the same question: [When faker.js is exactly the wrong answer](/blog/when-faker-is-the-wrong-answer).

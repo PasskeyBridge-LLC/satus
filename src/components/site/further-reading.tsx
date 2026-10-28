@@ -70,7 +70,7 @@ export const FURTHER_READING = {
     },
     {
       slug: "cost-estimates-are-guardrails-not-accounting",
-      title: "Cost estimates are guardrails, not accounting",
+      title: "How the dry-run cost estimate is calculated",
     },
     { slug: "free-tier-priced-honestly", title: "Free tier, priced honestly" },
     { slug: "agent-mode-postponed", title: "Agent mode, postponed to v0.5" },
