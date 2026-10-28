@@ -1,16 +1,16 @@
 # HANDOFF
 
-Written 2026-10-27 after the QA-report fixes on `cursor/qa-report-satus-fixes-3691`. Replace this file next session; do not append.
+Written 2026-10-28 after the follow-up QA copy fixes. Replace this file next session; do not append.
 
 ## State
 
-`main` is `da6db03` (`@passkeybridge/satus@0.3.12`, PR #69 merged). This session's branch is not merged. Joel reviews and merges. No npm publish. Dist-tags were not moved. `next` still points at `0.3.11-orgmove.0`.
+`main` is `56ec066` (`@passkeybridge/satus@0.3.12`, PR #70 merged Oct 27). This session's copy fixes are on a PR. Joel reviews and merges. No npm publish. Dist-tags were not moved. `next` still points at `0.3.11-orgmove.0`.
 
-Verified on `da6db03` before editing. Fixed here: C F5 (quickstart auto-detect), C F9 (three blog descriptions), C N1, C N2, D #6 (webhook probe log level). Not in this repo: C F4 (no held-post reminder), C F6 (no chat route; demo 503 is `demo_unavailable`), C F7 (no `@ai-sdk/xai`; chat completions has no `store` field), C F8 (passkeybridge copy).
+Fixed here: the `llms.txt` profiles clause, and the 2026-09-11 cost-estimate post (title and contrast lines). Slug `cost-estimates-are-guardrails-not-accounting` is unchanged. CSP was not changed.
 
 ## Left open on purpose
 
-Nothing. The pricing FAQ now states the same two-key rule as the quickstart.
+Nothing.
 
 ## Flags
 
@@ -18,8 +18,8 @@ Nothing. The pricing FAQ now states the same two-key rule as the quickstart.
 
 ## Graduated this session
 
-The previous handoff's "merge #69" item. #69 is on `main` (`da6db03`). Nothing else moved into mem/.
+The previous handoff's "Joel reviews the QA PR" item. #70 is on `main` (`56ec066`). Nothing else moved into mem/.
 
 ## Next
 
-1. Joel reviews the QA PR and merges. Do not publish. Do not move dist-tags.
+1. Joel reviews this copy PR and merges. Do not publish. Do not move dist-tags.
