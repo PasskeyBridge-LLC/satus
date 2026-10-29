@@ -1,5 +1,5 @@
 ---
-slug: cost-estimates-are-guardrails-not-accounting
+slug: how-the-dry-run-cost-estimate-is-calculated
 title: How the dry-run cost estimate is calculated
 description: A 125-row dry run is quoted at two cents. Three measured runs cost seven hundredths of a cent. The estimator over-quotes by 31x; this post shows the arithmetic.
 date: 2026-09-11

@@ -15,6 +15,11 @@
       "source": "/blog/soft-deletes-and-the-deleted-at-trap",
       "destination": "/blog/null-vs-not-null-is-not-the-question",
       "statusCode": 301
+    },
+    {
+      "source": "/blog/cost-estimates-are-guardrails-not-accounting",
+      "destination": "/blog/how-the-dry-run-cost-estimate-is-calculated",
+      "statusCode": 301
     }
   ],
   "headers": [
