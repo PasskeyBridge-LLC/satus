@@ -69,7 +69,7 @@ export const FURTHER_READING = {
       title: "Structured output from Claude without a JSON parser",
     },
     {
-      slug: "cost-estimates-are-guardrails-not-accounting",
+      slug: "how-the-dry-run-cost-estimate-is-calculated",
       title: "How the dry-run cost estimate is calculated",
     },
     { slug: "free-tier-priced-honestly", title: "Free tier, priced honestly" },

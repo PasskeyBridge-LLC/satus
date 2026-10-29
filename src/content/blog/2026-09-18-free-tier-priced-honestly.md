@@ -55,7 +55,7 @@ The honest answer is that the numbers are a judgement about when you have seen t
 
 125 rows is enough to open a table in `psql`, or your app, and check whether the data looks like your product. It is enough for foreign keys to resolve across several tables, for a unique constraint to actually collide if the generation is bad, and for the validator to have something to say. It is not enough to fill a dashboard for a demo, or to run a load test, or to stand in for a staging fixture. That is where the line sits, and it is drawn at "you can evaluate this" rather than "you can ship with this."
 
-The cost recovery argument does not exist, because [a 125-row run costs about seven hundredths of a cent](/blog/cost-estimates-are-guardrails-not-accounting) and you pay it, not us. You bring your own OpenAI or Anthropic key. We never proxy your prompts, never hold your key, and never mark up your tokens.
+The cost recovery argument does not exist, because [a 125-row run costs about seven hundredths of a cent](/blog/how-the-dry-run-cost-estimate-is-calculated) and you pay it, not us. You bring your own OpenAI or Anthropic key. We never proxy your prompts, never hold your key, and never mark up your tokens.
 
 That is also why there is no free *trial*. A time-limited Pro would tell you what the caps feel like when lifted, then take it away. The Free tier tells you what the tool is, permanently, and the caps are the only thing you buy your way out of.
 
