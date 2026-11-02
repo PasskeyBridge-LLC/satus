@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-02",
+  "production_sha": "2751125a9eddbc3ff8ff623ccd7bb7aa84b7a3ec",
+  "deployment": "dpl_EzzjQPfAaooqZYu8G6yN1ot3Rue1",
+  "deployment_state": "READY",
+  "deployment_target": "production",
+  "result": "PASS",
+  "lighthouse": {
+    "tool": "lighthouse@12.8.2",
+    "chrome": "Google Chrome 156.0.8078.47",
+    "throttling": "simulated",
+    "thresholds": {"lcp_ms": 2500, "cls": 0.1, "tbt_ms": 200},
+    "home_mobile": [
+      {"lcp_ms": 2439.244, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2421.093, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2421.558, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "home_mobile_median_lcp_ms": 2421.558,
+    "pricing_mobile": [{"lcp_ms": 2420.781, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "docs_mobile": [{"lcp_ms": 2418.607, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "blog_mobile": [{"lcp_ms": 1369.275, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "home_desktop": [{"lcp_ms": 584.995, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "pricing_desktop": [{"lcp_ms": 545.817, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "docs_desktop": [{"lcp_ms": 542.467, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_desktop": [{"lcp_ms": 577.644, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_path": "/blog/multi-column-uniques-why-v0x-skips-them",
+    "thresholds_met": true,
+    "note": "Home mobile ran three times after axe finished; median LCP 2421.558. Desktop used --preset=desktop (rtt 40 ms / 10 Mbps / 1x CPU). An earlier desktop pass with --form-factor=desktop kept mobile Slow-4G throttling and was discarded."
+  },
+  "axe": {
+    "tool": "axe-core 4.14.0 WCAG 2.2 A/AA",
+    "browser": "Chrome 156.0.8078.47 headless",
+    "serious_or_critical": {},
+    "zero_on": [
+      "/",
+      "/pricing",
+      "/checkout",
+      "/checkout/success",
+      "/checkout/cancel",
+      "/cli",
+      "/quickstart",
+      "/docs",
+      "/docs/how-it-works",
+      "/docs/troubleshooting",
+      "/docs/github-action",
+      "/profiles",
+      "/recipes",
+      "/compare",
+      "/demo",
+      "/security",
+      "/privacy",
+      "/terms",
+      "/blog",
+      "/blog/multi-column-uniques-why-v0x-skips-them",
+      "/blog/pg-dump-snapshots-as-test-fixtures"
+    ]
+  },
+  "h1": 1,
+  "console_errors": 0,
+  "same_origin_4xx": 0,
+  "now_public": ["multi-column-uniques-why-v0x-skips-them"],
+  "embargoed_404": [
+    "how-satus-decides-a-database-is-too-full-to-seed",
+    "satus-0-3-11-exit-codes",
+    "what-satus-0-3-11-does-with-an-enum-column",
+    "what-satus-truncate-empties-and-what-it-refuses-to"
+  ],
+  "slug_redirects": [
+    {
+      "from": "/blog/cost-estimates-are-guardrails-not-accounting",
+      "to": "/blog/how-the-dry-run-cost-estimate-is-calculated",
+      "status": 301
+    }
+  ],
+  "rss_items": 47,
+  "sitemap_blog_lastmod": "2026-10-30",
+  "sitemap_urls": 63,
+  "sitemap_blog_posts": 47,
+  "demo_pglite": {
+    "ran": false,
+    "generatePressed": false,
+    "generateRequests": 0,
+    "note": "render only; generate was not pressed"
+  },
+  "checkout": {
+    "rendered": true,
+    "paymentFieldsFilled": false,
+    "note": "render only; payment fields were not filled"
+  }
+}
