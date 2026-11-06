@@ -133,7 +133,7 @@ CITEXT is a real extension, it does what it advertises, and it will collapse `Al
 - PostgreSQL documentation, [Unique Indexes](https://www.postgresql.org/docs/current/indexes-unique.html).
 - PostgreSQL documentation, [Indexes on Expressions](https://www.postgresql.org/docs/current/indexes-expressional.html).
 - PostgreSQL documentation, [INSERT … ON CONFLICT](https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT).
-- Earlier in this log: [Partitioned tables meet RLS, and nobody wins](/blog/partitioned-tables-meet-rls), [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild).
+- Earlier in this log: [Row-level security on partitioned Postgres tables](/blog/partitioned-tables-meet-rls), [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild).
 - The corpus underlying this post's structural counts: [`corpus/audit-2026-06-01.json`](https://satus.sh/corpus/audit-2026-06-01.json) (5 schemas, 151 tables, Postgres 17).
 - See also: [satus profiles](/profiles), [quickstart](/quickstart).
 

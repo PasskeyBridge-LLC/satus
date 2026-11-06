@@ -1,6 +1,6 @@
 ---
 slug: jsonb-that-is-secretly-relational
-title: JSONB columns that are secretly relational
+title: References stored inside JSONB columns
 description: Half the JSONB columns we see are key/value bags. The other half are arrays of IDs pointing at real rows, with no constraint. How to tell them apart.
 date: 2026-06-08
 author: satus.sh
@@ -8,7 +8,7 @@ tags: [postgres, jsonb, modeling, seeding]
 draft: false
 ---
 
-A `JSONB` column declares almost nothing about its contents. The catalog tells you the column is `jsonb`, that it is `NOT NULL`, maybe that it defaults to `'{}'` or `'[]'`. After that the schema is silent, and the application owns the meaning. That silence is what makes JSONB useful — and also what makes seeding it correctly the single most error-prone part of generating realistic data for a schema you did not write.
+A `JSONB` column declares almost nothing about its contents. The catalog tells you the column is `jsonb`, that it is `NOT NULL`, maybe that it defaults to `'{}'` or `'[]'`. After that the schema is silent, and the application owns the meaning. That silence is what makes JSONB useful—and also what makes seeding it correctly the single most error-prone part of generating realistic data for a schema you did not write.
 
 In practice there are two populations of JSONB columns in real Postgres schemas, and they want very different things from a seed generator.
 
@@ -44,34 +44,34 @@ CREATE TABLE comment_thread (
 );
 ```
 
-`participants` has no constraint. The catalog will tell a seed tool "this is a JSONB column, default permissive object, do whatever you want." But the application code writes it as a JSON set of `profile.id` UUIDs — the relevant line in `comments.clj` is literally `:participants (db/tjson #{profile-id})`. Every UUID inside that array is supposed to exist as a row in `profile`. There is no database-level guarantee that it does, and no `ON DELETE CASCADE` to clean it up when a profile is deleted. The relation lives in the application's head.
+`participants` has no constraint. The catalog will tell a seed tool "this is a JSONB column, default permissive object, do whatever you want." But the application code writes it as a JSON set of `profile.id` UUIDs—the relevant line in `comments.clj` is literally `:participants (db/tjson #{profile-id})`. Every UUID inside that array is supposed to exist as a row in `profile`. There is no database-level guarantee that it does, and no `ON DELETE CASCADE` to clean it up when a profile is deleted. The relation lives in the application's head.
 
-The lemmy example is a degree harder. The `activity` table stores an ActivityPub payload as `data jsonb NOT NULL`. ActivityPub envelopes contain fields like `actor`, `object`, `to`, and `cc` whose values are URIs ([ActivityPub §4.5](https://www.w3.org/TR/activitypub/#object-without-create)). On a federated instance many of those URIs resolve to rows on the same Postgres cluster — local users, local communities, local posts. From Postgres's point of view it is a string inside JSON. From the application's point of view it is a foreign key spelled in URL form.
+The lemmy example is a degree harder. The `activity` table stores an ActivityPub payload as `data jsonb NOT NULL`. ActivityPub envelopes contain fields like `actor`, `object`, `to`, and `cc` whose values are URIs ([ActivityPub §4.5](https://www.w3.org/TR/activitypub/#object-without-create)). On a federated instance many of those URIs resolve to rows on the same Postgres cluster—local users, local communities, local posts. From Postgres's point of view it is a string inside JSON. From the application's point of view it is a foreign key spelled in URL form.
 
-The listmonk case is the negative control. `subscribers.attribs` ([schema.sql](https://github.com/knadh/listmonk/blob/v3.0.0/schema.sql)) is a true bag — declared `JSONB NOT NULL DEFAULT '{}'`, used for whatever per-subscriber attributes the operator wants to track, never queried for cross-table integrity. The same column declaration syntax, the same catalog metadata, completely different semantics.
+The listmonk case is the negative control. `subscribers.attribs` ([schema.sql](https://github.com/knadh/listmonk/blob/v3.0.0/schema.sql)) is a true bag—declared `JSONB NOT NULL DEFAULT '{}'`, used for whatever per-subscriber attributes the operator wants to track, never queried for cross-table integrity. The same column declaration syntax, the same catalog metadata, completely different semantics.
 
 ## Why a generator cannot ignore the distinction
 
 A seed run that treats every JSONB column as an opaque object produces three failure modes against secretly-relational columns. They are progressively worse.
 
-**Failure 1: the JSON parses but the IDs are nonsense.** The generator emits `{"foo": "bar", "n": 42}` for `comment_thread.participants`. The insert succeeds — JSONB takes anything. Nothing inside resembles a UUID, nothing inside resembles a profile, and the first time the application page loads the thread it crashes on a missing key or a type error in the consuming code.
+**Failure 1: the JSON parses but the IDs are nonsense.** The generator emits `{"foo": "bar", "n": 42}` for `comment_thread.participants`. The insert succeeds—JSONB takes anything. Nothing inside resembles a UUID, nothing inside resembles a profile, and the first time the application page loads the thread it crashes on a missing key or a type error in the consuming code.
 
 **Failure 2: the JSON parses and looks shaped right, but the IDs are unrelated to anything.** The generator notices the column name `participants`, decides this looks like a list, emits `["uuid-1", "uuid-2"]` with freshly minted UUIDs. The application's "who is on this thread" query joins against `profile` and returns zero rows. The failure mode is silent: no exception, no row count drop, just a feature that quietly shows no participants forever after.
 
-**Failure 3: the JSON looks right and the IDs do exist, but they were chosen without regard to the surrounding rows.** The generator (somehow) picks real `profile.id` values, but at random. The `comment_thread.owner_id` says profile A wrote the thread; `participants` contains profiles X, Y, Z with no relationship to A. The data is consistent at the constraint layer and inconsistent at every higher layer — moderation queries, permission checks, anything that assumes the owner is also a participant. This is the worst case because it looks fine in a quick spot-check and breaks specific feature tests at apparently random places.
+**Failure 3: the JSON looks right and the IDs do exist, but they were chosen without regard to the surrounding rows.** The generator (somehow) picks real `profile.id` values, but at random. The `comment_thread.owner_id` says profile A wrote the thread; `participants` contains profiles X, Y, Z with no relationship to A. The data is consistent at the constraint layer and inconsistent at every higher layer—moderation queries, permission checks, anything that assumes the owner is also a participant. This is the worst case because it looks fine in a quick spot-check and breaks specific feature tests at apparently random places.
 
-The constraint engine cannot catch any of these because there are no constraints. JSON Schema validation in the application can — and frequently does — catch the first one, but it cannot catch the second or third.
+The constraint engine cannot catch any of these because there are no constraints. JSON Schema validation in the application can—and frequently does—catch the first one, but it cannot catch the second or third.
 
 ## How satus handles JSONB today
 
 We owe this section honesty. As of v0.2.0, satus treats every JSONB column as a permissive object and asks the LLM-backed generator for a plausibly-shaped JSON value. The relevant line is in [`packages/cli/src/generate/schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts), case `'json' | 'jsonb'` → `{ type: 'object' as const }`. There is no detection for "this JSONB column is secretly an array of foreign keys."
 
-That means satus, today, produces Failure 1 or Failure 2 on penpot's `participants` column — depending on how well the column name primes the generator. It will not produce Failure 3, because it does not know to pick from `profile.id`, so the IDs it invents will not exist. The visible symptom is that the seeded database loads, the threads exist, the thread participant counts are wrong, and nothing crashes until the application actually consults the field.
+That means satus, today, produces Failure 1 or Failure 2 on penpot's `participants` column—depending on how well the column name primes the generator. It will not produce Failure 3, because it does not know to pick from `profile.id`, so the IDs it invents will not exist. The visible symptom is that the seeded database loads, the threads exist, the thread participant counts are wrong, and nothing crashes until the application actually consults the field.
 
 This is not where we want to land. The roadmap entry that prompted this post is "JSONB shape inference," and the design we are heading toward has three layers.
 
 1. **Catalog-only signals.** Column name (`participant_ids`, `member_ids`, `tags`), default value (`'[]'` strongly implies an array), and `NOT NULL` + array default together suggest "set of something."
-2. **Sample-driven signals.** When the target database already contains rows (the common case for staging refreshes — distinct from a from-empty seed), satus can read up to N existing values and infer the JSON shape: array vs. object, scalar element type, UUID-likeness of element values, overlap of element values with the PK columns of other tables in the schema.
+2. **Sample-driven signals.** When the target database already contains rows (the common case for staging refreshes—distinct from a from-empty seed), satus can read up to N existing values and infer the JSON shape: array vs. object, scalar element type, UUID-likeness of element values, overlap of element values with the PK columns of other tables in the schema.
 3. **Profile overrides.** Customers who know their own schema can declare, in `satus.config.json`, that `comment_thread.participants` is "JSONB array of profile.id" and have satus generate accordingly. This is the escape hatch for cases where the catalog and the sample both fail to reveal the relation.
 
 Layer 1 is cheap and ships first. Layer 2 is the one that actually solves the penpot case, because it catches "this column is full of UUIDs that also appear in `profile.id`" without anyone having to write a config entry. Layer 3 is where this lands long-term, because every team eventually has at least one JSONB column whose meaning lives in a Confluence page nobody updated in two years.
@@ -129,10 +129,10 @@ That is the work between v0.2.0 and the next minor release. Until it ships, the 
 
 ## References
 
-- penpot, `comment_thread.participants` declaration — [`backend/src/app/migrations/sql/0031-add-conversation-related-tables.sql`](https://github.com/penpot/penpot/blob/2.4.3/backend/src/app/migrations/sql/0031-add-conversation-related-tables.sql)
-- penpot, write-site for `participants` — [`backend/src/app/rpc/commands/comments.clj`](https://github.com/penpot/penpot/blob/2.4.3/backend/src/app/rpc/commands/comments.clj)
-- lemmy, `activity.data` declaration — [`migrations/2020-03-26-192410_add_activitypub_tables/up.sql`](https://github.com/LemmyNet/lemmy/blob/0.19.5/migrations/2020-03-26-192410_add_activitypub_tables/up.sql)
-- ActivityPub object semantics — [W3C ActivityPub §4](https://www.w3.org/TR/activitypub/#objects)
-- listmonk, `subscribers.attribs` declaration — [`schema.sql`](https://github.com/knadh/listmonk/blob/v3.0.0/schema.sql)
-- satus structural audit corpus — [`corpus/audit-2026-06-01.json`](https://satus.sh/corpus/audit-2026-06-01.json)
-- satus JSONB handling, today — [`packages/cli/src/generate/schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts)
+- penpot, `comment_thread.participants` declaration—[`backend/src/app/migrations/sql/0031-add-conversation-related-tables.sql`](https://github.com/penpot/penpot/blob/2.4.3/backend/src/app/migrations/sql/0031-add-conversation-related-tables.sql)
+- penpot, write-site for `participants`—[`backend/src/app/rpc/commands/comments.clj`](https://github.com/penpot/penpot/blob/2.4.3/backend/src/app/rpc/commands/comments.clj)
+- lemmy, `activity.data` declaration—[`migrations/2020-03-26-192410_add_activitypub_tables/up.sql`](https://github.com/LemmyNet/lemmy/blob/0.19.5/migrations/2020-03-26-192410_add_activitypub_tables/up.sql)
+- ActivityPub object semantics—[W3C ActivityPub §4](https://www.w3.org/TR/activitypub/#objects)
+- listmonk, `subscribers.attribs` declaration—[`schema.sql`](https://github.com/knadh/listmonk/blob/v3.0.0/schema.sql)
+- satus structural audit corpus—[`corpus/audit-2026-06-01.json`](https://satus.sh/corpus/audit-2026-06-01.json)
+- satus JSONB handling, today—[`packages/cli/src/generate/schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts)

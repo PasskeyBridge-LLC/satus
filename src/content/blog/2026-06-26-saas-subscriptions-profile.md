@@ -1,7 +1,6 @@
 ---
 slug: saas-subscriptions-profile
-title: "Inside the saas-subscriptions profile: MRR, churn, and the dunning death spiral"
-seoTitle: The satus saas-subscriptions profile: MRR, churn, dunning
+title: "Subscription seed data: renewals, invoices and payments"
 description: Subscription lifecycles, plan changes, failed payments and undocumented states. What the satus saas-subscriptions profile recommends and what it leaves to you.
 date: 2026-06-26
 author: satus.sh
@@ -9,7 +8,7 @@ tags: [profile, saas, billing, postgres, seeding]
 draft: false
 ---
 
-> **Editor's note (2026-07-16):** This post describes profile-system design intent from mid-2026. The shipped CLI (v0.3.5) uses prompt-based profiles — `saas`, `ecommerce`, `b2b` — with no YAML profile files or per-profile invariant enforcement beyond the user's Postgres constraints. See [/profiles](/profiles) for the current behavior. The post is preserved for its subscription-lifecycle modeling arguments.
+> **Editor's note (2026-07-16):** This post describes profile-system design intent from mid-2026. The shipped CLI (v0.3.5) uses prompt-based profiles—`saas`, `ecommerce`, `b2b`—with no YAML profile files or per-profile invariant enforcement beyond the user's Postgres constraints. See [/profiles](/profiles) for the current behavior. The post is preserved for its subscription-lifecycle modeling arguments.
 
 
 
@@ -17,7 +16,7 @@ A SaaS billing schema looks like four tables and is, in practice, a small distri
 
 A note on what "the profile" is, today and on the roadmap. In v0.3 the profile is a single high-signal prompt block ([packages/cli/src/generate/profiles.ts](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/profiles.ts)) that steers the LLM toward the distributions, status mix, and language described below; satus then runs the offline validator on what comes back. The status-machine enforcement, the canonical MRR/churn views, the dunning sampler, and the Poisson usage generator described in this post are the profile's specification, not yet shipped modules. They are the next milestone for `saas-subscriptions` and the reason this post reads like a spec; treat it as the contract the v0.4 profile will honour and as a checklist you can apply today if you wire the recommended constraints into your own schema. Sections below say explicitly where the line sits.
 
-The shape of this post mirrors the [medical-booking deep-dive](/blog/medical-booking-profile) and the [e-commerce deep-dive](/blog/ecommerce-profile): the distributions we steer toward, the constraints we lean on, and the things we deliberately decline to ship. It assumes you have read [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), because `orgs ↔ users` is the canonical small cycle and this profile is the one we built to exercise it, and [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question), because subscription rows carry more state-flag timestamps than any other table in a typical SaaS schema.
+The shape of this post mirrors the [medical-booking deep-dive](/blog/medical-booking-profile) and the [e-commerce deep-dive](/blog/ecommerce-profile): the distributions we steer toward, the constraints we lean on, and the things we deliberately decline to ship. It assumes you have read [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), because `orgs ↔ users` is the canonical small cycle and this profile is the one we built to exercise it, and [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question), because subscription rows carry more state-flag timestamps than any other table in a typical SaaS schema.
 
 ## Why a uniform fixture is the wrong fixture
 
@@ -76,7 +75,7 @@ ALTER TABLE subscriptions
 
 Two of these matter more than the others. The partial unique index on `memberships` is the canonical Postgres pattern for "at most one row in this set matches this predicate"; it is enforced by the index itself, with no trigger and no race window ([PostgreSQL documentation: Partial Indexes](https://www.postgresql.org/docs/current/indexes-partial.html)). The generated column on `invoices` is enforced by the database every write, which means the fixture and the application cannot disagree about the total ([PostgreSQL documentation: Generated Columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html), shipped since PostgreSQL 12). The other three are good hygiene; satus's validator will flag rows that violate any of them once you add them.
 
-For status, an enum and a `CHECK` are both reasonable, with different ergonomics for adding a new value later. We covered the trade-off in [Enum types that grew up](/blog/enum-types-that-grew-up); the short version is that since PostgreSQL 12 `ALTER TYPE ... ADD VALUE` no longer requires a separate transaction, and the historical reason for preferring `CHECK` has largely been retired.
+For status, an enum and a `CHECK` are both reasonable, with different ergonomics for adding a new value later. We covered the trade-off in [Postgres enum changes and satus enum handling](/blog/enum-types-that-grew-up); the short version is that since PostgreSQL 12 `ALTER TYPE ... ADD VALUE` no longer requires a separate transaction, and the historical reason for preferring `CHECK` has largely been retired.
 
 ## MRR, which is a definition more than a measurement
 
@@ -130,7 +129,7 @@ other / unknown           ████           8%
 
 The "involuntary" rows are the dunning bucket. In most SaaS reports we have seen, involuntary churn is one of the largest single drivers of attrition and almost the only one a billing engineer can fix without a product change. The next section is how the profile specifies it.
 
-## The dunning death spiral
+## Failed renewal charges
 
 Dunning is the polite name for "what happens after the card declines." A real billing system tries the payment again, then again, then again, on a schedule, and if every retry fails the subscription transitions out of `past_due` into a terminal state. Stripe's default policy retries failed invoices for up to a configurable window before marking the subscription `canceled` or `unpaid`, and exposes the retry schedule as a tunable policy ([Stripe: Smart retries and failed payments](https://docs.stripe.com/billing/revenue-recovery/smart-retries)). Other billing platforms ship similar policies under different names; the shape is industry-standard.
 
@@ -168,7 +167,7 @@ If you have followed the recommendation above and made `invoices.total_cents` a 
 
 ## State-flag columns, briefly
 
-Subscriptions carry the longest list of timestamp-shaped state-flag columns of any table in a typical SaaS schema. Restating the table from [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question) for ease of reference:
+Subscriptions carry the longest list of timestamp-shaped state-flag columns of any table in a typical SaaS schema. Restating the table from [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question) for ease of reference:
 
 | Profile | State-flag columns hit | Median `frac_null` | Range |
 | --- | --- | --- | --- |
@@ -220,6 +219,6 @@ If you are seeding a SaaS-shaped schema and the recommended defaults are wrong f
 - PostgreSQL documentation, [Generated Columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html).
 - PostgreSQL documentation, [CHECK Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html).
 - ISO, [4217 Currency codes](https://www.iso.org/iso-4217-currency-codes.html).
-- Earlier in this log: [Inside the medical-booking profile](/blog/medical-booking-profile), [Inside the e-commerce profile](/blog/ecommerce-profile), [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [Enum types that grew up](/blog/enum-types-that-grew-up), [An offline --dry-run that catches FK and constraint bugs before spending on an LLM](/blog/dry-run-validation).
+- Earlier in this log: [Inside the medical-booking profile](/blog/medical-booking-profile), [Inside the e-commerce profile](/blog/ecommerce-profile), [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [Postgres enum changes and satus enum handling](/blog/enum-types-that-grew-up), [An offline --dry-run that catches FK and constraint bugs before spending on an LLM](/blog/dry-run-validation).
 
 —the satus.sh team

@@ -1,7 +1,7 @@
 ---
 slug: arrays-vs-junction-tables
-title: "Arrays vs junction tables: when Postgres arrays are a smell"
-description: Three cases where a Postgres array column fits, and four signs that a junction table is the better design.
+title: Postgres arrays and junction tables for related rows
+description: When a Postgres array column stores a list of scalar values, and when those values belong in a junction table with its own rows and foreign keys.
 date: 2026-06-29
 author: satus.sh
 tags: [postgres, modeling, seeding]

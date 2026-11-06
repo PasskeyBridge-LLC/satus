@@ -50,6 +50,6 @@ No CLI flags added, removed, or renamed. No telemetry-schema changes. No changes
 - [`cli-publish.yml` workflow source](https://github.com/passkeybridge/satus/blob/main/.github/workflows/cli-publish.yml)
 - [`action-selftest.yml` workflow source](https://github.com/passkeybridge/satus/blob/main/.github/workflows/action-selftest.yml)
 - [npm provenance statements](https://docs.npmjs.com/generating-provenance-statements)
-- [v0.3.3 release notes](/blog/v0-3-3-release-notes) — the GitHub Action and opt-in failure fingerprints
-- [v0.2.0 release notes](/blog/v0-2-0-deferred-constraints-faster-planning-smaller-binary) — original single-CTE introspection and deferrable-constraint handling
+- [v0.3.3 release notes](/blog/v0-3-3-release-notes)—the GitHub Action and opt-in failure fingerprints
+- [v0.2.0 release notes](/blog/v0-2-0-deferred-constraints-faster-planning-smaller-binary)—original single-CTE introspection and deferrable-constraint handling
 - [satus on GitHub](https://github.com/passkeybridge/satus)

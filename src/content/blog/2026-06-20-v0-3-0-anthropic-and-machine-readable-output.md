@@ -131,4 +131,4 @@ Two questions we want the v0.3.0 telemetry to answer over the next 90 days:
 1. **Provider split.** What fraction of runs land on Anthropic vs OpenAI? If it's lopsided either way, the cheaper provider's pricing map gets first-class treatment.
 2. **Token-to-dollar drift.** How often does our estimate diverge from the invoice the user actually pays? If the answer is "often," the per-model entries in both pricing maps get last-verified comments and a quarterly refresh job.
 
-Tell us at <support@satus.sh> if either lands badly on a real schema. Schema reproductions are the #1 maintenance task, and the test corpus in `corpus/` already covers five public OSS schemas — adding a sixth is cheap if we can see the `CREATE TABLE`.
+Tell us at <support@satus.sh> if either lands badly on a real schema. Schema reproductions are the #1 maintenance task, and the test corpus in `corpus/` already covers five public OSS schemas—adding a sixth is cheap if we can see the `CREATE TABLE`.

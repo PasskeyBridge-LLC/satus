@@ -1,6 +1,6 @@
 ---
 slug: partitioned-tables-meet-rls
-title: Partitioned tables meet RLS, and nobody wins
+title: Row-level security on partitioned Postgres tables
 description: RLS policies on a partitioned parent do not protect the children. What Postgres actually does, and the two-line workaround satus now prints.
 date: 2026-06-01
 author: satus.sh
@@ -50,7 +50,7 @@ The combined effect, summarized:
 | `COPY events_2026_05 FROM …`                 | no                      | yes, if any            |
 | `INSERT INTO events_2026_05 VALUES (…)`      | no                      | yes, if any            |
 
-If "yes, if any" reads as "no, because nobody created one", that is exactly the failure mode. A tenant-isolation policy on the parent is a fence around the front door. The partitions are unlocked back doors.
+If the child has no policy, a direct query of the partition does not apply the parent policy.
 
 ## The bug as it actually shows up
 
@@ -126,7 +126,7 @@ A few things this detection deliberately does not try to handle:
 - PostgreSQL documentation, [Table Partitioning](https://www.postgresql.org/docs/current/ddl-partitioning.html).
 - PostgreSQL documentation, [ALTER TABLE](https://www.postgresql.org/docs/current/sql-altertable.html) (ENABLE / FORCE ROW LEVEL SECURITY).
 - PostgreSQL documentation, [Event Triggers](https://www.postgresql.org/docs/current/event-triggers.html).
-- Earlier in this log: [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild).
+- Earlier in this log: [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild).
 - The corpus underlying this post's structural counts: [`corpus/audit-2026-06-01.json`](https://satus.sh/corpus/audit-2026-06-01.json) (5 schemas, 151 tables, Postgres 17).
 - See also: [satus profiles](/profiles), [quickstart](/quickstart).
 
