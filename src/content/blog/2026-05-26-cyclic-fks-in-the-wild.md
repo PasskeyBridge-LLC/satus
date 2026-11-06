@@ -8,7 +8,7 @@ tags: [postgres, foreign-keys, graphs, seeding]
 draft: false
 ---
 
-The textbook description of seeding a relational database is: topologically sort the table dependency graph, then insert in order. Parent rows first, child rows next, done. It works exactly until you meet the first schema with a cycle, which — in our experience with private SaaS, marketplace, and audit-heavy schemas — is common enough that no production seed tool can pretend cycles are an edge case. (The structural audit of five public OSS schemas we publish at [`corpus/audit-2026-06-01.json`](https://satus.sh/corpus/audit-2026-06-01.json) found zero FK cycles across 227 foreign keys; cycles primarily live in private codebases where the bootstrap row was always the awkward case.)
+The textbook description of seeding a relational database is: topologically sort the table dependency graph, then insert in order. Parent rows first, child rows next, done. It works exactly until you meet the first schema with a cycle, which—in our experience with private SaaS, marketplace, and audit-heavy schemas—is common enough that no production seed tool can pretend cycles are an edge case. (The structural audit of five public OSS schemas we publish at [`corpus/audit-2026-06-01.json`](https://satus.sh/corpus/audit-2026-06-01.json) found zero FK cycles across 227 foreign keys; cycles primarily live in private codebases where the bootstrap row was always the awkward case.)
 
 This post walks through how [satus](/) detects cycles in the foreign-key graph, why we refuse to disable constraints during a seed run, and the two-pass insert strategy we settled on after burning a few weekends on alternatives.
 

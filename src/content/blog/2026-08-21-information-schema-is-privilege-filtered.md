@@ -98,7 +98,7 @@ WHERE pg_has_role(tblowner, 'USAGE'::text);
 
 Ownership, or membership in the owning role. No grant of any kind makes this view visible, which the documentation states directly: only columns "contained in a table owned by a currently enabled role" are shown ([constraint_column_usage](https://www.postgresql.org/docs/current/infoschema-constraint-column-usage.html)). We confirmed this by granting `SELECT` on both the child and the parent table and re-running. It still returned zero rows.
 
-That matters because `constraint_column_usage` is the view that tells you what a foreign key *points at*. It is the natural place to look, and it is the one view no grant can unlock.
+`constraint_column_usage` reports referenced columns. Its owner-role visibility check differs from ordinary table grants.
 
 `key_column_usage` is the exception, and its predicate says why:
 

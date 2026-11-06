@@ -1,8 +1,8 @@
 ---
 slug: what-satus-0-3-11-checks-before-a-write
-title: What satus 0.3.11 checks before a write, and how to keep order totals correct in Postgres
-seoTitle: What satus 0.3.11 checks before a write to Postgres
-description: satus 0.3.11 checks foreign keys, types and NOT NULL before a write. It does not check totals or CHECK constraints. Postgres enforces CHECKs on insert.
+title: What the satus 0.3.11 dry run checks, and how Postgres computes order totals
+seoTitle: What the satus 0.3.11 dry run checks
+description: The satus 0.3.11 dry run checks foreign keys, types, and NOT NULL. It does not check order totals. Postgres enforces CHECKs and generated columns on insert.
 date: 2026-10-23
 publishAt: 2026-10-23T09:00:00-04:00
 author: satus.sh
@@ -10,11 +10,13 @@ tags: [seeding, postgres, constraints, generated-columns]
 draft: false
 ---
 
-A seeded order whose `total_cents` is not `subtotal_cents + tax_cents` passes every check `@passkeybridge/satus@0.3.11` runs before a write. Foreign keys resolve, types match, `NOT NULL` holds. The arithmetic is not checked, and the [README](https://github.com/PasskeyBridge-LLC/satus#readme) lists that under "Honest limits (v0.x)": "cross-column arithmetic is not reconciled". This post shows which checks the shipped CLI runs, what Postgres can and cannot enforce on its own, and how to move the arithmetic into the schema so that the database computes it instead of the model. Every transcript below ran on PostgreSQL 17.11 with `psql` 17.11, against `@passkeybridge/satus@0.3.11`, with no provider key in the environment.
+The dry run validates simulated rows. A real run sends generated rows to Postgres, which enforces its constraints on insert. A seeded order whose `total_cents` is not `subtotal_cents + tax_cents` can still pass the dry-run validator when the row satisfies the checks that validator actually runs. The dry-run validator does not check this arithmetic relationship. Foreign keys, types, and `NOT NULL` are separate checks. The [README at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/README.md) lists the arithmetic gap under "Honest limits (v0.x)": "cross-column arithmetic is not reconciled".
+
+`@passkeybridge/satus@0.3.12` is the current npm release. The checks below are the ones in the v0.3.11 source linked at the end. The transcripts were re-run on 2026-11-06 with `@passkeybridge/satus@0.3.12` against PostgreSQL 17.11 (`PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2)`), `psql` 17.11, and Node v24.21.0, with no provider key. `DATABASE_URL` is `postgresql://postgres:postgres@127.0.0.1:5433/check_dev`. The session time zone for the inserts below is `UTC`.
 
 ## The schema
 
-Two tables: orders and their line items. The order carries its own subtotal, tax and total, and a shipping date that has to come after the order date.
+Two tables: orders and their line items. The order carries its own subtotal, tax, and total, and a shipping date that has to come after the order date.
 
 ```sql
 create table orders (
@@ -37,18 +39,23 @@ create table order_items (
 );
 ```
 
-There are three sums in this schema. `total_adds_up` is the only one Postgres knows about. `line_total_cents = quantity * unit_price_cents` is not declared anywhere, and `subtotal_cents` matching the sum of an order's line items cannot be declared as a `CHECK` at all:
+There are three sums in this schema. `total_adds_up` is the only one Postgres knows about. `line_total_cents = quantity * unit_price_cents` is not declared anywhere. A subquery in a `CHECK` is rejected:
+
+```sql
+alter table orders add constraint subtotal_matches_items check (
+  subtotal_cents = (select sum(line_total_cents) from order_items where order_id = orders.id)
+);
+```
 
 ```
-$ psql $DATABASE_URL -c "alter table orders add constraint subtotal_matches_items check (subtotal_cents = (select sum(line_total_cents) from order_items where order_id = orders.id))"
 ERROR:  cannot use subquery in check constraint
 ```
 
-A `CHECK` constraint can only reference columns of the row being inserted or updated. A rule that spans rows has to be enforced by a trigger or by application code, or it is not enforced. The introspection query in [`introspect.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/introspect.ts) reads primary keys, foreign keys and single-column unique constraints from `pg_constraint`, and does not read triggers, so satus does not see a rule that a trigger enforces.
+Postgres rejects a subquery directly in a `CHECK` and does not support `CHECK` as a cross-row consistency rule. A rule that spans rows has to be a trigger or application code, or it is not enforced. The introspection query in [`introspect.ts` at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/src/generate/introspect.ts) reads primary keys, foreign keys, and single-column unique constraints from `pg_constraint`. It does not read triggers, so satus does not see a rule that a trigger enforces.
 
 ## What the dry run checks
 
-The dry run reads the catalog, simulates rows, and validates them. It needs no key and writes nothing:
+The dry run reads the catalog, simulates rows, and validates them. It needs no key and writes nothing. `runner.ts` calls the validator on the dry-run path. The real path inserts and lets Postgres accept or reject the row.
 
 ```
 $ satus generate --dry-run --rows 25
@@ -73,11 +80,13 @@ satus generate
   ✓ no validation findings across 2 tables
 ```
 
-The coverage list at the top of [`validate.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/validate.ts) lists these checks: `NOT NULL`, type mismatches, integer range, string length, UUID shape, foreign keys present in the parent pool, and single-column `UNIQUE` within a batch. The same comment lists `CHECK` constraints as out of scope for v0.3.x. To confirm this, add a constraint no row can satisfy and run the dry run again:
+The coverage list at the top of [`validate.ts` at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/src/generate/validate.ts) names `NOT NULL`, type mismatches, integer range, string length, UUID shape, foreign keys present in the parent pool, and single-column `UNIQUE` within a batch. The same comment lists `CHECK` constraints as out of scope for v0.3.x. A constraint no row can satisfy does not change the dry run:
+
+```sql
+alter table order_items add constraint impossible check (quantity > 0 and quantity < 0);
+```
 
 ```
-$ psql $DATABASE_URL -c "alter table order_items add constraint impossible check (quantity > 0 and quantity < 0)"
-ALTER TABLE
 $ satus generate --dry-run --rows 25
 
 satus generate
@@ -100,13 +109,16 @@ satus generate
   ✓ no validation findings across 2 tables
 ```
 
-A clean dry run means the checks listed above found no problems. It does not check `total_adds_up`, `ships_after_placed`, or a constraint that rejects every row. Postgres still enforces those on insert during a real run, and the run is one transaction, so a violation rolls the whole run back. The environment these transcripts come from has no provider key, so this post contains no output from a real run.
+A clean dry run means those listed checks found no problems. It does not check `total_adds_up`, `ships_after_placed`, or a constraint that rejects every row. Postgres still enforces those on insert during a real run. The run is one transaction, so a violation rolls the table changes back. Sequence values allocated by ordinary inserts can remain consumed. This environment had no provider key, so there is no output from a real `satus generate` run.
 
 ## Move the arithmetic into the schema
 
-The rows satus asks a model for exclude generated columns, identity columns, defaulted columns and foreign keys; the filter is in [`schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts). The model is not asked for a column that the database computes. Two of the three sums can be generated columns:
+The rows satus asks a model for exclude generated columns, identity columns, defaulted columns, and foreign keys. The filter is in [`schema.ts` at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/src/generate/schema.ts). The model is not asked for a column that the database computes. Drop the first pair of tables, then create the generated-column version:
 
 ```sql
+drop table order_items;
+drop table orders;
+
 create table orders (
   id             integer generated always as identity primary key,
   subtotal_cents integer not null default 0,
@@ -126,7 +138,7 @@ create table order_items (
 );
 ```
 
-`subtotal_cents` and `tax_cents` now default to `0`, which also removes them from the model's row schema. The dry run against this version is clean:
+`subtotal_cents` and `tax_cents` now default to `0`, which also removes them from the model's row schema. The dry run against this version is clean, and the per-table estimates are the same numbers as before:
 
 ```
 $ satus generate --dry-run --rows 25
@@ -151,21 +163,24 @@ satus generate
   ✓ no validation findings across 2 tables
 ```
 
-The per-table estimates did not change. The estimate in [`runner.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/runner.ts) is a heuristic over every column in the table, generated or not, so here it also counts the columns the model is not asked for.
+The estimate in [`runner.ts` at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/src/generate/runner.ts) is a heuristic over every column in the table, generated or not, so here it also counts the columns the model is not asked for.
 
-A generated column also cannot be set to a value by a later `UPDATE`:
+A generated column cannot be set to a value other than `DEFAULT`:
+
+```sql
+update orders set total_cents = 1 where id = 1;
+```
 
 ```
-$ psql $DATABASE_URL -c "update orders set total_cents = 1 where id = 1"
 ERROR:  column "total_cents" can only be updated to DEFAULT
 DETAIL:  Column "total_cents" is a generated column.
 ```
 
-This is a schema change, and it is only right if the application never needs to store a total that differs from the arithmetic, for example a historical order priced under an old tax rate. Where that is true, the generated column enforces the total in production as well as in seeded data.
+A generated `total_cents` cannot store a manual adjustment that is not already in `subtotal_cents` or `tax_cents`. An old tax rate can still be stored in `tax_cents`. If the application needs a total that is neither input column, keep `total_cents` as a normal column.
 
 ## The cross-row sum, after the seed
 
-The subtotal is the sum of other rows, which a generated column cannot express. It can be computed after the seed, in the same script that runs the seed. The rows below were inserted with plain SQL and `generate_series`, in place of a real `satus generate` run:
+The subtotal is the sum of other rows, which a generated column cannot express. The rows below were inserted with plain SQL, in place of a real `satus generate` run:
 
 ```sql
 insert into orders (placed_at)
@@ -178,7 +193,6 @@ from orders o, generate_series(1, 2) i;
 ```
 
 ```
-$ psql $DATABASE_URL -c "select id, subtotal_cents, tax_cents, total_cents from orders order by id"
  id | subtotal_cents | tax_cents | total_cents 
 ----+----------------+-----------+-------------
   1 |              0 |         0 |           0
@@ -187,7 +201,7 @@ $ psql $DATABASE_URL -c "select id, subtotal_cents, tax_cents, total_cents from 
 (3 rows)
 ```
 
-One `UPDATE` sets each order's subtotal and tax from its line items. The 8% tax rate is an example value:
+One `UPDATE` sets each order's subtotal and tax from its line items. The 8% figure is an example rate:
 
 ```sql
 update orders o
@@ -202,9 +216,6 @@ where s.order_id = o.id;
 ```
 
 ```
-$ psql $DATABASE_URL -f rollup.sql
-UPDATE 3
-$ psql $DATABASE_URL -c "select id, subtotal_cents, tax_cents, total_cents from orders order by id"
  id | subtotal_cents | tax_cents | total_cents 
 ----+----------------+-----------+-------------
   1 |            750 |        60 |         810
@@ -213,45 +224,64 @@ $ psql $DATABASE_URL -c "select id, subtotal_cents, tax_cents, total_cents from 
 (3 rows)
 ```
 
-Postgres recomputed `total_cents` from the new subtotal and tax. The query below returns zero rows when every subtotal matches its items, and can run in CI after the rollup:
+Postgres recomputed `total_cents` from the new subtotal and tax. An inner join does not see an order that has no items. This query uses `LEFT JOIN`, `coalesce`, and `IS DISTINCT FROM`. On orders 1 through 3 it returns no rows:
 
 ```sql
-select o.id, o.subtotal_cents, sum(i.line_total_cents) as items_cents
+select o.id,
+       o.subtotal_cents,
+       coalesce(sum(i.line_total_cents), 0) as items_cents
 from orders o
-join order_items i on i.order_id = o.id
+left join order_items i on i.order_id = o.id
+where o.id <= 3
 group by o.id, o.subtotal_cents
-having o.subtotal_cents <> sum(i.line_total_cents);
+having o.subtotal_cents is distinct from coalesce(sum(i.line_total_cents), 0)
+order by o.id;
 ```
 
 ```
-$ psql $DATABASE_URL -f drift.sql
  id | subtotal_cents | items_cents 
 ----+----------------+-------------
 (0 rows)
 ```
 
+An order with subtotal 100 and no line items, and another whose subtotal was set to 1 with no line items, both show up:
+
+```
+ id | subtotal_cents | items_cents 
+----+----------------+-------------
+  4 |            100 |           0
+  5 |              1 |           0
+(2 rows)
+```
+
 ## Postgres enforces the shipping-date CHECK on insert
 
-`ships_after_placed` is a single-row rule, so Postgres rejects a violation on insert whatever wrote the row:
+`ships_after_placed` is a single-row rule, so Postgres rejects a violation on insert:
+
+```sql
+insert into orders (placed_at, shipped_at)
+values (timestamptz '2026-10-02 12:00+00', timestamptz '2026-10-01 12:00+00');
+```
 
 ```
-$ psql $DATABASE_URL -c "insert into orders (placed_at, shipped_at) values ('2026-10-02 12:00+00', '2026-10-01 12:00+00')"
 ERROR:  new row for relation "orders" violates check constraint "ships_after_placed"
-DETAIL:  Failing row contains (4, 0, 0, 0, 2026-10-02 08:00:00-04, 2026-10-01 08:00:00-04).
+DETAIL:  Failing row contains (6, 0, 0, 0, 2026-10-02 12:00:00+00, 2026-10-01 12:00:00+00).
 ```
 
-The timestamps in the error are shown in the session time zone, `America/New_York` here. In a real satus run, the same rejection rolls back the whole transaction. The dry run does not read `CHECK` constraints, so it does not predict that rejection.
+The timestamps are in the session time zone, `UTC` here. In a real satus run, the same rejection rolls back the transaction's table changes. The dry run does not read `CHECK` constraints, so it does not predict that rejection.
 
 ## What satus would need to change
 
-Cross-column consistency is item 1 of Phase 2 in the [roadmap](https://github.com/PasskeyBridge-LLC/satus/blob/main/docs/ROADMAP.md), and `CHECK` introspection is marked as planned in the `validate.ts` comment. Neither is in 0.3.11. Until one ships, compute the arithmetic in the schema with generated columns where possible, and in a rollup script where it spans rows.
+Cross-column consistency is item 1 of Phase 2 in the [roadmap](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/docs/ROADMAP.md), and `CHECK` introspection is marked as planned in the `validate.ts` comment. Neither is in 0.3.11, and the 0.3.12 dry run above still exits 0 with the impossible `CHECK` in place. Until one ships, compute the arithmetic in the schema with generated columns where the total is the sum of columns on the same row, and in a rollup script where it spans rows.
 
 Run the dry run against your own schema first. It needs no key and writes nothing, and the [quickstart](/quickstart) has the install line.
 
 ## Sources
 
-- Every transcript above: PostgreSQL 17.11 (Debian 17.11-0+deb13u1), `psql` 17.11, `@passkeybridge/satus@0.3.11` on Node 20.19.2, run 2026-10-09 with no provider key set. The rows in the rollup section were inserted with plain SQL, not by a real `satus generate` run.
-- Validator coverage and the planned `CHECK` introspection: the header comment of [`packages/cli/src/generate/validate.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/validate.ts).
-- Which columns the model is asked for: [`packages/cli/src/generate/schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts).
+- Every transcript above: PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2), `psql` 17.11, `@passkeybridge/satus@0.3.12` on Node v24.21.0, run 2026-11-06 with no provider key set. The rows in the rollup section were inserted with plain SQL, not by a real `satus generate` run.
+- Validator coverage and the planned `CHECK` introspection: the header comment of [`packages/cli/src/generate/validate.ts` at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/src/generate/validate.ts).
+- Which columns the model is asked for: [`packages/cli/src/generate/schema.ts` at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/src/generate/schema.ts).
 - Single-row `CHECK` constraints and generated columns: the PostgreSQL 17 docs on [constraints](https://www.postgresql.org/docs/17/ddl-constraints.html) and [generated columns](https://www.postgresql.org/docs/17/ddl-generated-columns.html).
-- The v0.x limits: the [README](https://github.com/PasskeyBridge-LLC/satus#readme). Phase 2 scope: the [roadmap](https://github.com/PasskeyBridge-LLC/satus/blob/main/docs/ROADMAP.md).
+- The v0.x limits: the [README at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/README.md). Phase 2 scope: the [roadmap at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/docs/ROADMAP.md).
+
+Source-visible and commercially licensed. Not open source. See `LICENSE`.

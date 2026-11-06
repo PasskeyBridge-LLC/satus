@@ -8,13 +8,13 @@ tags: [release, cli, postgres, privacy]
 draft: false
 ---
 
-`@passkeybridge/satus@0.3.7` is on npm. Five fixes. Four of the five failed silently — the run printed `✓ inserted N rows` and the damage surfaced later, somewhere else, usually in your application rather than in ours.
+`@passkeybridge/satus@0.3.7` is on npm. Five fixes. Four of the five failed silently—the run printed `✓ inserted N rows` and the damage surfaced later, somewhere else, usually in your application rather than in ours.
 
 That is the part worth dwelling on. A seeder that crashes is annoying. A seeder that reports success and leaves your sequences broken or your foreign keys unlinked is worse, because you find out days later and the first suspect is your own code.
 
 ## Identity columns were handed to the model
 
-Postgres reports a `GENERATED ... AS IDENTITY` column oddly. Its `column_default` is `NULL` and its `is_generated` is `'NEVER'` — because `is_generated` refers to `GENERATED ALWAYS AS (expr) STORED`, which is a different feature. Identity lives in `is_identity`, a column we were not reading.
+Postgres reports a `GENERATED ... AS IDENTITY` column oddly. Its `column_default` is `NULL` and its `is_generated` is `'NEVER'`—because `is_generated` refers to `GENERATED ALWAYS AS (expr) STORED`, which is a different feature. Identity lives in `is_identity`, a column we were not reading.
 
 So satus saw a plain `NOT NULL integer` with no default and asked the model to invent one. Two outcomes, depending on which flavour you declared:
 
@@ -24,7 +24,7 @@ create table a (id int generated always as identity primary key);
 -- DETAIL: Column "id" is an identity column defined as GENERATED ALWAYS.
 ```
 
-The whole run is one transaction, so this rolls back everything. A schema using `GENERATED ALWAYS AS IDENTITY` — the form Postgres's own docs recommend — could not be seeded by satus at all.
+The whole run is one transaction, so this rolls back everything. A schema using `GENERATED ALWAYS AS IDENTITY`—the form Postgres's own docs recommend—could not be seeded by satus at all.
 
 The `BY DEFAULT` flavour is the one that scared us:
 
@@ -49,7 +49,7 @@ The writer now returns every column that some foreign key in the run set referen
 
 ## `--truncate` emptied tables outside the run set
 
-`--truncate` issued `TRUNCATE ... RESTART IDENTITY CASCADE`. `CASCADE` follows foreign keys wherever they go — including into tables you deliberately put in `exclude`.
+`--truncate` issued `TRUNCATE ... RESTART IDENTITY CASCADE`. `CASCADE` follows foreign keys wherever they go—including into tables you deliberately put in `exclude`.
 
 ```text
 NOTICE:  truncate cascades to table "audit_log"
@@ -57,7 +57,7 @@ NOTICE:  truncate cascades to table "audit_log"
 
 A `NOTICE`. That is the entire warning you got before your audit table was emptied.
 
-`CASCADE` is gone. Every table in the run set is named in one statement, which satisfies Postgres whenever the foreign-key graph is closed over that set — the ordinary case, and the one where `--truncate` did what you wanted anyway. When it is not closed, satus now stops:
+`CASCADE` is gone. Every table in the run set is named in one statement, which satisfies Postgres whenever the foreign-key graph is closed over that set—the ordinary case, and the one where `--truncate` did what you wanted anyway. When it is not closed, satus now stops:
 
 ```text
 error: --truncate cannot run: a table outside the run set has a foreign key into it.
@@ -76,11 +76,11 @@ We have also corrected [an earlier post](/blog/triggers-i-have-loved-and-hated) 
 
 The estimator hardcoded gpt-4o-mini's $0.15/$0.60 per million tokens and never looked at `--provider`. So an Anthropic run was estimated at OpenAI's cheapest rate and metered at Anthropic's, and no amount of arithmetic reconciled the two figures.
 
-Underneath that, the Anthropic price table had been shipped empty since v0.3.0 with a `// populate in Pass 4` comment that never got its Pass 4. Every Anthropic run fell through to a fallback of $3/$15 — exactly 3x the real rate for the default model, `claude-haiku-4-5`, at $1/$5. Anthropic runs over-reported spend threefold, which meant `--max-cost` aborted runs that were nowhere near the cap.
+Underneath that, the Anthropic price table had been shipped empty since v0.3.0 with a `// populate in Pass 4` comment that never got its Pass 4. Every Anthropic run fell through to a fallback of $3/$15—exactly 3x the real rate for the default model, `claude-haiku-4-5`, at $1/$5. Anthropic runs over-reported spend threefold, which meant `--max-cost` aborted runs that were nowhere near the cap.
 
 Rates now live on the provider object, so the estimator and the live meter read the same numbers by construction rather than by anyone remembering to keep two files in sync. The Anthropic table is populated and dated.
 
-Both fallbacks are now the most expensive entry in their own table. An unpriced model can therefore only make `--max-cost` abort early, never overshoot silently. OpenAI's old fallback of $1/$3 sat *below* three of its four priced models, which is under-billing — the wrong direction for something whose job is to stop you spending money.
+Both fallbacks are now the most expensive entry in their own table. An unpriced model can therefore only make `--max-cost` abort early, never overshoot silently. OpenAI's old fallback of $1/$3 sat *below* three of its four priced models, which is under-billing—the wrong direction for something whose job is to stop you spending money.
 
 ## Telemetry contradicted our own privacy promise
 
@@ -88,9 +88,9 @@ This one is on us in a different way, because we had written the rule down and t
 
 The CLI README and [our privacy policy](/privacy) both say satus sends "no table or column names, no row data". The run telemetry payload carried:
 
-- `tables` — every table name in the run
-- `target_schema` — the schema name, which in a multi-tenant setup is itself a customer identifier
-- `error_message` — the raw error text
+- `tables`—every table name in the run
+- `target_schema`—the schema name, which in a multi-tenant setup is itself a customer identifier
+- `error_message`—the raw error text
 
 The third is the serious one. Postgres unique-violation messages embed the offending value:
 
@@ -103,7 +103,7 @@ A column name and a row value, posted to us, in a payload documented as containi
 
 We had a choice: amend the policy to describe what we actually collected, or change the code to match what we had promised. We changed the code. The promise is a better product than the data.
 
-`tables` is replaced by `table_count`. `target_schema` is gone. `error_message` is replaced by `error_class`, a fixed vocabulary — `pg_23505`, `provider_http_429`, `budget_exceeded`, `no_parent_rows` — computed from SQLSTATE codes and HTTP statuses, never from message text. Anything unrecognised classifies as `unknown` rather than a truncated string, because a truncated Postgres error is exactly where a row value survives.
+`tables` is replaced by `table_count`. `target_schema` is gone. `error_message` is replaced by `error_class`, a fixed vocabulary—`pg_23505`, `provider_http_429`, `budget_exceeded`, `no_parent_rows`—computed from SQLSTATE codes and HTTP statuses, never from message text. Anything unrecognised classifies as `unknown` rather than a truncated string, because a truncated Postgres error is exactly where a row value survives.
 
 Here is the entire payload for a successful run now:
 
@@ -116,12 +116,12 @@ Here is the entire payload for a successful run now:
 
 And for a run that failed on a check constraint: the same fields, plus `"error_class":"pg_23514"`.
 
-Older CLIs are already installed and will keep sending the old fields for as long as people run them. So `/api/public/cli/run` now accepts those three keys — rejecting them would break clients built against a contract we published — and discards them before the insert. The promise holds regardless of which version you have installed, not just for people who upgrade.
+Older CLIs are already installed and will keep sending the old fields for as long as people run them. So `/api/public/cli/run` now accepts those three keys—rejecting them would break clients built against a contract we published—and discards them before the insert. The promise holds regardless of which version you have installed, not just for people who upgrade.
 
 For the record: the only runs ever recorded under the old behaviour were our own release tests. No customer data was collected. That is luck of timing, not design, and it is not a reason the bug mattered less.
 
 ## Tests
 
-Each fix ships with a regression test that names the bug, and each test was mutation-checked — we reverted the fix and confirmed the suite went red. A test that passes against the broken code is not a regression test, it is a comment.
+Each fix ships with a regression test that names the bug, and each test was mutation-checked—we reverted the fix and confirmed the suite went red. A test that passes against the broken code is not a regression test, it is a comment.
 
 `satus.config.json` from 0.3.x works unchanged. No flags added, removed, or renamed.
