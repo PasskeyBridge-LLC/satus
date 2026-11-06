@@ -1,7 +1,7 @@
 ---
 slug: how-satus-decides-a-database-is-too-full-to-seed
-title: How satus 0.3.11 decides a database is too full to seed
-description: Before any write, satus 0.3.11 counts rows in every user table in the database and refuses above 10,000 with exit 11. What it counts, what it skips, and why.
+title: How satus 0.3.12 decides a database is too full to seed
+description: How satus 0.3.12 counts rows the connected role can read in ordinary tables, when that count exits 11, and how privileges, RLS, and --force change it.
 date: 2026-11-06
 publishAt: 2026-11-06T09:00:00-05:00
 author: satus.sh
@@ -9,17 +9,25 @@ tags: [seeding, postgres, safety, ci]
 draft: false
 ---
 
-`satus generate` writes rows into the database `DATABASE_URL` points at. Before it introspects the schema or calls a model, `@passkeybridge/satus@0.3.11` counts the rows already in that database, and if there are more than 10,000 it refuses to run and exits `11`. The guard exists to catch a `DATABASE_URL` that points at production. This post shows what the guard counts, what it does not count, and how it behaves under a dry run, `--schema`, `--force` and a restricted role. Every transcript below ran on PostgreSQL 17.11 with `psql` 17.11, against `@passkeybridge/satus@0.3.11`.
+`satus generate` writes rows into the configured database. `--dsn` overrides `SATUS_DATABASE_URL`, which overrides `DATABASE_URL`, which overrides `databaseUrl` in `satus.config.json`. Before it introspects the schema or calls a model, `@passkeybridge/satus@0.3.12` counts rows visible to the connected role in eligible ordinary tables and, on a real run, refuses when that count is greater than 10,000. The guard exists to catch a connection string pointed at a database you did not mean to seed.
+
+The count is not a census of every user table. It skips relation kinds other than ordinary tables (`relkind = 'r'`), system schemas, and tables the role cannot read. Row-level security can hide rows the role is allowed to `SELECT`. A count under 10,001 is not proof that the database has no production data.
+
+Every transcript below ran on 2026-11-06 against PostgreSQL 17.11 (`PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit`), `psql` 17.11 (Debian 17.11-1.pgdg13+2), Node v24.21.0, and `@passkeybridge/satus@0.3.12`. No provider key was set unless a command shows `OPENAI_API_KEY=placeholder`. That placeholder is checked for presence and is not sent: the refusals below still exited 11 with `fetch` disabled in the process.
 
 ## The rule
 
-The code is in [`guard.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/guard.ts). It lists every table with `relkind = 'r'` outside `pg_catalog`, `information_schema` and the `pg_toast` and `pg_temp` schemas, keeps the ones the connected role has `SELECT` on, and counts rows in chunks of 100 tables. Each table is counted through a subquery with `limit 10001`, so no single table costs more than 10,001 rows of reading, and the loop stops as soon as the running total passes 10,000.
+The code is [`guard.ts` at tag v0.3.12](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.12/packages/cli/src/generate/guard.ts). It lists `relkind = 'r'` outside `pg_catalog`, `information_schema`, and the `pg_toast` and `pg_temp` schemas. A table stays in the count only when `has_schema_privilege(n.oid, 'USAGE')` and `has_table_privilege(c.oid, 'SELECT')` are both true. Readable tables are summed in statements of up to 100. Each table is a subquery `select count(*) from (select 1 from ... limit 10001) s`. After that statement returns, the loop stops if the accumulated total is greater than 10,000. The limit caps rows returned to the aggregate. It does not cap physical I/O, dead-tuple work, or policy evaluation. The loop does not stop in the middle of a 100-table statement.
 
-It counts real rows. The comment in the source gives the reason for not using `pg_class.reltuples`: the planner estimate is stale between `ANALYZE` runs and is `-1` for a table that has never been analyzed, which is the state of a freshly restored production dump.
+It counts real rows. `pg_class.reltuples` is stale between `ANALYZE` runs and is `-1` for a table that has never been analyzed. A newly restored table can be in that state. It is not guaranteed: an autovacuum pass or a restore workflow can already have analyzed it.
 
-## The schema
+Direct foreign-table candidates are excluded. A count of an ordinary inheritance parent includes descendants, because the query does not use `ONLY`. An inherited row can therefore be counted on both the parent and the child, and a foreign child can still be read through its parent.
 
-Two tables to seed in `public`, and one table in a separate `audit` schema that already holds data:
+In 0.3.11 the same check resolved a schema-qualified name before the privilege test, and a role without `USAGE` on `audit` exited 1. [Pull request 60](https://github.com/PasskeyBridge-LLC/satus/pull/60) (`56cc461`) switched the check to the OID form above. That commit is in the v0.3.12 tag.
+
+## 10,000 rows passes
+
+`DATABASE_URL` for this section is `postgresql://postgres:postgres@127.0.0.1:5433/guard_dev`, with no `satus.config.json` in the working directory.
 
 ```sql
 create table customers (
@@ -39,16 +47,22 @@ create table audit.events (
   id      bigint generated always as identity primary key,
   payload text not null
 );
-```
 
-```sql
 insert into audit.events (payload)
 select 'event ' || g from generate_series(1, 10000) g;
+
+select
+  (select count(*) from audit.events) as audit_events,
+  (select count(*) from customers) as customers,
+  (select count(*) from orders) as orders;
 ```
 
-## 10,000 rows passes, 10,001 does not
-
-With exactly 10,000 rows in `audit.events`, a dry run plans and validates as usual:
+```
+ audit_events | customers | orders 
+--------------+-----------+--------
+        10000 |         0 |      0
+(1 row)
+```
 
 ```
 $ satus generate --dry-run --rows 25
@@ -73,13 +87,53 @@ satus generate
   ✓ no validation findings across 2 tables
 ```
 
-The limit is "more than 10,000". One more row:
+The exit code is 0. The threshold is "more than 10,000".
+
+## 10,001 rows
 
 ```sql
 insert into audit.events (payload) values ('event 10001');
+
+select
+  (select count(*) from audit.events) as audit_events,
+  (select count(*) from customers) as customers,
+  (select count(*) from orders) as orders;
 ```
 
-The dry run now prints a warning on its first line and carries on. It still exits `0`, because a dry run writes nothing:
+```
+ audit_events | customers | orders 
+--------------+-----------+--------
+        10001 |         0 |      0
+(1 row)
+```
+
+The dry run prints a warning and continues. This dry run still exits 0 because its simulated rows have no validation errors. Exceeding the row guard only produces a warning in dry-run mode. A later validation error still exits 2. On `guard_exit2`, `pile` has 10,001 rows and `codes.code` is `char(3)` and `UNIQUE`. The dry run warns and then exits 2:
+
+```
+$ satus generate --dry-run --rows 25
+  ! this database holds more than 10,000 rows; a real run would be refused (exit 11). Use --force to override.
+
+satus generate
+  schema:   public
+  profile:  saas
+  provider: openai
+  model:    gpt-4o-mini
+  rows:     25 per table
+  tables:   codes -> pile
+
+  codes                            25 rows  ~$0.0018
+  pile                             25 rows  ~$0.0009
+
+  estimated cost: $0.0027
+
+  simulating + validating...
+  codes . (dry-run)
+  pile . (dry-run)
+
+  findings: 24 error / 0 warn
+  error codes.code                           unique_duplicate   x24  rows[1,2,3+]
+         Duplicate value in UNIQUE column "code" within the same batch
+```
 
 ```
 $ satus generate --dry-run --rows 25
@@ -105,7 +159,7 @@ satus generate
   ✓ no validation findings across 2 tables
 ```
 
-A real run refuses. It needs a provider key to get as far as the guard, because a missing key is checked first and exits `1`. Here the key is the string `placeholder`: the guard runs before any provider call, so the key is never sent anywhere.
+A real run needs a provider key to reach the guard. A missing key exits 1 first.
 
 ```
 $ OPENAI_API_KEY=placeholder satus generate --rows 25
@@ -116,21 +170,18 @@ Refusing to run: this database already holds more than 10,000 rows across 3 user
   with --force.
 ```
 
-The exit code is `11`. Nothing was written:
+The exit code is 11. The same counts after the refusal:
 
 ```
-$ psql $DATABASE_URL -f count.sql
  audit_events | customers | orders 
 --------------+-----------+--------
         10001 |         0 |      0
 (1 row)
 ```
 
-The message counts three user tables, which includes `audit.events`. The run was asked to seed `public`, and the rows that tripped the guard are in a different schema.
+The message counts three user tables, including `audit.events`. The run was asked to seed `public`. The rows that tripped the guard are in another schema.
 
 ## `--schema` does not narrow the count
-
-`--schema` picks the tables to seed. It does not change what the guard counts:
 
 ```
 $ satus generate --dry-run --rows 25 --schema audit
@@ -154,20 +205,48 @@ satus generate
   ✓ no validation findings across 1 tables
 ```
 
-The guard asks whether the database looks like one you meant to seed. A production database with an empty `staging` schema still holds production data, so the count covers every schema.
+`--schema` chooses the tables to introspect. The guard still counts readable ordinary tables in non-system schemas.
 
-## Materialized views, views and partitioned parents are not counted
+## Relation kinds
 
-Back at 10,000 rows, with a materialized view holding twice that:
+On a fresh database `guard_mat`, `audit.events` has 10,000 rows, `public.customers` is empty, and a materialized view holds 20,000 rows:
+
+```sql
+create materialized view events_copy as
+select g as id, 'c' || g as payload
+from generate_series(1, 20000) g;
+
+select count(*) as events from audit.events;
+select count(*) as matview from events_copy;
+
+select n.nspname, c.relname, c.relkind
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where c.relkind = 'r'
+  and n.nspname not in ('pg_catalog', 'information_schema')
+  and n.nspname not like 'pg\_toast%'
+order by 1, 2;
+```
 
 ```
-$ psql $DATABASE_URL -f matview.sql
-SELECT 20000
-   relname   | relkind | rows  
--------------+---------+-------
- events_copy | m       | 20000
+ events 
+--------
+  10000
 (1 row)
+
+ matview 
+---------
+   20000
+(1 row)
+
+ nspname |  relname  | relkind 
+---------+-----------+---------
+ audit   | events    | r
+ public  | customers | r
+(2 rows)
 ```
+
+`events_copy` is `relkind = 'm'` and is absent from that list. The dry run does not warn:
 
 ```
 $ satus generate --dry-run --rows 25
@@ -178,25 +257,74 @@ satus generate
   provider: openai
   model:    gpt-4o-mini
   rows:     25 per table
-  tables:   customers -> orders
+  tables:   customers
 
   customers                        25 rows  ~$0.0018
-  orders                           25 rows  ~$0.0027
 
-  estimated cost: $0.0045
+  estimated cost: $0.0018
 
   simulating + validating...
   customers . (dry-run)
-  orders . (dry-run)
 
-  ✓ no validation findings across 2 tables
+  ✓ no validation findings across 1 tables
 ```
 
-No warning. A materialized view has `relkind = 'm'`, so its 20,000 rows are not counted. Views (`'v'`) hold no rows of their own. Partitions are ordinary tables (`'r'`) and are counted; their partitioned parent (`'p'`) is not, so a partitioned table's rows are counted once. Foreign tables (`'f'`) are skipped so that the guard does not query another server.
+Views (`'v'`) hold no rows of their own. On `guard_views`, a partitioned parent and one leaf look like this after `audit.events` is back at 10,000 and the leaf has one row:
 
-## A role that cannot read a table
+```
+ nspname |    relname    | relkind 
+---------+---------------+---------
+ audit   | events        | r
+ public  | events_p1     | r
+ public  | events_parent | p
+(3 rows)
+```
 
-The guard only counts tables the role can read. A seeding role with privileges on `public` and none on `audit`:
+The leaf is an ordinary table, so it is counted. The parent is `'p'` and is not. 10,000 plus that one leaf row is over the threshold, and the plan still names the parent, which is what a run seeds:
+
+```
+$ satus generate --dry-run --rows 25
+  ! this database holds more than 10,000 rows; a real run would be refused (exit 11). Use --force to override.
+
+satus generate
+  schema:   public
+  profile:  saas
+  provider: openai
+  model:    gpt-4o-mini
+  rows:     25 per table
+  tables:   events_parent
+
+  events_parent                    25 rows  ~$0.0018
+
+  estimated cost: $0.0018
+
+  simulating + validating...
+  events_parent . (dry-run)
+
+  ✓ no validation findings across 1 tables
+```
+
+A foreign table created with `postgres_fdw` came back as `relkind = 'f'` and did not appear in the guard's candidate list.
+
+Inheritance is a separate case. On `guard_inherit`, `parent_rows` has one row of its own, `child_rows` inherits it and has one row, and `remote_child` is a foreign table that also inherits `parent_rows` and has one row. `select count(*) from parent_rows` returns 3. `select count(*) from only parent_rows` returns 1. The guard's shape of query, without `ONLY`, sums to 4: the parent read sees the local child and the foreign child, and the local child is counted again as its own table. The same sum with `ONLY` on the parent is 2.
+
+```
+ guard_style_total | with_only 
+-------------------+-----------
+                 4 |         2
+(1 row)
+
+   relname    | relkind 
+--------------+---------
+ child_rows   | r
+ parent_rows  | r
+ remote_child | f
+(3 rows)
+```
+
+## A role that cannot read `audit`
+
+In this example the seeding role can read `public` and cannot use `audit`. `DATABASE_URL` for the superuser side is `guard_roles`, where `audit.events` has 10,001 rows and `public` is empty.
 
 ```sql
 create role seeder login password 'seeder';
@@ -204,21 +332,10 @@ grant usage on schema public to seeder;
 grant select, insert, update, delete on all tables in schema public to seeder;
 ```
 
-`audit.events` is back at 10,001 rows. As `seeder`, with no `USAGE` on the `audit` schema, the run does not reach the count:
+As `seeder`, with no `USAGE` on `audit`, 0.3.12 skips `audit.events` and the dry run does not warn:
 
 ```
-$ satus generate --dry-run --rows 25 --dsn postgresql://seeder:seeder@localhost/shop_dev
-error: permission denied for schema audit
-```
-
-The guard casts each table name to `regclass` to pass it to `has_table_privilege`, and that cast fails for a table in a schema the role has no `USAGE` on. In 0.3.11 the run exits `1` in this case. With `USAGE` on the schema and still no `SELECT` on the table:
-
-```
-$ psql -q $DATABASE_URL -c "grant usage on schema audit to seeder"
-```
-
-```
-$ satus generate --dry-run --rows 25 --dsn postgresql://seeder:seeder@localhost/shop_dev
+$ satus generate --dry-run --rows 25 --dsn postgresql://seeder:seeder@127.0.0.1:5433/guard_roles
 
 satus generate
   schema:   public
@@ -240,11 +357,69 @@ satus generate
   ✓ no validation findings across 2 tables
 ```
 
-The guard skips `audit.events`, counts zero rows in `public`, and passes. A role that can read everything trips the guard; a role that can read only the tables it seeds does not. The source states the reasoning: "A role that cannot read a table also cannot be seeding it." When a guard trip does include skipped tables, the refusal message reports how many were skipped for lack of `SELECT` privilege.
+`grant usage on schema audit to seeder` without `SELECT` on `audit.events` prints the same plan and the same absence of a warning. After `grant select on audit.events to seeder`, the dry run warns, because this role can now see the 10,001 rows. In this example the role that can read `audit` trips the guard, and the role that cannot read it does not. Either role trips the guard when the tables it can see exceed 10,000. The implementation comment says a role that cannot read a table is not seeding it. `SELECT` and `INSERT` are separate privileges; that sentence is the reason the guard skips, not a rule Postgres enforces.
+
+When a refusal does skip tables, the message says how many. On `guard_dev`, a role that could read the four ordinary tables that held the rows, and could not read one extra table, produced:
+
+```
+Refusing to run: this database already holds more than 10,000 rows across 4 user table(s) (1 table(s) skipped — no SELECT privilege).
+  satus generate writes rows, and a database this full is usually not the one you meant
+  to seed. Check DATABASE_URL.
+  If it is the right database — a staging environment with real fixtures, say — re-run
+  with --force.
+```
+
+## Row-level security
+
+On `guard_rls`, `visible_rows` has 10,001 rows, RLS is enabled, and the only policy is `using (false)`. The table owner bypasses RLS unless `FORCE ROW LEVEL SECURITY` is set, so the owner's dry run warns. `reader` has `USAGE` on `public` and `SELECT` on the table. Under the policy it sees 0 rows, and its dry run does not warn.
+
+```
+ owner_count 
+-------------
+       10001
+(1 row)
+
+ reader_count 
+--------------
+            0
+(1 row)
+```
+
+## A table with no `ANALYZE` statistics
+
+On a new table of 500 rows, before `ANALYZE`:
+
+```
+ relname  | reltuples | relpages 
+----------+-----------+----------
+ restored |        -1 |        0
+(1 row)
+```
+
+After `ANALYZE`, `reltuples` is 500. The guard does not read `reltuples` either way.
+
+## Which connection string is counted
+
+`guard_dsn_full` has 10,001 rows. `guard_dsn_empty` has the same empty table and no rows. With `DATABASE_URL` pointed at the full database, `--dsn` pointed at the empty one, the dry run does not warn. With no environment variable and a `satus.config.json` whose `databaseUrl` is the full database, the dry run warns. `--dsn` pointed at the empty database overrides that file, and the dry run does not warn. `SATUS_DATABASE_URL` pointed at the empty database overrides `DATABASE_URL` pointed at the full one, and that dry run does not warn either.
+
+## One hundred tables, then a stop
+
+`guard_chunk` has 101 ordinary tables: `a_big` with 10,001 rows, `b01` through `b99` empty, and `c_extra` empty. The refusal names 100 tables, the size of one counting statement, and does not include `c_extra`:
+
+```
+$ OPENAI_API_KEY=placeholder satus generate --rows 25
+Refusing to run: this database already holds more than 10,000 rows across 100 user table(s).
+  satus generate writes rows, and a database this full is usually not the one you meant
+  to seed. Check DATABASE_URL.
+  If it is the right database — a staging environment with real fixtures, say — re-run
+  with --force.
+```
+
+The exit code is 11. `a_big` is the first table in name order and already holds 10,001 rows, and the scanned count is still 100, so the statement finished the chunk before the loop stopped.
 
 ## `--force`
 
-`--force` skips the count entirely. The dry run prints no warning:
+`--force` does not call the count. On `guard_roles`, still at 10,001 rows, the dry run prints no warning:
 
 ```
 $ satus generate --dry-run --rows 25 --force
@@ -269,11 +444,33 @@ satus generate
   ✓ no validation findings across 2 tables
 ```
 
-Use it for a database you know holds real fixtures, such as a staging copy. In CI, exit `11` is distinct from exit `1`, so a pipeline can tell "satus declined to run" from "satus tried and failed".
+## Guard and transaction boundaries
 
-## What the guard does not do
+The guard is not a permission system, and it does not roll anything back. It runs before the write transaction begins. Real-run inserts and updates share one transaction and roll back on failure. Sequence values allocated by ordinary inserts can remain consumed after rollback. On `guard_dev`:
 
-It is not a permission check, and it does not undo anything; the source says so in its header. Rollback is the job of the single transaction every real run uses: a failed run leaves the database as it was. The guard runs before that transaction begins.
+```sql
+create table seqdemo (id integer generated always as identity primary key);
+begin;
+insert into seqdemo default values;
+insert into seqdemo default values;
+rollback;
+select count(*) as rows_after_rollback from seqdemo;
+select last_value, is_called from seqdemo_id_seq;
+```
+
+```
+ rows_after_rollback 
+---------------------
+                   0
+(1 row)
+
+ last_value | is_called 
+------------+-----------
+          2 | t
+(1 row)
+```
+
+`TRUNCATE ... RESTART IDENTITY` inside a transaction is a different case: rolling that statement back restores the identity restart. Ordinary `nextval` allocations are not restored.
 
 The other published v0.x limits still apply to any run that passes the guard: multi-column `UNIQUE` constraints are not enforced during generation, cross-column arithmetic is not reconciled, and there is no `--seed`, so output is not deterministic.
 

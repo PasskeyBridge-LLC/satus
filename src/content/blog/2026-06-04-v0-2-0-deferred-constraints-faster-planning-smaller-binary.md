@@ -123,7 +123,7 @@ For honesty, the four things we considered and explicitly deferred:
 - PostgreSQL documentation, [System Catalogs: `pg_constraint`](https://www.postgresql.org/docs/current/catalog-pg-constraint.html).
 - PostgreSQL documentation, [`WITH` Queries (Common Table Expressions)](https://www.postgresql.org/docs/current/queries-with.html).
 - Kahn, A. B., *Topological sorting of large networks*, Communications of the ACM, 1962. [ACM DL](https://dl.acm.org/doi/10.1145/368996.369025).
-- Earlier in this log: [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [Partitioned tables meet RLS, and nobody wins](/blog/partitioned-tables-meet-rls), [The CITEXT trap in Postgres unique indexes](/blog/the-citext-trap).
+- Earlier in this log: [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [Row-level security on partitioned Postgres tables](/blog/partitioned-tables-meet-rls), [The CITEXT trap in Postgres unique indexes](/blog/the-citext-trap).
 - Release artifact: [`corpus/bench-2026-06-04.json`](https://satus.sh/corpus/bench-2026-06-04.json).
 - Package: [`@passkeybridge/satus` on npm](https://www.npmjs.com/package/@passkeybridge/satus).
 - See also: [quickstart](/quickstart), [profiles](/profiles), [how it works](/docs/how-it-works).

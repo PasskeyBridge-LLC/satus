@@ -1,7 +1,7 @@
 ---
 slug: what-satus-0-3-11-does-with-an-enum-column
-title: What satus 0.3.11 does with a Postgres enum column
-description: satus 0.3.11 treats an enum column as a plain string with no label list. What Postgres allows when an enum changes, and how to seed enum columns today.
+title: What satus 0.3.12 does with a Postgres enum column
+description: satus 0.3.12 maps an enum column to a string and does not read pg_enum. Postgres ADD VALUE, sort order, and a label update that follows new labels.
 date: 2026-11-20
 publishAt: 2026-11-20T09:00:00-05:00
 author: satus.sh
@@ -9,9 +9,11 @@ tags: [postgres, enums, schema, seeding]
 draft: false
 ---
 
-`@passkeybridge/satus@0.3.11` does not read the labels of a Postgres enum type. An enum column is mapped to a JSON string with no list of allowed values, the dry run's simulator fills it with a placeholder that is not a label, and the dry run reports no finding. This post shows that with the shipped CLI, then what Postgres lets you do to an enum after it ships, and a way to seed enum columns with 0.3.11 that does not depend on the model choosing a valid label. Every transcript below ran on PostgreSQL 17.11 with `psql` 17.11, against `@passkeybridge/satus@0.3.11`, with no provider key in the environment.
+`@passkeybridge/satus@0.3.12` does not read the labels of a Postgres enum type. An enum column is mapped to a JSON string with no list of allowed values. The dry run's simulator fills an unconstrained string with `<column>_<n>`, and the dry run reports no finding when that string is not a label. The installed package has no `pg_enum` query and no `EnumOutOfDomain` string.
 
-An earlier post on this blog, [Enum types that grew up](/blog/enum-types-that-grew-up) (2026-06-22), describes satus reading labels from `pg_enum`, weighting them, and an `EnumOutOfDomain` dry-run finding. None of those exist in 0.3.11. This post describes the shipped behaviour.
+Every transcript below ran on 2026-11-06 against PostgreSQL 17.11 (`PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2)`), `psql` 17.11, Node v24.21.0, and `@passkeybridge/satus@0.3.12`, with no provider key. `DATABASE_URL` is `postgresql://postgres:postgres@127.0.0.1:5433/enum_dev`.
+
+An earlier post, [Postgres enum changes and satus enum handling](/blog/enum-types-that-grew-up), used to describe label introspection, weights, and `EnumOutOfDomain`. Those commands are not in this binary. This post is the 0.3.12 behavior.
 
 ## The schema
 
@@ -36,7 +38,6 @@ order by e.enumsortorder;
 ```
 
 ```
-$ psql $DATABASE_URL -f labels.sql
    typname    | enumlabel | enumsortorder 
 --------------+-----------+---------------
  order_status | pending   |             1
@@ -45,30 +46,9 @@ $ psql $DATABASE_URL -f labels.sql
 (3 rows)
 ```
 
-## How satus sees the column
+## What the dry run does with the column
 
-`information_schema.columns` reports the type as `USER-DEFINED`, with the enum's name in `udt_name`:
-
-```sql
-select column_name, data_type, udt_name
-from information_schema.columns
-where table_schema = 'public' and table_name = 'orders'
-order by ordinal_position;
-```
-
-```
-$ psql $DATABASE_URL -f columns.sql
- column_name |        data_type         |   udt_name   
--------------+--------------------------+--------------
- id          | integer                  | int4
- status      | USER-DEFINED             | order_status
- created_at  | timestamp with time zone | timestamptz
-(3 rows)
-```
-
-satus maps a column to a JSON type by `udt_name` in [`schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts). `order_status` matches none of the cases, so it falls through to the default, `{ type: "string" }`. Introspection does not query `pg_enum`, so there is no label list to add. The only extra guidance comes from the column name: a name containing `status` gets the description "A status keyword. Prefer values typical for the domain (active, pending, archived, etc.)." The model is asked for a status keyword and is not told which three are legal.
-
-The dry run passes:
+`status` has no default, so it is a column the model is asked to fill. The property type falls through to string. The description attached when the column name contains `status` is `A status keyword. Prefer values typical for the domain (active, pending, archived, etc.).` The user prompt in `runner.ts` adds `For status / enum-like text columns, choose values that read as plausible domain vocabulary.` The `saas` profile mentions feature-flag and billing-plan words (`free`, `pro`, `team`). None of those is this enum's label list.
 
 ```
 $ satus generate --dry-run --rows 25
@@ -91,162 +71,118 @@ satus generate
   ✓ no validation findings across 1 tables
 ```
 
-The simulator in [`simulate.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/simulate.ts) fills a plain string column with `<column>_<n>`, so the first simulated row has `status = 'status_1'`. The validator's string check covers type and varchar length, and passes it. Postgres does not:
+The exit code is 0. The simulator's string fallback is `` `${name}_${n}` ``, so the first value is `status_1`. Inserting that value fails. Inserting a real label succeeds:
 
 ```sql
-insert into orders (status, created_at)
-values ('status_1', '2026-01-01T00:00:00.000Z');
+insert into orders (status, created_at) values ('status_1', timestamptz '2026-11-06 00:00+00');
+insert into orders (status, created_at) values ('pending', timestamptz '2026-11-06 00:00+00');
 ```
 
 ```
-$ psql $DATABASE_URL -f insert-sim.sql
-psql:insert-sim.sql:2: ERROR:  invalid input value for enum order_status: "status_1"
-LINE 2: values ('status_1', '2026-01-01T00:00:00.000Z');
-                ^
+ERROR:  invalid input value for enum order_status: "status_1"
+LINE 1: insert into orders (status, created_at) values ('status_1', ...
+                                                        ^
+INSERT 0 1
 ```
 
-On a real run, a value outside the enum fails the insert, the transaction rolls back, and the database is left as it was. Whether a given real run hits that depends on what the model returns for that column, which the dry run cannot tell you.
+A real run would send model output to Postgres, which rejects a label that is not in the type. The dry run does not.
 
-## What Postgres allows when an enum changes
+## Adding a label
 
-On PostgreSQL 17, `ALTER TYPE ... ADD VALUE` runs inside a transaction block, but the new label cannot be used until the transaction commits:
+```sql
+alter type order_status add value 'authorized' before 'paid';
+alter type order_status add value 'draft' before 'pending';
+alter type order_status add value 'archived';
+```
+
+```
+ enumlabel  | enumsortorder 
+------------+---------------
+ draft      |             0
+ pending    |             1
+ authorized |           1.5
+ paid       |             2
+ shipped    |             3
+ archived   |             4
+(6 rows)
+```
+
+In this example, adding `authorized` before `paid` gives it `enumsortorder` 1.5. Adding `draft` before the first label and appending `archived` used integers, 0 and 4. Those positions are what this catalog stored. Postgres can also renumber sort positions. Comparison follows `enumsortorder`, so `draft` sorts before `pending` even though `draft` is later in the alphabet.
+
+A new label cannot be used in the transaction that added it:
 
 ```sql
 begin;
-alter type order_status add value 'refunded';
-insert into orders (status, created_at) values ('refunded', now());
+alter type order_status add value 'held';
+insert into orders (status, created_at) values ('held', timestamptz '2026-11-06 00:00+00');
 rollback;
 ```
 
 ```
-$ psql $DATABASE_URL -f add-in-txn.sql
 BEGIN
 ALTER TYPE
-psql:add-in-txn.sql:3: ERROR:  unsafe use of new value "refunded" of enum type order_status
-LINE 1: insert into orders (status, created_at) values ('refunded', ...
+ERROR:  unsafe use of new value "held" of enum type order_status
+LINE 1: insert into orders (status, created_at) values ('held', time...
                                                         ^
 HINT:  New enum values must be committed before they can be used.
 ROLLBACK
 ```
 
-A migration that adds a label and backfills rows with it in the same transaction fails. Split it into two migrations, or two transactions.
+There is still no `ALTER TYPE ... DROP VALUE`. Removing a label means a new type, a rewrite, and a rename. That rewrite takes `ACCESS EXCLUSIVE` on every table that uses the type.
 
-New labels go at the end unless you say otherwise. `BEFORE` and `AFTER` place a label between two others, and Postgres records the position as a fractional `enumsortorder`:
+## Labels the statement follows
 
-```sql
-alter type order_status add value 'refunded';
-alter type order_status add value 'authorized' before 'paid';
-```
-
-```
-$ psql $DATABASE_URL -f labels.sql
-   typname    | enumlabel  | enumsortorder 
---------------+------------+---------------
- order_status | pending    |             1
- order_status | authorized |           1.5
- order_status | paid       |             2
- order_status | shipped    |             3
- order_status | refunded   |             4
-(5 rows)
-```
-
-Comparison and `order by` on an enum column follow `enumsortorder`, not the label text and not the order the labels were added in:
+After the six labels above exist, this reload uses every label, including ones added after the type was created. `1 + (id - 1) % cardinality(...)` walks the array from index 1. A hard-coded `% 5` would skip the sixth label.
 
 ```sql
-select array_agg(s order by s) as sorted
-from unnest(enum_range(null::order_status)) s;
+truncate orders restart identity;
+insert into orders (status, created_at)
+select 'pending', timestamptz '2026-11-06 00:00+00'
+from generate_series(1, 12) g;
 
-select 'shipped'::order_status > 'paid'::order_status as shipped_after_paid,
-       'authorized'::order_status < 'paid'::order_status as authorized_before_paid;
+update orders
+set status = (enum_range(null::order_status))[
+  1 + (id - 1) % cardinality(enum_range(null::order_status))
+];
+
+select status, count(*) from orders group by status order by status;
 ```
 
 ```
-$ psql $DATABASE_URL -f order.sql
-                   sorted                   
---------------------------------------------
- {pending,authorized,paid,shipped,refunded}
-(1 row)
-
- shipped_after_paid | authorized_before_paid 
---------------------+------------------------
- t                  | t
-(1 row)
+TRUNCATE TABLE
+INSERT 0 12
+UPDATE 12
+   status   | count 
+------------+-------
+ draft      |     2
+ pending    |     2
+ authorized |     2
+ paid       |     2
+ shipped    |     2
+ archived   |     2
+(6 rows)
 ```
 
-A label cannot be removed:
+`authorized`, `draft`, and `archived` are in the result. Every row in this table was written by that update. A table that already had other labels would keep them until the same update ran.
+
+If `status` has a default, `schema.ts` omits the column from the generated insert and Postgres applies the default. Every newly inserted `orders` row then uses that default. Rows already in the table are unchanged.
+
+## Excluded lookup rows are absent from the parent pool
 
 ```sql
-alter type order_status drop value 'authorized';
-```
-
-```
-$ psql $DATABASE_URL -f drop.sql
-psql:drop.sql:1: ERROR:  dropping an enum value is not implemented
-LINE 1: alter type order_status drop value 'authorized';
-                                ^
-```
-
-Removing one means creating a new type without it, converting every column that uses the old type, and dropping the old type. A label can be renamed in place, and it keeps its position in the order:
-
-```sql
-alter type order_status rename value 'shipped' to 'dispatched';
-```
-
-```
-$ psql $DATABASE_URL -f rename.sql
-ALTER TYPE
-```
-
-## A lookup table does not help in 0.3.11
-
-The usual alternative to an enum is a lookup table with a foreign key. satus resolves foreign keys from parent rows it inserted in the same run, so it seeds the lookup table too:
-
-```sql
-create table order_statuses (
-  code text primary key
+create table currencies (
+  code char(3) primary key
 );
-insert into order_statuses (code)
-values ('pending'), ('authorized'), ('paid'), ('dispatched'), ('refunded');
+insert into currencies (code) values ('USD'), ('EUR'), ('GBP'), ('JPY'), ('CAD');
 
 create table shipments (
-  id          integer generated always as identity primary key,
-  status_code text not null references order_statuses(code)
+  id integer generated always as identity primary key,
+  currency_code char(3) not null references currencies(code),
+  status order_status not null default 'pending'
 );
 ```
 
-```
-$ satus generate --dry-run --rows 25
-
-satus generate
-  schema:   public
-  profile:  saas
-  provider: openai
-  model:    gpt-4o-mini
-  rows:     25 per table
-  tables:   order_statuses -> orders -> shipments
-
-  order_statuses                   25 rows  ~$0.0009
-  orders                           25 rows  ~$0.0027
-  shipments                        25 rows  ~$0.0018
-
-  estimated cost: $0.0054
-
-  simulating + validating...
-  order_statuses . (dry-run)
-  orders . (dry-run)
-  shipments . (dry-run)
-
-  ✓ no validation findings across 3 tables
-```
-
-`order_statuses` is in the plan with 25 rows to generate, on top of the five real codes. A real run would insert 25 model-generated codes and point `shipments` at those. Excluding the table in `satus.config.json` keeps its rows untouched, but then satus has no parent rows to draw from:
-
-```
-$ cat satus.config.json
-{
-  "exclude": ["order_statuses"]
-}
-```
+Five currency codes are already in the table. With `satus.config.json` containing `{"exclude": ["currencies"]}`, the dry run plans `orders` and `shipments` and then fails, because the FK pool is rows this run inserted, not rows already stored:
 
 ```
 $ satus generate --dry-run --rows 25
@@ -260,79 +196,17 @@ satus generate
   tables:   orders -> shipments
 
   orders                           25 rows  ~$0.0027
-  shipments                        25 rows  ~$0.0018
+  shipments                        25 rows  ~$0.0027
 
-  estimated cost: $0.0045
-
-  simulating + validating...
-  orders . (dry-run)
-  shipments error: No parent rows available for shipments.status_code -> order_statuses.code. Check that order_statuses is in the run set and not excluded.
-```
-
-The run stops with exit `1`.
-
-## Seeding enum columns with 0.3.11
-
-satus leaves out any column the database fills itself, including columns with a `DEFAULT`, so the model is never asked for a value. Starting again from `orders` alone, give `status` a default:
-
-```sql
-alter table orders alter column status set default 'pending';
-```
-
-```
-$ satus generate --dry-run --rows 25
-
-satus generate
-  schema:   public
-  profile:  saas
-  provider: openai
-  model:    gpt-4o-mini
-  rows:     25 per table
-  tables:   orders
-
-  orders                           25 rows  ~$0.0027
-
-  estimated cost: $0.0027
+  estimated cost: $0.0054
 
   simulating + validating...
   orders . (dry-run)
-
-  ✓ no validation findings across 1 tables
+  shipments error: No parent rows available for shipments.currency_code -> currencies.code. Check that currencies is in the run set and not excluded.
 ```
 
-After a seed run, every row has `status = 'pending'`. Spread the rows across the labels with one `UPDATE`, using `enum_range` so the statement follows the type when labels are added. Here 20 rows inserted with `psql` stand in for a seed run's output:
+The exit code is 1. Nothing was written. Removing the exclude puts `currencies` in the plan. The dry run then exits 0 and reports no findings. That does not promise a real run will insert. `code` is a primary key, and the validator's unique-column check reads single-column `UNIQUE` constraints, not primary keys. The simulator caps `char(3)` strings. Existing codes, or repeated generated codes, can still make the insert fail. `orders.status` is still an enum the model is asked to fill when it has no default.
 
-```sql
-insert into orders (created_at)
-select timestamptz '2026-01-01' - g * interval '1 day'
-from generate_series(1, 20) g;
-```
-
-```sql
-update orders
-set status = (enum_range(null::order_status))[1 + id % 5];
-
-select status, count(*)
-from orders
-group by status
-order by status;
-```
-
-```
-$ psql $DATABASE_URL -f spread.sql
-UPDATE 20
-   status   | count 
-------------+-------
- pending    |     4
- authorized |     4
- paid       |     4
- dispatched |     4
- refunded   |     4
-(5 rows)
-```
-
-`enum_range(null::order_status)` returns the labels in `enumsortorder`, so the `UPDATE` uses the type's current labels in their current order, including `authorized`, added with `BEFORE`, and `dispatched`, renamed from `shipped`. A real distribution, for example mostly `paid` with a few `refunded`, is a `case` expression over `id` or `random()` in the same `UPDATE`. Run it in the same script as the seed so that the fixture you snapshot with `pg_dump` has it.
-
-The published v0.x limits apply here too: multi-column `UNIQUE` constraints are not enforced during generation, cross-column arithmetic is not reconciled, and there is no `--seed`, so output is not deterministic.
+The published v0.x limits still apply: multi-column `UNIQUE` constraints are not enforced during generation, cross-column arithmetic is not reconciled, and there is no `--seed`, so output is not deterministic.
 
 Source-visible and commercially licensed. Not open source. See `LICENSE`.

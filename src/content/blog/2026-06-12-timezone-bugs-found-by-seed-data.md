@@ -160,7 +160,7 @@ A uniformly random fixture is statistically smooth and operationally inert: it c
 - PostgreSQL wiki, [Don't Do This—timestamp without time zone](https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don.27t_use_timestamp_.28without_time_zone.29).
 - IANA, [Time Zone Database](https://www.iana.org/time-zones), the source Postgres ships its zone rules from.
 - `pg_cron`, [README](https://github.com/citusdata/pg_cron), for the cron-window scheduling semantics referenced in bug 1.
-- Earlier in this log: [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question), [The CITEXT trap in Postgres unique indexes](/blog/the-citext-trap).
+- Earlier in this log: [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question), [The CITEXT trap in Postgres unique indexes](/blog/the-citext-trap).
 - The corpus underlying satus's structural detectors: [`corpus/audit-2026-06-01.json`](https://satus.sh/corpus/audit-2026-06-01.json) (5 schemas, 151 tables, 1,095 columns, 227 FKs, Postgres 17).
 - See also: [satus profiles](/profiles), [quickstart](/quickstart).
 

@@ -1,7 +1,7 @@
 ---
 slug: how-the-dry-run-cost-estimate-is-calculated
 title: How the dry-run cost estimate is calculated
-description: A 125-row dry run is quoted at two cents. Three measured runs cost seven hundredths of a cent. The estimator over-quotes by 31x; this post shows the arithmetic.
+description: A 125-row dry run is quoted at two cents. Three measured runs cost seven hundredths of a cent. The estimator over-quotes by 31x; the arithmetic is below.
 date: 2026-09-11
 publishAt: 2026-09-11T09:00:00-04:00
 author: satus.sh

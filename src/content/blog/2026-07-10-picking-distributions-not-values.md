@@ -1,6 +1,6 @@
 ---
 slug: picking-distributions-not-values
-title: "Profile design 101: pick distributions, not values"
+title: How satus profiles describe data distributions
 description: How we add a new vertical to satus: name the distributions and correlations first, and only then sample values. An internal design doc, published.
 date: 2026-07-10
 author: satus.sh
@@ -8,13 +8,13 @@ tags: [profile, methodology, distributions, postgres, seeding]
 draft: false
 ---
 
-> **Editor's note (2026-07-16):** References to a `medical-booking` profile and to profiles that "carry conditioners" describe design intent from mid-2026. The shipped CLI (v0.3.5) uses simpler prompt-based profiles — `saas`, `ecommerce`, `b2b` — see [/profiles](/profiles). The distribution-modeling argument (correlate, don't sample independently) is the durable point.
+> **Editor's note (2026-07-16):** References to a `medical-booking` profile and to profiles that "carry conditioners" describe design intent from mid-2026. The shipped CLI (v0.3.5) uses simpler prompt-based profiles—`saas`, `ecommerce`, `b2b`—see [/profiles](/profiles). The distribution-modeling argument (correlate, don't sample independently) is the durable point.
 
 
 
 When we design a new profile for [satus](/), we do not start with sample rows. We start with a list of column shapes, a distribution family for each shape, and a shorter list of correlations between them. Values are the last thing we write, because values without a distribution behind them are trivia, and trivia is what generic fakers already ship. This post is the internal design doc we hand a new contributor on their first day, made public without much editing.
 
-The doc leans on three earlier posts. The critique of value-first fakers lives in [When faker is the wrong answer](/blog/when-faker-is-the-wrong-answer). The reason a fixture has to match Postgres's planner statistics, not just its constraints, is in the [ecommerce profile deep-dive](/blog/ecommerce-profile). The state-flag heuristic that lets us fill most timestamp columns with NULL without lying is in [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question). If you have read those three, the rest of this post is the workflow that ties them together.
+The doc leans on three earlier posts. The critique of value-first fakers lives in [When faker is the wrong answer](/blog/when-faker-is-the-wrong-answer). The reason a fixture has to match Postgres's planner statistics, not just its constraints, is in the [ecommerce profile deep-dive](/blog/ecommerce-profile). The state-flag heuristic that lets us fill most timestamp columns with NULL without lying is in [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question). If you have read those three, the rest of this post is the workflow that ties them together.
 
 ## The heuristic in one sentence
 
