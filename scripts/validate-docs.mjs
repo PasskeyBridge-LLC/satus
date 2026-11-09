@@ -98,7 +98,7 @@ const DOC_FILES = [
   ...readdirSync(join(ROOT, "src/routes"))
     .filter((f) => f.endsWith(".tsx"))
     .map((f) => `src/routes/${f}`),
-  "public/llms.txt",
+  "src/content/llms.txt",
   "README.md",
   "packages/cli/README.md",
   "packages/action/README.md",

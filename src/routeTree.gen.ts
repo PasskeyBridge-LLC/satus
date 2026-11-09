@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CliRouteImport } from './routes/cli'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfilesRouteImport } from './routes/profiles'
@@ -63,6 +64,11 @@ const CompareRoute = CompareRouteImport.update({
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/cli': typeof CliRoute
   '/compare': typeof CompareRoute
   '/demo': typeof DemoRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/profiles': typeof ProfilesRoute
@@ -268,6 +275,7 @@ export interface FileRoutesByTo {
   '/cli': typeof CliRoute
   '/compare': typeof CompareRoute
   '/demo': typeof DemoRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/profiles': typeof ProfilesRoute
@@ -306,6 +314,7 @@ export interface FileRoutesById {
   '/cli': typeof CliRoute
   '/compare': typeof CompareRoute
   '/demo': typeof DemoRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/profiles': typeof ProfilesRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/cli'
     | '/compare'
     | '/demo'
+    | '/llms.txt'
     | '/pricing'
     | '/privacy'
     | '/profiles'
@@ -382,6 +392,7 @@ export interface FileRouteTypes {
     | '/cli'
     | '/compare'
     | '/demo'
+    | '/llms.txt'
     | '/pricing'
     | '/privacy'
     | '/profiles'
@@ -419,6 +430,7 @@ export interface FileRouteTypes {
     | '/cli'
     | '/compare'
     | '/demo'
+    | '/llms.txt'
     | '/pricing'
     | '/privacy'
     | '/profiles'
@@ -457,6 +469,7 @@ export interface RootRouteChildren {
   CliRoute: typeof CliRoute
   CompareRoute: typeof CompareRoute
   DemoRoute: typeof DemoRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfilesRoute: typeof ProfilesRoute
@@ -518,6 +531,13 @@ declare module '@tanstack/react-router' {
       path: '/demo'
       fullPath: '/demo'
       preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -745,6 +765,7 @@ const rootRouteChildren: RootRouteChildren = {
   CliRoute: CliRoute,
   CompareRoute: CompareRoute,
   DemoRoute: DemoRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProfilesRoute: ProfilesRoute,

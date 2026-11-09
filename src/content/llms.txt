@@ -45,7 +45,7 @@ export OPENAI_API_KEY=sk-...        # or ANTHROPIC_API_KEY=sk-ant-... (pick one)
 
 - Free tier: 25 rows/table, 5 tables, no activation needed. Pro/Team (via https://satus.sh/pricing) remove the caps.
 - Exit codes: `0` success, `1` error (connection, config, LLM, budget), `2` dry-run validation findings.
-- Known v0.x limits, stated honestly: multi-column unique constraints are not enforced during generation; cross-column arithmetic (e.g. order totals summing from line items) is not reconciled; LLM output is not deterministic and there is no --seed flag — snapshot seeded state with pg_dump for reproducible fixtures.
+- Known v0.x limits: multi-column unique constraints are not enforced during generation; cross-column arithmetic (e.g. order totals summing from line items) is not reconciled; LLM output is not deterministic and there is no --seed flag — snapshot seeded state with pg_dump for reproducible fixtures.
 
 ## GitHub Action
 
