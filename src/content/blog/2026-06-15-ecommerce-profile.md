@@ -9,7 +9,7 @@ tags: [profile, ecommerce, distributions, postgres, seeding]
 draft: false
 ---
 
-> **Editor's note (2026-07-16):** This post describes profile-system design intent from mid-2026. The shipped CLI (v0.3.5) uses prompt-based profiles — `saas`, `ecommerce`, `b2b` — with no YAML profile files or per-profile invariant enforcement beyond the user's Postgres constraints. See [/profiles](/profiles) for the current behavior. The post is preserved for its distribution-modeling arguments.
+> **Editor's note (2026-07-16):** This post describes profile-system design intent from mid-2026. The shipped CLI (v0.3.5) uses prompt-based profiles—`saas`, `ecommerce`, `b2b`—with no YAML profile files or per-profile invariant enforcement beyond the user's Postgres constraints. See [/profiles](/profiles) for the current behavior. The post is preserved for its distribution-modeling arguments.
 
 
 
@@ -83,7 +83,7 @@ items per order, default profile (illustrative shape, not a measurement)
  26+                                                 <0.01% (rare, not zero)
 ```
 
-The "rare, not zero" row in the long tail is the row that catches code paths the team forgot existed. We have watched the same bug get reported twice: a checkout endpoint that builds a single SQL statement per line item, hits the prepared-statement parameter limit somewhere north of 65 thousand placeholders ([PostgreSQL documentation: Frontend/Backend Protocol — Bind](https://www.postgresql.org/docs/current/protocol-message-formats.html)), and 500s on a basket that production has actually seen. Uniform fixtures never produced the row that reproduces the bug.
+The "rare, not zero" row in the long tail is the row that catches code paths the team forgot existed. We have watched the same bug get reported twice: a checkout endpoint that builds a single SQL statement per line item, hits the prepared-statement parameter limit somewhere north of 65 thousand placeholders ([PostgreSQL documentation: Frontend/Backend Protocol—Bind](https://www.postgresql.org/docs/current/protocol-message-formats.html)), and 500s on a basket that production has actually seen. Uniform fixtures never produced the row that reproduces the bug.
 
 ## Returns and the long tail of categories
 
@@ -112,7 +112,7 @@ ALTER TABLE order_items
 
 The first is a plain `CHECK` and we always honour it. The second is a `GENERATED ALWAYS AS ... STORED` column, which Postgres has shipped since version 12 ([PostgreSQL documentation: Generated Columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html)). When a generated column is present, `satus` never writes to it; the database computes it and the fixture and the application agree by construction. When it is absent, we write a value that satisfies the obvious arithmetic, and we print a planner-time warning that this is the kind of column you almost certainly want generated.
 
-For currency, we store integer minor units (`bigint`, cents) rather than `numeric(10,2)` by default, because integer arithmetic does not lose pennies under aggregation and because that is what a long line of payment-processing literature recommends. The Postgres-side argument is that `numeric` is exact but slow and that floating-point money is a known antipattern ([PostgreSQL Wiki: Don't Do This — Don't use money](https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don.27t_use_money)). If your schema uses `numeric(10,2)` we respect it; if it uses `money` we sample it and we warn.
+For currency, we store integer minor units (`bigint`, cents) rather than `numeric(10,2)` by default, because integer arithmetic does not lose pennies under aggregation and because that is what a long line of payment-processing literature recommends. The Postgres-side argument is that `numeric` is exact but slow and that floating-point money is a known antipattern ([PostgreSQL Wiki: Don't Do This—Don't use money](https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don.27t_use_money)). If your schema uses `numeric(10,2)` we respect it; if it uses `money` we sample it and we warn.
 
 ## Multi-currency, which the profile mostly avoids
 
@@ -133,7 +133,7 @@ A user who needs any of these can override the relevant column in their own prof
 
 ## State-flag columns, briefly
 
-The `ecommerce` profile, like the others, leans on the heuristic introduced in [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question) for filling timestamp-shaped state-flag columns. Restating the table from that post for ease of reference:
+The `ecommerce` profile, like the others, leans on the heuristic introduced in [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question) for filling timestamp-shaped state-flag columns. Restating the table from that post for ease of reference:
 
 | Profile | State-flag columns hit | Median `frac_null` | Range |
 | --- | --- | --- | --- |
@@ -168,12 +168,12 @@ If you are seeding an ecommerce-shaped schema and the default profile is wrong f
 
 - PostgreSQL documentation, [Statistics Used by the Planner](https://www.postgresql.org/docs/current/planner-stats.html).
 - PostgreSQL documentation, [Generated Columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html).
-- PostgreSQL documentation, [Frontend/Backend Protocol — Message Formats](https://www.postgresql.org/docs/current/protocol-message-formats.html).
-- PostgreSQL Wiki, [Don't Do This — Don't use money](https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don.27t_use_money).
+- PostgreSQL documentation, [Frontend/Backend Protocol—Message Formats](https://www.postgresql.org/docs/current/protocol-message-formats.html).
+- PostgreSQL Wiki, [Don't Do This—Don't use money](https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don.27t_use_money).
 - ISO, [4217 Currency codes](https://www.iso.org/iso-4217-currency-codes.html).
 - Newman, M. E. J. (2005), "Power laws, Pareto distributions and Zipf's law", *Contemporary Physics* 46(5):323–351. [arXiv:cond-mat/0412004](https://arxiv.org/abs/cond-mat/0412004).
 - Anderson, C. (2004), "The Long Tail", *Wired* 12.10. [Original article](https://www.wired.com/2004/10/tail/).
 - Wikipedia, [Zipf's law](https://en.wikipedia.org/wiki/Zipf%27s_law).
-- Earlier in this log: [Inside the medical-booking profile](/blog/medical-booking-profile), [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question), [Three timezone bugs we found by seeding production-shaped data](/blog/timezone-bugs-found-by-seed-data), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild).
+- Earlier in this log: [Inside the medical-booking profile](/blog/medical-booking-profile), [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question), [Three timezone bugs we found by seeding production-shaped data](/blog/timezone-bugs-found-by-seed-data), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild).
 
 —the satus.sh team

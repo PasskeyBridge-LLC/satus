@@ -94,11 +94,11 @@ The rest of the [agent-mode roadmap](/blog/agent-mode-postponed) still stands, w
 
 ## References
 
-- [GitHub Action reference](/docs/github-action) — canonical inputs, outputs, and security notes
-- [v0.3.3 roadmap](/blog/v0-3-3-github-action) — original design record (superseded by this post)
-- [Agent mode, postponed to v0.5](/blog/agent-mode-postponed) — the v0.4.0 plan the fingerprint field is built for
-- [v0.3.0 release notes](/blog/v0-3-0-anthropic-and-machine-readable-output) — provider auto-detect and env-var conventions the Action inherits
-- [Introducing the log](/blog/introducing-the-log) — corpus audit fixtures used in the Action self-test
+- [GitHub Action reference](/docs/github-action)—canonical inputs, outputs, and security notes
+- [v0.3.3 roadmap](/blog/v0-3-3-github-action)—original design record (superseded by this post)
+- [Agent mode, postponed to v0.5](/blog/agent-mode-postponed)—the v0.4.0 plan the fingerprint field is built for
+- [v0.3.0 release notes](/blog/v0-3-0-anthropic-and-machine-readable-output)—provider auto-detect and env-var conventions the Action inherits
+- [Introducing the log](/blog/introducing-the-log)—corpus audit fixtures used in the Action self-test
 - [`@passkeybridge/satus` on npm](https://www.npmjs.com/package/@passkeybridge/satus)
 - [GitHub Actions: composite action docs](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action)
 - [GitHub Actions: security hardening](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions)

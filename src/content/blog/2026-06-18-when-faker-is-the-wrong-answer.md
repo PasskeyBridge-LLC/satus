@@ -68,9 +68,9 @@ A test fixture sampled uniformly will exercise the equally-likely paths through 
 
 ### 5. Constraints the database actually enforces
 
-`NOT NULL`, `CHECK`, `EXCLUDE`, partial indexes, generated columns, domain constraints. None of these are visible to faker, because faker is not looking at the schema. We covered the CHECK case at length in [Check constraints that lie](/blog/check-constraints-that-lie); the short version is that a generator that does not read `pg_constraint` will produce rows the database rejects, and a generator that reads `pg_constraint` is no longer faker.
+`NOT NULL`, `CHECK`, `EXCLUDE`, partial indexes, generated columns, domain constraints. None of these are visible to faker, because faker is not looking at the schema. We covered the CHECK case at length in [Postgres CHECK constraints: NULL and validation](/blog/check-constraints-that-lie); the short version is that a generator that does not read `pg_constraint` will produce rows the database rejects, and a generator that reads `pg_constraint` is no longer faker.
 
-The nullable-vs-not-nullable case is its own essay: see [NULL vs NOT NULL is not the question](/blog/null-vs-not-null-is-not-the-question). The partitioning case is in [Partitioned tables meet RLS](/blog/partitioned-tables-meet-rls). Each one is a place where a faker user ends up writing schema-aware code around a schema-unaware library.
+The nullable-vs-not-nullable case is its own essay: see [How nullable columns affect seed data](/blog/null-vs-not-null-is-not-the-question). The partitioning case is in [Row-level security on partitioned Postgres tables](/blog/partitioned-tables-meet-rls). Each one is a place where a faker user ends up writing schema-aware code around a schema-unaware library.
 
 ## Two problems, not one
 
@@ -93,7 +93,7 @@ We use faker internally, in exactly one place: as a fallback dictionary for valu
 - how many rows per table, derived from row-count hints and the profile's parent/child ratios,
 - which values must be unique and which can repeat, derived from the index definitions,
 - which distributions to draw from, derived from the profile,
-- which constraints constrain the sampler vs which are advisory, derived from `pg_constraint` and the rules in [Check constraints that lie](/blog/check-constraints-that-lie),
+- which constraints constrain the sampler vs which are advisory, derived from `pg_constraint` and the rules in [Postgres CHECK constraints: NULL and validation](/blog/check-constraints-that-lie),
 - which rows must be consistent with which other cells in the same row, derived from the profile's correlation hints.
 
 faker provides one of those: dictionaries. Everything else is the actual product. We are happy to recommend faker for the cases where dictionaries are all you need, and equally happy to point out that almost no production-shaped fixture is one of those cases.

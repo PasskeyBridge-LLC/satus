@@ -144,13 +144,13 @@ Multi-column `UNIQUE` constraints are not enforced during generation either, and
 
 The working arrangement is that fixtures own the rows tests assert on and generation owns the volume around them, and the seam between the two has one rule the runner enforces.
 
-In `satus.config.json`, `exclude` lists tables the run must not touch. That is the right place for a fixture-owned `plans` or `feature_flags` table. What it does not do is make the generator read the rows already in that table: parent values are drawn only from rows the run itself inserted. In `packages/cli/src/generate/runner.ts`, a generated row whose `NOT NULL` foreign key points at a table with no generated rows fails the run —
+In `satus.config.json`, `exclude` lists tables the run must not touch. That is the right place for a fixture-owned `plans` or `feature_flags` table. What it does not do is make the generator read the rows already in that table: parent values are drawn only from rows the run itself inserted. In `packages/cli/src/generate/runner.ts`, a generated row whose `NOT NULL` foreign key points at a table with no generated rows fails the run—
 
 ```text
 No parent rows available for orders.customer_id -> customers.id. Check that customers is in the run set and not excluded.
 ```
 
-— and a *nullable* foreign key into such a table is written as `NULL`. So a table can be fixture-owned and excluded when nothing generated points at it with a required key. When something does, the excluded table's rows are invisible to the run, and the honest choice is to let generation own that table as well.
+—and a *nullable* foreign key into such a table is written as `NULL`. So a table can be fixture-owned and excluded when nothing generated points at it with a required key. When something does, the excluded table's rows are invisible to the run, and the honest choice is to let generation own that table as well.
 
 `--truncate` respects the same boundary. It clears only the tables in the run set, and when a table outside the run set holds a foreign key into one being truncated it stops instead of cascading. The refusal, from `packages/cli/src/generate/writer.ts`, says why: "satus will not TRUNCATE ... CASCADE, because that would also empty a table you did not ask it to seed." That guard exists because through [0.3.6](/blog/v0-3-7-release-notes) the command cascaded into excluded tables, which is exactly the fixture-owned data this arrangement is meant to protect.
 

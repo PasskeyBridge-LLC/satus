@@ -88,7 +88,7 @@ The deterministic CLI is the product. The agent is a layer on top of it. v0.5 is
 
 - [satus dry-run validator (v0.3)](/blog/dry-run-validation)
 - [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild)
-- [Enum types that grew up](/blog/enum-types-that-grew-up)
+- [Postgres enum changes and satus enum handling](/blog/enum-types-that-grew-up)
 - [v0.3.0 release notes](/blog/v0-3-0-anthropic-and-machine-readable-output)
 - [AI SDK · Building Agents](https://ai-sdk.dev/docs/agents/building-agents.md)
 - [AI SDK · Loop control and `stopWhen`](https://ai-sdk.dev/docs/agents/loop-control.md)

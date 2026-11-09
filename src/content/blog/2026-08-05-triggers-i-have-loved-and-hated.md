@@ -1,6 +1,6 @@
 ---
 slug: triggers-i-have-loved-and-hated
-title: Triggers I have loved and hated
+title: Postgres triggers and seeded data
 description: Audit, denormalization, and validation triggers each break a Postgres seed run differently. What actually happens, measured on PostgreSQL 17.9.
 date: 2026-08-05
 author: satus.sh
@@ -62,7 +62,7 @@ The `TRUNCATE` fired nothing. Row-level triggers do not fire on `TRUNCATE`; only
 
 The fix is boring and it works: put the audit table in `exclude` in `satus.config.json` so satus never seeds it directly, and truncate it yourself in the same script that calls satus if you want a clean slate.
 
-> **Update, 2026-08-10.** As published, this section said satus truncates with `TRUNCATE ... RESTART IDENTITY CASCADE` and explained that an audit table with no foreign key back to the audited table falls outside the cascade graph and therefore survives. That was accurate for v0.3.6 and earlier, and the advice above was correct — but it only held because the audit table in this example has no FK. Give it one (`audit_rows.project_id references projects(id)`, a perfectly ordinary design) and `CASCADE` would have emptied it, with nothing louder than a `NOTICE`. [v0.3.7](/blog/v0-3-7-release-notes) drops `CASCADE`: satus now refuses to truncate rather than reach outside the run set. The paragraph has been corrected to describe current behaviour.
+> **Update, 2026-08-10.** As published, this section said satus truncates with `TRUNCATE ... RESTART IDENTITY CASCADE` and explained that an audit table with no foreign key back to the audited table falls outside the cascade graph and therefore survives. That was accurate for v0.3.6 and earlier, and the advice above was correct—but it only held because the audit table in this example has no FK. Give it one (`audit_rows.project_id references projects(id)`, a perfectly ordinary design) and `CASCADE` would have emptied it, with nothing louder than a `NOTICE`. [v0.3.7](/blog/v0-3-7-release-notes) drops `CASCADE`: satus now refuses to truncate rather than reach outside the run set. The paragraph has been corrected to describe current behaviour.
 
 ### 3. Denormalization triggers
 
@@ -93,7 +93,7 @@ orgs seeded with project_count = 7
 
 Nine stored, two actual. Nothing errored. No constraint was violated. Every dashboard reading that counter is now wrong, and the only signal is that the number looks slightly off. Add the counter column to a `CHECK` if you can, or accept that denormalized counters need a reconciliation pass after seeding: `update orgs set project_count = (select count(*) from projects p where p.org_id = orgs.id)`.
 
-This is the same failure shape as the one in [CHECK constraints that lie](/blog/check-constraints-that-lie): the database accepted the row, so the tool believes it succeeded.
+This is the same failure shape as the one in [Postgres CHECK constraints: NULL and validation](/blog/check-constraints-that-lie): the database accepted the row, so the tool believes it succeeded.
 
 ### 4. Validation triggers
 
@@ -152,6 +152,6 @@ Triggers are the part of a schema that a catalog read cannot summarize. satus wi
 - Measured on PostgreSQL 17.9, three-table schema, `pg_ctl`-managed local cluster. All output in this post is verbatim `psql` output.
 - PostgreSQL documentation: [Trigger behavior overview](https://www.postgresql.org/docs/current/trigger-definition.html), [`CREATE TRIGGER`](https://www.postgresql.org/docs/current/sql-createtrigger.html), [`pg_trigger`](https://www.postgresql.org/docs/current/catalog-pg-trigger.html), [`TRUNCATE`](https://www.postgresql.org/docs/current/sql-truncate.html).
 - Source: [`writer.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/writer.ts) for the transactional insert path, [`schema.ts`](https://github.com/PasskeyBridge-LLC/satus/blob/main/packages/cli/src/generate/schema.ts) for the defaulted-column skip rule.
-- Related: [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [CHECK constraints that lie](/blog/check-constraints-that-lie), [Generated columns are load-bearing now](/blog/generated-columns-are-load-bearing-now), [What pg_dump doesn't tell you about your own schema](/blog/what-pg-dump-doesnt-tell-you).
+- Related: [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [Postgres CHECK constraints: NULL and validation](/blog/check-constraints-that-lie), [How satus handles generated columns](/blog/generated-columns-are-load-bearing-now), [What pg_dump doesn't tell you about your own schema](/blog/what-pg-dump-doesnt-tell-you).
 
 —the satus.sh team

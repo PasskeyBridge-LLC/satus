@@ -131,7 +131,7 @@ There are three honest ways to seed an RLS-protected schema without leaking tena
 
 The first row is the one to reach for. Connect as a role that has neither `BYPASSRLS` nor table ownership, open one transaction per tenant, issue `SET LOCAL app.tenant_id = '<uuid>'` (or whatever per-session GUC the policy reads), and write that tenant's rows inside that transaction. The pattern of one-transaction-per-tenant is also what the application does at runtime; the closer the seed path is to the request path, the fewer surprises move from one to the other.
 
-The longer treatment of why RLS on a partitioned parent does not propagate to children, and why that matters for seed jobs, is in [Partitioned tables meet RLS, and nobody wins](/blog/partitioned-tables-meet-rls).
+The longer treatment of why RLS on a partitioned parent does not propagate to children, and why that matters for seed jobs, is in [Row-level security on partitioned Postgres tables](/blog/partitioned-tables-meet-rls).
 
 ## The checklist for a multi-tenant seed run
 
@@ -163,4 +163,4 @@ If you want to see the rules in action, point [`satus generate --dry-run`](/blog
 - PostgreSQL documentation, [Foreign Keys](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-FK).
 - PostgreSQL documentation, [`SET` and `current_setting`](https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SET).
 - PostgreSQL documentation, [`pg_catalog.pg_policy`](https://www.postgresql.org/docs/current/catalog-pg-policy.html).
-- Prior on this blog: [Partitioned tables meet RLS, and nobody wins](/blog/partitioned-tables-meet-rls), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [A $0 dry-run that catches FK and constraint bugs before the LLM call](/blog/dry-run-validation).
+- Prior on this blog: [Row-level security on partitioned Postgres tables](/blog/partitioned-tables-meet-rls), [Cyclic foreign keys in the wild](/blog/cyclic-fks-in-the-wild), [A $0 dry-run that catches FK and constraint bugs before the LLM call](/blog/dry-run-validation).
