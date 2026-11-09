@@ -1,14 +1,14 @@
 # HANDOFF
 
-Written 2026-11-09 after Joel closed the weekly E2E items. Replace this file next session; do not append.
+Written 2026-11-09 after Joel's weekly E2E decisions shipped. Replace this file next session; do not append.
 
 ## State
 
-`main` is `d540c93` until the ledger PR squash-merges. Production `dpl_ADAJ9SmaWZe75eak3hD2yX3yAhGy` is READY for that SHA and aliases `satus.sh`. Published npm `latest` is 0.3.12. `next` still points at `0.3.11-orgmove.0` (no npm auth on this agent).
+`main` is `bbb0658` (blog-accuracy #81). Production for that SHA is `dpl_HEPVQoPFzuzT9w7eXmJiqPpgWHaf`. Earlier today: ledger #78 `e0f7806` / `dpl_arcHE2AU4DdZjGU3yPh6an28k6vV`; ST-3 #79 `4836645` / `dpl_CkGSnVDp4mht7r2p372AbsrhnyiA`; test-db #80 `27a96ea` / `dpl_24F8kcxSfNMsJPCqTdhDK1ixz3CT`. Published npm `latest` is 0.3.12. `next` still points at `0.3.11-orgmove.0`.
 
 ## Left open on purpose
 
-ST-W-2026-10-26-1: automate the May–July hold in `scripts/test-db.sh`. Do not repair hosted `schema_migrations`. ST-3 structured log follow-up. Blog-accuracy branch still needed.
+Joel still runs `npm dist-tag add @passkeybridge/satus@0.3.12 next`. Next week's S1 issuance needs sandbox Stripe secrets and the Stripe CLI on the agent. ST-W-2026-10-26-1 is fixed in #80; hosted `schema_migrations` was not repaired.
 
 ## Flags
 
@@ -16,10 +16,9 @@ ST-W-2026-10-26-1: automate the May–July hold in `scripts/test-db.sh`. Do not 
 
 ## Graduated this session
 
-Joel 2026-11-09: old npm tokens deleted; Auth leaked-password protection ON (ST-15); ST-8 82 rows kept; ST-3 accepted (lookup still decides validity). Recorded in the 2026-11-09 ledger.
+ST-15 leaked-password ON; old npm tokens deleted; ST-8 82 rows kept; ST-3 accepted (lookup decides validity, structured log in #79); test-db May–July hold in #80; 0.3.12 blog notes in #81. Deleted `origin/cursor/blog-accuracy-0312-9369` after #81 merged.
 
 ## Next
 
-1. Squash-merge the ledger PR once CI is green at HEAD.
-2. ST-3 structured log PR. ST-W-2026-10-26-1 test-db.sh PR. Rebase blog-accuracy.
-3. Joel runs `npm dist-tag add @passkeybridge/satus@0.3.12 next` and adds sandbox Stripe secrets plus the Stripe CLI for next week's S1 issuance.
+1. Joel: `npm dist-tag add @passkeybridge/satus@0.3.12 next` (granular dist-tag token on `@passkeybridge/satus`).
+2. Joel: add `STRIPE_SANDBOX_SECRET_KEY` and `PAYMENTS_SANDBOX_WEBHOOK_SECRET` to this cloud agent, and install the Stripe CLI, for next week's S1 issuance.
