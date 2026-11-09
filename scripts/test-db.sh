@@ -3,7 +3,11 @@
 # project or to https://satus.sh.
 #
 #   scripts/test-db.sh           start (or reuse) the stack and write .env.local
-#   scripts/test-db.sh --reset   replay all migrations and the synthetic seed
+#   scripts/test-db.sh --reset   replay remaining migrations and the synthetic seed
+#
+# May–July historical copies are held aside during start/reset and restored
+# on EXIT. Hosted schema_migrations is never written. Migration files are
+# not renamed or deleted in git.
 #
 # Supabase local DB is 127.0.0.1:54322. The CLI throwaway (pagila on
 # pgvector/pgvector:pg18) is 127.0.0.1:5432, matching action-selftest.yml.
@@ -114,6 +118,41 @@ ensure_pagila() {
     -c "CREATE TABLE IF NOT EXISTS payment_pdefault PARTITION OF payment DEFAULT;" >/dev/null
 }
 
+# August baselines recreate the May–July schema. Applying both dies on
+# `waitlist_tier` already exists. Hosted `schema_migrations` still has the
+# August rows, not these copies. Move the copies aside for local start and
+# always put them back. Do not rename or delete them in git, and do not
+# change hosted `schema_migrations`.
+HOLD_DIR=""
+
+restore_held_migrations() {
+  local files=()
+  if [[ -z "${HOLD_DIR}" || ! -d "${HOLD_DIR}" ]]; then
+    HOLD_DIR=""
+    return 0
+  fi
+  shopt -s nullglob
+  files=( "${HOLD_DIR}"/*.sql )
+  shopt -u nullglob
+  if (( ${#files[@]} > 0 )); then
+    mv "${files[@]}" "${ROOT}/supabase/migrations/"
+  fi
+  rmdir "${HOLD_DIR}" 2>/dev/null || true
+  HOLD_DIR=""
+}
+
+hold_may_july_copies() {
+  local files=()
+  shopt -s nullglob
+  files=( "${ROOT}/supabase/migrations"/20260{5,6,7}*.sql )
+  shopt -u nullglob
+  if (( ${#files[@]} == 0 )); then
+    return 0
+  fi
+  HOLD_DIR="$(mktemp -d "${TMPDIR:-/tmp}/satus-test-db-hold.XXXXXX")"
+  mv "${files[@]}" "${HOLD_DIR}/"
+}
+
 write_env() {
   local status tmp
   status="$(supabase status -o env)"
@@ -154,6 +193,9 @@ write_env() {
 cd "$ROOT"
 ensure_docker
 ensure_pagila
+
+trap restore_held_migrations EXIT
+hold_may_july_copies
 
 if [[ "$RESET" -eq 1 ]]; then
   supabase start >/tmp/supabase-start.log
