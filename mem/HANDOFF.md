@@ -1,16 +1,14 @@
 # HANDOFF
 
-Written 2026-11-02 after the weekly E2E (Heavy) pass. Replace this file next session; do not append.
+Written 2026-11-09 after Joel closed the weekly E2E items. Replace this file next session; do not append.
 
 ## State
 
-`main` is `2751125` (`Rename the dry-run cost post slug and 301 the old URL`, PR #72). Production `dpl_EzzjQPfAaooqZYu8G6yN1ot3Rue1` is READY for that SHA and aliases `satus.sh`. Published npm `latest` is 0.3.12. Dist-tags were not moved. `next` still points at `0.3.11-orgmove.0`.
-
-This session wrote the 2026-11-02 weekly ledger on a PR. Joel reviews and merges. No npm publish. No product code change.
+`main` is `d540c93` until the ledger PR squash-merges. Production `dpl_ADAJ9SmaWZe75eak3hD2yX3yAhGy` is READY for that SHA and aliases `satus.sh`. Published npm `latest` is 0.3.12. `next` still points at `0.3.11-orgmove.0` (no npm auth on this agent).
 
 ## Left open on purpose
 
-Nothing new besides the ledger items.
+ST-W-2026-10-26-1: automate the May–July hold in `scripts/test-db.sh`. Do not repair hosted `schema_migrations`. ST-3 structured log follow-up. Blog-accuracy branch still needed.
 
 ## Flags
 
@@ -18,9 +16,10 @@ Nothing new besides the ledger items.
 
 ## Graduated this session
 
-The 2026-10-29 note that the dry-run cost slug PR was waiting. #72 merged. Nothing else moved into mem/.
+Joel 2026-11-09: old npm tokens deleted; Auth leaked-password protection ON (ST-15); ST-8 82 rows kept; ST-3 accepted (lookup still decides validity). Recorded in the 2026-11-09 ledger.
 
 ## Next
 
-1. Joel reviews the weekly ledger PR and merges.
-2. ST-W-2026-11-02-1: seroval highs via TanStack router. Decide whether to bump.
+1. Squash-merge the ledger PR once CI is green at HEAD.
+2. ST-3 structured log PR. ST-W-2026-10-26-1 test-db.sh PR. Rebase blog-accuracy.
+3. Joel runs `npm dist-tag add @passkeybridge/satus@0.3.12 next` and adds sandbox Stripe secrets plus the Stripe CLI for next week's S1 issuance.
