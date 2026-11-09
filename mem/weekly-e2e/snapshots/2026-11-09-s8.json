@@ -1,0 +1,132 @@
+{
+  "date": "2026-11-09",
+  "production_sha": "d540c93980a7aa6825e6c5cd5504c6531813d7bb",
+  "deployment": "dpl_ADAJ9SmaWZe75eak3hD2yX3yAhGy",
+  "deployment_state": "READY",
+  "deployment_target": "production",
+  "result": "PASS",
+  "lighthouse": {
+    "tool": "lighthouse@12.8.2",
+    "chrome": "Google Chrome 156.0.8078.47",
+    "throttling": "simulated",
+    "thresholds": {"lcp_ms": 2500, "cls": 0.1, "tbt_ms": 200},
+    "home_mobile": [
+      {"lcp_ms": 2422.321, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2420.06, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2421.026, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "home_mobile_median_lcp_ms": 2421.026,
+    "pricing_mobile": [{"lcp_ms": 2420.469, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "docs_mobile": [{"lcp_ms": 1969.042, "cls": 0, "tbt_ms": 0, "score": 99}],
+    "blog_mobile": [{"lcp_ms": 2419.716, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "home_desktop": [{"lcp_ms": 545.649, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "pricing_desktop": [{"lcp_ms": 540.726, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "docs_desktop": [{"lcp_ms": 542.372, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_desktop": [{"lcp_ms": 580.693, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_path": "/blog/how-satus-decides-a-database-is-too-full-to-seed",
+    "thresholds_met": true,
+    "note": "Home mobile ran three times after axe finished; median LCP 2421.026. Desktop used --preset=desktop (rtt 40 ms / 10 Mbps / 1x CPU). Mobile used default Slow-4G simulated throttling (rtt 150 ms / ~1.6 Mbps / 4x CPU)."
+  },
+  "axe": {
+    "tool": "axe-core 4.14.0 WCAG 2.2 A/AA",
+    "browser": "Chrome 156.0.8078.47 headless",
+    "serious_or_critical": {},
+    "zero_on": [
+      "/",
+      "/pricing",
+      "/checkout",
+      "/checkout/success",
+      "/checkout/cancel",
+      "/cli",
+      "/quickstart",
+      "/docs",
+      "/docs/how-it-works",
+      "/docs/troubleshooting",
+      "/docs/github-action",
+      "/profiles",
+      "/recipes",
+      "/compare",
+      "/demo",
+      "/security",
+      "/privacy",
+      "/terms",
+      "/blog",
+      "/blog/how-satus-decides-a-database-is-too-full-to-seed",
+      "/blog/multi-column-uniques-why-v0x-skips-them",
+      "/blog/pg-dump-snapshots-as-test-fixtures"
+    ]
+  },
+  "h1": 1,
+  "console_errors": 0,
+  "same_origin_4xx": 0,
+  "now_public": ["how-satus-decides-a-database-is-too-full-to-seed"],
+  "embargoed_404": [
+    "satus-0-3-11-exit-codes",
+    "what-satus-0-3-11-does-with-an-enum-column",
+    "what-satus-truncate-empties-and-what-it-refuses-to"
+  ],
+  "slug_redirects": [
+    {
+      "from": "/blog/cost-estimates-are-guardrails-not-accounting",
+      "to": "/blog/how-the-dry-run-cost-estimate-is-calculated",
+      "status": 301
+    }
+  ],
+  "rss_items": 48,
+  "sitemap_blog_lastmod": "2026-11-06",
+  "sitemap_urls": 64,
+  "sitemap_blog_posts": 48,
+  "llms_txt": {
+    "status": 200,
+    "content_type": "text/plain; charset=utf-8",
+    "bytes": 17089,
+    "blog_posts_listed": 48,
+    "nov6_present": true,
+    "embargoed_present": false,
+    "in_sitemap": false
+  },
+  "demo_pglite": {
+    "ran": false,
+    "generatePressed": false,
+    "generateRequests": 0,
+    "note": "render only; generate was not pressed"
+  },
+  "checkout": {
+    "rendered": true,
+    "paymentFieldsFilled": false,
+    "h1": "choose a tier first.",
+    "note": "render only; payment fields were not filled"
+  },
+  "pages": [
+    {"path": "/", "status": 200, "h1": 1},
+    {"path": "/pricing", "status": 200, "h1": 1},
+    {"path": "/checkout", "status": 200, "h1": 1},
+    {"path": "/checkout/success", "status": 200, "h1": 1},
+    {"path": "/checkout/cancel", "status": 200, "h1": 1},
+    {"path": "/cli", "status": 200, "h1": 1},
+    {"path": "/quickstart", "status": 200, "h1": 1},
+    {"path": "/docs", "status": 200, "h1": 1},
+    {"path": "/docs/how-it-works", "status": 200, "h1": 1},
+    {"path": "/docs/troubleshooting", "status": 200, "h1": 1},
+    {"path": "/docs/github-action", "status": 200, "h1": 1},
+    {"path": "/profiles", "status": 200, "h1": 1},
+    {"path": "/recipes", "status": 200, "h1": 1},
+    {"path": "/compare", "status": 200, "h1": 1},
+    {"path": "/demo", "status": 200, "h1": 1},
+    {"path": "/security", "status": 200, "h1": 1},
+    {"path": "/privacy", "status": 200, "h1": 1},
+    {"path": "/terms", "status": 200, "h1": 1},
+    {"path": "/blog", "status": 200, "h1": 1},
+    {"path": "/blog/how-satus-decides-a-database-is-too-full-to-seed", "status": 200, "h1": 1},
+    {"path": "/blog/multi-column-uniques-why-v0x-skips-them", "status": 200, "h1": 1},
+    {"path": "/blog/pg-dump-snapshots-as-test-fixtures", "status": 200, "h1": 1},
+    {"path": "/blog/how-the-dry-run-cost-estimate-is-calculated", "status": 200, "h1": 1},
+    {"path": "/blog/rss.xml", "status": 200, "h1": 0, "content_type": "application/rss+xml; charset=utf-8"},
+    {"path": "/sitemap.xml", "status": 200, "h1": 0, "content_type": "application/xml; charset=utf-8"},
+    {"path": "/llms.txt", "status": 200, "h1": 0, "content_type": "text/plain; charset=utf-8"},
+    {"path": "/blog/satus-0-3-11-exit-codes", "status": 404, "h1": 0},
+    {"path": "/blog/what-satus-0-3-11-does-with-an-enum-column", "status": 404, "h1": 0},
+    {"path": "/blog/what-satus-truncate-empties-and-what-it-refuses-to", "status": 404, "h1": 0},
+    {"path": "/blog/cost-estimates-are-guardrails-not-accounting", "status": 301, "h1": 0, "location": "/blog/how-the-dry-run-cost-estimate-is-calculated"}
+  ]
+}
