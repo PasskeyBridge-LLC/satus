@@ -47,7 +47,9 @@ async function rateLimited(key: string): Promise<boolean> {
     // Fail open on counter errors—better to serve a few extra verifies than
     // to lock everyone out if the counter table hiccups. Logged for triage,
     // and alerted, because while this branch runs nothing is rate limited.
-    console.error("[license/verify] rate-limit counter failed", error);
+    // Validity is still decided by the licenses table; this only skips
+    // throttling. An unknown or invalid key never becomes valid:true here.
+    logVerifyFailure("rate_limit_counter", error);
     await reportVerifyFailure("rate_limit_counter", error);
     return false;
   }
@@ -56,6 +58,10 @@ async function rateLimited(key: string): Promise<boolean> {
 
 export type VerifyFailure = "rate_limit_counter" | "license_lookup";
 
+function failMode(kind: VerifyFailure): "open" | "closed" {
+  return kind === "rate_limit_counter" ? "open" : "closed";
+}
+
 /** The Postgres/PostgREST error code only (e.g. "42P01"), never the message. */
 function errorCode(error: unknown): string {
   if (error && typeof error === "object" && "code" in error) {
@@ -63,6 +69,19 @@ function errorCode(error: unknown): string {
     if (typeof code === "string" && /^[A-Za-z0-9_]{1,16}$/.test(code)) return code;
   }
   return "unknown";
+}
+
+/**
+ * Structured log for a verify failure. kind, fail_mode, and pg_code only —
+ * never the error message, license key, IP, or IP hash.
+ */
+function logVerifyFailure(kind: VerifyFailure, error: unknown): void {
+  const label = kind === "rate_limit_counter" ? "rate-limit counter failed" : "lookup failed";
+  console.error(`[license/verify] ${label}`, {
+    kind,
+    fail_mode: failMode(kind),
+    pg_code: errorCode(error),
+  });
 }
 
 /**
@@ -82,7 +101,7 @@ export async function reportVerifyFailure(kind: VerifyFailure, error: unknown): 
       tags: {
         route: "license_verify",
         failure: kind,
-        fail_mode: kind === "rate_limit_counter" ? "open" : "closed",
+        fail_mode: failMode(kind),
         pg_code: errorCode(error),
       },
     });
@@ -153,7 +172,7 @@ export const Route = createFileRoute("/api/public/license/verify")({
           .maybeSingle();
 
         if (error) {
-          console.error("[license/verify] lookup failed", error);
+          logVerifyFailure("license_lookup", error);
           await reportVerifyFailure("license_lookup", error);
           return json(500, { valid: false, reason: "server_error" });
         }

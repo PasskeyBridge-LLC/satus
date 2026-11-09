@@ -1,8 +1,9 @@
 /**
- * Verify fails OPEN when the rate-limit counter errors, by design. That stays.
- * What was missing is anyone finding out: while the counter is down nothing
- * is rate limited. Counter and lookup failures now raise a Sentry warning
- * with a stable fingerprint and no personal data.
+ * Verify fails OPEN on the limiter when the rate-limit counter errors, by
+ * design: throttling is skipped, then the licenses table still decides
+ * validity. An unknown key stays not-valid. Counter and lookup failures
+ * log {kind, fail_mode, pg_code} and raise a Sentry warning with a stable
+ * fingerprint and no personal data.
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -65,15 +66,30 @@ beforeEach(() => {
   state.lookupError = null;
   state.sdk = true;
   captureMessage.mockReset();
-  vi.spyOn(console, "error").mockImplementation(() => {});
+  vi.spyOn(console, "error")
+    .mockImplementation(() => {})
+    .mockClear();
 });
 
 describe("verify alerting", () => {
-  it("stays fail-open when the counter errors, and raises one warning", async () => {
+  it("keeps an unknown key not-valid when the limiter errors, and logs pg_code only", async () => {
     state.rpcError = { code: "42P01", message: `relation for ${IP} does not exist` };
+    const errorSpy = vi.mocked(console.error);
     const res = await post();
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ valid: false, reason: "unknown_key" });
+    expect(await res.json()).toEqual({ valid: false, reason: "unknown_key" });
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy.mock.calls[0][0]).toBe("[license/verify] rate-limit counter failed");
+    expect(errorSpy.mock.calls[0][1]).toEqual({
+      kind: "rate_limit_counter",
+      fail_mode: "open",
+      pg_code: "42P01",
+    });
+    const logged = JSON.stringify(errorSpy.mock.calls);
+    expect(logged).not.toContain(KEY);
+    expect(logged).not.toContain(IP);
+    expect(logged).not.toContain("does not exist");
 
     expect(captureMessage).toHaveBeenCalledTimes(1);
     const [message, ctx] = captureMessage.mock.calls[0];
@@ -87,8 +103,15 @@ describe("verify alerting", () => {
 
   it("raises a warning on a lookup failure and still answers 500", async () => {
     state.lookupError = { code: "57014", message: "canceling statement" };
+    const errorSpy = vi.mocked(console.error);
     const res = await post();
     expect(res.status).toBe(500);
+    expect(await res.json()).toMatchObject({ valid: false, reason: "server_error" });
+    expect(errorSpy.mock.calls[0][1]).toEqual({
+      kind: "license_lookup",
+      fail_mode: "closed",
+      pg_code: "57014",
+    });
     expect(captureMessage).toHaveBeenCalledTimes(1);
     expect(captureMessage.mock.calls[0][1]).toMatchObject({
       level: "warning",
