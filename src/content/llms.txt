@@ -14,14 +14,15 @@ npm install -g @passkeybridge/satus
 satus init
 
 # Plan + validate offline: cost estimate, simulated rows, relational
-# validation. No LLM calls, no writes. Exits 2 on validation errors
+# validation. Makes zero LLM calls and zero database writes. Exits 2 on
+# validation errors
 # (usable as a CI gate). Add --json for a machine-readable report.
 satus generate --profile ecommerce --dry-run
 
 # Generate and insert for real
 satus generate --profile ecommerce --rows 50
 
-# Activate a paid license (Free tier needs no activation)
+# Activate a paid license (the Free tier works without activation)
 satus activate satus_live_...
 
 # Show the cached license state
@@ -30,7 +31,7 @@ satus whoami
 
 ## Flags on `satus generate`
 
-`--profile saas|ecommerce|b2b` · `--rows <n>` (default 50) · `--max-cost <usd>` (default 1.00, aborts + rolls back before overshooting) · `--batch-size <n>` (default 25 rows per LLM call) · `--dsn <url>` · `--schema <name>` (default public) · `--provider openai|anthropic|xai` (auto-detected from which API key env var is set; errors if both OpenAI and Anthropic keys are set and no explicit choice; XAI_API_KEY is used only when neither is set; xai is included in 0.3.12) · `--model <id>` (defaults: gpt-4o-mini / claude-haiku-4-5 / grok-4.20-0309-non-reasoning) · `--truncate` (TRUNCATE ... RESTART IDENTITY on target tables before inserting, same transaction; deliberately NO CASCADE: if a table outside the run set has an FK into one inside it, the run errors instead of emptying it) · `--force` (bypass the 10,000-row safety guard) · `--dry-run` · `--verbose` · `--json`
+`--profile saas|ecommerce|b2b` · `--rows <n>` (default 50) · `--max-cost <usd>` (default 1.00, aborts + rolls back before overshooting) · `--batch-size <n>` (default 25 rows per LLM call) · `--dsn <url>` · `--schema <name>` (default public) · `--provider openai|anthropic|xai` (auto-detected from which API key env var is set; errors if both OpenAI and Anthropic keys are set and --provider is not given; XAI_API_KEY is used only when neither is set; xai is included in 0.3.12) · `--model <id>` (defaults: gpt-4o-mini / claude-haiku-4-5 / grok-4.20-0309-non-reasoning) · `--truncate` (TRUNCATE ... RESTART IDENTITY on target tables before inserting, same transaction, without CASCADE: if a table outside the run set has an FK into one inside it, the run stops with an error and that table keeps its rows) · `--force` (bypass the 10,000-row safety guard) · `--dry-run` · `--verbose` · `--json`
 
 ## Environment
 
@@ -43,18 +44,18 @@ export OPENAI_API_KEY=sk-...        # or ANTHROPIC_API_KEY=sk-ant-... (pick one)
 
 ## Tiers, exit codes, limits
 
-- Free tier: 25 rows/table, 5 tables, no activation needed. Pro/Team (via https://satus.sh/pricing) remove the caps.
+- Free tier: 25 rows/table, 5 tables, works without activation. Pro/Team (via https://satus.sh/pricing) remove the caps.
 - Exit codes: `0` success, `1` error (connection, config, LLM, budget), `2` dry-run validation findings.
-- Known v0.x limits: multi-column unique constraints are not enforced during generation; cross-column arithmetic (e.g. order totals summing from line items) is not reconciled; LLM output is not deterministic and there is no --seed flag — snapshot seeded state with pg_dump for reproducible fixtures.
+- Known v0.x limits: generation enforces single-column unique constraints only; values that depend on other columns (e.g. order totals summing from line items) are generated independently; LLM output varies between runs and the CLI has no --seed flag, so snapshot seeded state with pg_dump for reproducible fixtures.
 
 ## GitHub Action
 
-Use `PasskeyBridge-LLC/satus/packages/action@main` — a composite action that installs the CLI and runs `satus generate` (optionally `--dry-run`) against a workflow-provided DATABASE_URL. Reference: https://satus.sh/docs/github-action.
+Use `PasskeyBridge-LLC/satus/packages/action@main`, a composite action that installs the CLI and runs `satus generate` (optionally `--dry-run`) against a workflow-provided DATABASE_URL. Reference: https://satus.sh/docs/github-action.
 
 ## Pages
 
-- [Overview](/): What satus is, how the pipeline works, and what it deliberately will not do.
-- [Demo](/demo): In-browser instant demo — paste a schema, see generated rows.
+- [Overview](/): What satus is, how the pipeline works, and its known limits.
+- [Demo](/demo): In-browser demo: paste a schema and see generated rows.
 - [Quickstart](/quickstart): Install the CLI and seed a database in minutes.
 - [Docs](/docs): Configuration, profiles, and run modes.
 - [GitHub Action](/docs/github-action): CI reference for the composite action.
