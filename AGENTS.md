@@ -44,7 +44,14 @@ it at the hosted project.
 54321, database port 54322). `supabase/seed.sql` inserts one synthetic
 license (`local-seed@example.test`) and unschedules `satus-e2e-health-daily`,
 the migration that would GET the production health hook. Migrations:
-`bash scripts/test-db.sh --reset` replays all of them and the seed.
+`bash scripts/test-db.sh --reset` replays them and the seed. Checked-in
+May–July files (`202605*`–`202607*`) are historical copies of schema the
+August baselines recreate. Applying both locally dies on `waitlist_tier`
+already exists. `scripts/test-db.sh` moves those copies aside, runs
+`supabase start` (and `--reset` replays the remaining 12 migrations plus
+the seed), and restores the files on EXIT. Git still holds every file;
+hosted `schema_migrations` is not touched. If a previous start died
+mid-apply, `supabase stop --no-backup` then rerun the script.
 `email_queue_dispatch` / `email_queue_wake` are revoked only when present;
 those functions are not created by any file in this repo (they were
 installed on the hosted project with the out-of-band email cron).
