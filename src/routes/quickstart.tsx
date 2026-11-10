@@ -224,12 +224,12 @@ function QuickstartPage() {
             body="satus detects cycles in your FK graph at planning time and breaks them automatically by deferring a nullable column and back-patching in pass 2 (see the cyclic FKs post). This error fires when every FK column on the cycle is NOT NULL, so there is no column to leave empty. A column DEFAULT or a DEFERRABLE constraint does not help. Make one FK column on the cycle nullable, or exclude one of the cycle tables in satus.config.json."
           />
           <Issue
-            code="E_NO_PARENT_ROWS"
+            code="exit 1 (E_GENERAL)"
             title="No parent rows available for a NOT NULL foreign key"
             body="A child table's NOT NULL FK points at a table that isn't in the run set—usually because it lives in another schema or is listed under `exclude` in satus.config.json. Bring the parent into the run, make the column nullable, or seed the parent yourself first."
           />
           <Issue
-            code="E_LLM_RATE_LIMIT"
+            code="exit 1 (E_GENERAL)"
             title="LLM provider rate-limited the run"
             body="The run aborts and the transaction rolls back, so your database is untouched—re-run once the limit clears. Lower --batch-size (default 25) to shrink each request, or upgrade your provider tier. We never resell tokens—the bill is on your provider's dashboard."
           />

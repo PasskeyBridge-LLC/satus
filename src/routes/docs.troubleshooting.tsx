@@ -58,8 +58,8 @@ const FAQS: Faq[] = [
     a: "Safety guard. satus refuses to write into a database that already holds more than 10,000 user-table rows, because that's almost always a sign DATABASE_URL points at production by accident. If you really do mean to append seed data, re-run with --force. Better: point at a fresh Supabase/Neon branch or a Docker container.",
   },
   {
-    q: "E_PROFILE_NOT_FOUND: profile name doesn't match",
-    a: "The --profile value must be one of the three bundled profiles: saas, ecommerce, or b2b. There are no hyphens in the names, and custom profile files are not supported yet—`satus init` writes the chosen profile into satus.config.json, which `satus generate` reads when the flag is omitted.",
+    q: "Unknown profile: the --profile value doesn't match a bundled profile",
+    a: "satus prints `Unknown profile: <name>. Use saas | ecommerce | b2b.` and exits 1 (E_GENERAL). The --profile value must be one of the three bundled profiles: saas, ecommerce, or b2b. There are no hyphens in the names, and custom profile files are not supported yet—`satus init` writes the chosen profile into satus.config.json, which `satus generate` reads when the flag is omitted.",
   },
   {
     q: "satus generated rows that violate a CHECK constraint I didn't think to declare in the profile",
@@ -68,12 +68,12 @@ const FAQS: Faq[] = [
 
   // -------- LLM provider --------
   {
-    q: "E_LLM_AUTH: provider key missing, malformed, or rejected",
-    a: "Either the variable for the selected provider isn't set (OPENAI_API_KEY, ANTHROPIC_API_KEY or XAI_API_KEY), the key has the wrong shape, or the provider rejected it (revoked, billing problem, wrong organisation). Check `echo $OPENAI_API_KEY` (or `$ANTHROPIC_API_KEY`) returns a value, and verify the key in the provider's dashboard. satus never proxies your key—the call goes from your machine directly to the provider.",
+    q: "Provider key missing, malformed, or rejected",
+    a: "Either the variable for the selected provider isn't set (OPENAI_API_KEY, ANTHROPIC_API_KEY or XAI_API_KEY), the key has the wrong shape, or the provider rejected it (revoked, billing problem, wrong organisation). A missing key prints `OPENAI_API_KEY is not set.` (or the variable for the selected provider); a rejected key prints the provider's HTTP status and response, such as `OpenAI 401: ...`. Both exit 1 (E_GENERAL). Check `echo $OPENAI_API_KEY` (or `$ANTHROPIC_API_KEY`) returns a value, and verify the key in the provider's dashboard. satus never proxies your key—the call goes from your machine directly to the provider.",
   },
   {
-    q: "E_LLM_RATE_LIMIT: provider rate-limited the run",
-    a: "satus retries with exponential backoff up to 5 attempts before giving up. If you hit a hard tier ceiling, drop --batch-size below the default of 25 (try 10), wait a minute, switch to a different provider with --provider, or upgrade your account tier. We never resell tokens—the bill is on your provider's dashboard.",
+    q: "Provider rate-limited the run",
+    a: "satus makes one request per batch and stops at the first provider error. A rate limit prints the provider's status, such as `OpenAI 429: ...`, exits 1 (E_GENERAL), and the transaction rolls back. If you hit a hard tier ceiling, drop --batch-size below the default of 25 (try 10), wait a minute, switch to a different provider with --provider, or upgrade your account tier. We never resell tokens—the bill is on your provider's dashboard.",
   },
   {
     q: "The run cost more than I expected.",
@@ -233,8 +233,8 @@ function TroubleshootingPage() {
         <Prose>
           <p>
             satus calls your LLM provider directly from your machine. Authentication and rate-limit
-            errors come straight from the provider; we map them to stable exit codes so CI can
-            branch on them.
+            errors come straight from the provider. satus prints the provider&rsquo;s status and
+            message to stderr and exits <code>1</code> (<code>E_GENERAL</code>).
           </p>
         </Prose>
         <FaqList items={groupFor("llm")} />
