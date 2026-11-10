@@ -54,6 +54,12 @@ const TELLS = [
     /\bnot (?:merely|just|simply) [a-z]+,\s*(?:it|they|that|this) (?:is|are|was|were)\b/i,
     "drop the first half and assert the second",
   ],
+  // Correction by contrast: each phrase restates a claim through its
+  // opposite. Write the claim once, as a plain statement of what happened
+  // or what the code does. "not more than N" is a bound and stays legal.
+  [/\bnot more\b(?!\s+than\b)/i, "state the direction once"],
+  [/\bdoesn(?:'|’)?t just\b/i, "state the full effect directly"],
+  [/\bsold as\b/i, "state what was documented and what the code did"],
   // Teaser headings and throat-clearing.
   [/\bwhat the receipts\b/i, "name the finding in the heading"],
   [/\bhere'?s the (?:thing|kicker|rub|catch)\b/i, "say the thing"],

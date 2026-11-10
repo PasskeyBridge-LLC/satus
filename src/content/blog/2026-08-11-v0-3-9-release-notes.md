@@ -55,10 +55,10 @@ Everything above is corrected. Where the documented behaviour was better than wh
 
 ## Why this kept happening
 
-The pattern is the same every time: prose written alongside an intention, shipped, and never re-checked against the code that eventually landed—or didn't. Nobody lied. The docs described the product we meant to build, and the gap opened up quietly afterwards.
+The pattern is the same every time: prose written alongside an intention, shipped, and never re-checked against the code that eventually landed—or didn't. The docs described the product we meant to build, and the code that shipped differed from them.
 
 The fix we're applying isn't "be more careful." It's that documented behaviour with a number in it now has a test asserting that number. `10000`, `11`, `10`, `2`, `1` are assertions in the suite, not prose. When someone changes one, a test fails and says it is a public contract.
 
-That doesn't cover sentences like "Tarjan's algorithm"—you can't unit-test an adjective. For those, the only defence is reading the page next to the code, which is what we did today and will do at each release.
+Tests cover numbers. A descriptive claim such as "Tarjan's algorithm" has no value to assert. For those, the only defence is reading the page next to the code, which is what we did today and will do at each release.
 
 No [CLI flag](/cli) added, removed, or renamed. `satus.config.json` from 0.3.x works unchanged. If your CI branches on exit code `1` specifically for FK-cycle failures, widen it to `!= 0` or add `10`.
