@@ -319,7 +319,7 @@ function CliPage() {
             the dry-run report on stdout and exits <code>2</code>. The exit codes are defined in{" "}
             <code>packages/cli/src/exit-codes.ts</code>, and CI scripts can branch on them:
           </p>
-          <ul className="ml-5 list-disc space-y-2">
+          <ul className="mb-4 ml-5 list-disc space-y-2">
             <li>
               <code>0</code>: success.
             </li>
