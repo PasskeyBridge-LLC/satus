@@ -229,7 +229,12 @@ function TroubleshootingPage() {
         <FaqList items={groupFor("schema")} />
       </Section>
 
-      <Section id="llm" n="03" label="LLM provider" title={<>your key. your bill. your retries.</>}>
+      <Section
+        id="llm"
+        n="03"
+        label="LLM provider"
+        title={<>provider errors, keys, and billing.</>}
+      >
         <Prose>
           <p>
             satus calls your LLM provider directly from your machine. Authentication and rate-limit

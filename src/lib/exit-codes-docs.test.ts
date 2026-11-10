@@ -1,9 +1,10 @@
 /**
- * The exit codes listed in /llms.txt and on /cli match
+ * The exit codes listed in /llms.txt, on /cli and in the CLI README match
  * packages/cli/src/exit-codes.ts.
  *
  * Until 2026-11-10 /cli said every command returned only 0 or 1, three
- * releases after 10 and 11 shipped. The expected list here is built from
+ * releases after 10 and 11 shipped. packages/cli/README.md ships in the
+ * npm tarball, so its exit-code table is checked too. The expected list here is built from
  * the module's exports, so adding a code to exit-codes.ts fails this test
  * until both pages list it with its constant name.
  */
@@ -57,5 +58,14 @@ describe("documented exit codes match exit-codes.ts", () => {
       /<li>\s*<code>(\d+)<\/code>(?: \(<code>(E_[A-Z_]+)<\/code>\))?:/g,
     );
     expect(items).toEqual(expected);
+  });
+
+  it("packages/cli/README.md lists every code with its constant name", () => {
+    const readme = read("packages/cli/README.md");
+    const from = readme.indexOf("\n## Exit codes\n");
+    expect(from, "the CLI README has an Exit codes section").toBeGreaterThan(-1);
+    const next = readme.indexOf("\n## ", from + 1);
+    const section = readme.slice(from, next === -1 ? undefined : next);
+    expect(listed(section, /^\| `(\d+)` \| (?:`(E_[A-Z_]+)`)?/gm)).toEqual(expected);
   });
 });

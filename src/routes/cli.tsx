@@ -311,7 +311,12 @@ function CliPage() {
       >
         <Prose>
           <p>
-            Every failure writes a one-line diagnostic to stderr. The exit codes are defined in{" "}
+            An error that reaches the top level of the CLI is printed to stderr as{" "}
+            <code>error: </code> followed by its message, and the process exits <code>1</code> (
+            <code>packages/cli/src/cli.ts</code>). <code>satus generate</code> handles some failures
+            itself: it prints its own message to stderr, sometimes over several lines, and exits
+            with the code for that failure. A dry run with validator errors prints its findings in
+            the dry-run report on stdout and exits <code>2</code>. The exit codes are defined in{" "}
             <code>packages/cli/src/exit-codes.ts</code>, and CI scripts can branch on them:
           </p>
           <ul className="ml-5 list-disc space-y-2">
@@ -332,7 +337,8 @@ function CliPage() {
             </li>
             <li>
               <code>11</code> (<code>E_DB_NOT_EMPTY</code>): the safety guard refused because the
-              target database already holds more than 10,000 rows. Nothing was written.
+              target database already holds more than 10,000 rows. Nothing was written.{" "}
+              <code>--force</code> bypasses the guard.
             </li>
           </ul>
           <p>
