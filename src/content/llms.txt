@@ -45,7 +45,7 @@ export OPENAI_API_KEY=sk-...        # or ANTHROPIC_API_KEY=sk-ant-... (pick one)
 ## Tiers, exit codes, limits
 
 - Free tier: 25 rows/table, 5 tables, works without activation. Pro/Team (via https://satus.sh/pricing) remove the caps.
-- Exit codes: `0` success, `1` error (connection, config, LLM, budget), `2` dry-run validation findings.
+- Exit codes: `0` success; `1` error (connection, config, LLM, budget); `2` dry-run validation findings; `10` (`E_FK_CYCLE`) a foreign-key cycle in which every FK column is NOT NULL, so no edge can be broken, and nothing was written; `11` (`E_DB_NOT_EMPTY`) the safety guard refused because the target database already holds more than 10,000 rows, and nothing was written (`--force` bypasses the guard).
 - Known v0.x limits: generation enforces single-column unique constraints only; values that depend on other columns (e.g. order totals summing from line items) are generated independently; LLM output varies between runs and the CLI has no --seed flag, so snapshot seeded state with pg_dump for reproducible fixtures.
 
 ## GitHub Action
