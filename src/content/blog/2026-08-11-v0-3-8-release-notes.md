@@ -69,4 +69,4 @@ This is the fifth documented-but-absent behaviour we have found and closed in a 
 
 We would rather ship the feature than delete the paragraph. The rule we now apply to satus: if the docs describe behaviour, a test fails when the behaviour goes away. The test suite now asserts the 10,000-row threshold and exit code `11`.
 
-`satus.config.json` from 0.3.x works unchanged. One behaviour change to note: a run against a database with more than 10,000 rows now fails where it previously succeeded. That is the point. Add `--force` if the target really is a large staging database.
+`satus.config.json` from 0.3.x works unchanged. One behaviour change to note: a run against a database with more than 10,000 rows now fails where it previously succeeded. Add `--force` if the target really is a large staging database.

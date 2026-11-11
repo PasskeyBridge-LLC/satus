@@ -66,7 +66,7 @@ Table "audit_log" references "tenants".
   Either bring the referencing table into the run set (remove it from "exclude" in satus.config.json), or truncate it yourself first.
 ```
 
-Exit code 1, nothing deleted. **This is a behaviour change**: a run that previously succeeded by cascading now fails. That is the point. If you were relying on the cascade, widen the run set or truncate those tables yourself.
+Exit code 1, nothing deleted. **This is a behaviour change**: a run that previously succeeded by cascading now fails. If you were relying on the cascade, widen the run set or truncate those tables yourself.
 
 We have also corrected [an earlier post](/blog/triggers-i-have-loved-and-hated) that described the old cascade behaviour approvingly.
 
