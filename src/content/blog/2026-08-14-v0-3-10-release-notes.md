@@ -33,4 +33,4 @@ Nine tests pin the contract: the fresh-cache short-circuit, stale re-verificatio
 
 Your cache has no stored key. The first `generate` after its 24-hour window prints a notice and applies Free caps; run `satus activate <key>` once and everything works as documented from then on.
 
-That is the whole release. A cached verdict now keeps the CLI working for 24 hours offline, as the pricing page says, and a canceled subscription loses paid caps within 24 hours.
+A cached verdict now keeps the CLI working for 24 hours offline, as the pricing page says, and a canceled subscription loses paid caps within 24 hours.

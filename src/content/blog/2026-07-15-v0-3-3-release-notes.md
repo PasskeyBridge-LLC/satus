@@ -38,13 +38,13 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 ```
 
-Three choices in that block are load-bearing and deliberate. They read the same way in the roadmap post, and they read the same way in the docs, because none of them are things you want to discover after a compromised release tag or a silently-empty preview database.
+Three choices in that block matter. The roadmap post and the docs describe them the same way. Each one prevents a specific failure: an empty `database-url`, a `max-cost` value that YAML turns into a float, or a provider key exposed to a compromised Action version.
 
-1. **`database-url` is an input, not an env var.** GitHub redacts inputs in logs the same way it redacts env vars. Making it an input means it appears in the Marketplace UI as a required field, so a caller cannot leave it empty by accident. That is the entire justification; there is no clever plumbing underneath.
+1. **`database-url` is an action input.** GitHub redacts inputs in logs the same way it redacts env vars. Making it an input means it appears in the Marketplace UI as a required field, so a caller cannot leave it empty by accident.
 2. **`max-cost` is a string.** YAML parses `0.5` as a float, and the CLI's zod validator expects a string for `--max-cost` so it can normalise the format itself. The Action forwards it verbatim. Quote it in your workflow.
-3. **The provider key stays in `env:`, not `with:`.** The Action never touches your OpenAI or Anthropic key; the CLI reads it directly from the environment, [as it has since v0.3.0](/blog/v0-3-0-anthropic-and-machine-readable-output). That keeps the key off the Action's public input schema and out of anything a compromised Action version could exfiltrate through inputs.
+3. **The provider key is passed through `env:`.** The Action never touches your OpenAI or Anthropic key; the CLI reads it directly from the environment, [as it has since v0.3.0](/blog/v0-3-0-anthropic-and-machine-readable-output). That keeps the key off the Action's public input schema and out of anything a compromised Action version could exfiltrate through inputs.
 
-The Action is a [composite action](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action), not a Docker container. Three shell steps: install Node 20, run `npx --yes @passkeybridge/satus@0.3.3 generate --json`, upload the JSON manifest as a workflow artifact. That is the whole implementation. If a run works on your laptop it works here, with the same flags and the same exit codes.
+The Action is a [composite action](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action) that runs three shell steps on the runner: install Node 20, run `npx --yes @passkeybridge/satus@0.3.3 generate --json`, upload the JSON manifest as a workflow artifact. If a run works on your laptop it works here, with the same flags and the same exit codes.
 
 ## Telemetry hooks: what we collect and what we don't
 
@@ -84,7 +84,7 @@ Repeating the list from the [roadmap post](/blog/v0-3-3-github-action) because t
 - **No auto-commit of generated data.** Seed data belongs in the ephemeral preview database, not in git history.
 - **No cache of previously-generated rows.** Every invocation regenerates. The correctness problem for a cache key (schema hash + profile hash + provider version) is not worth solving for a first release.
 - **No matrix examples over multiple providers.** The docs show one OpenAI and one Anthropic example. The CLI has always let you set `--provider` per invocation; that predates the Action.
-- **No GitLab CI, no CircleCI, no Buildkite variant.** The CLI runs anywhere Node runs. This Action is a convenience layer for the single largest CI host, not a portability layer.
+- **No GitLab CI, no CircleCI, no Buildkite variant.** The CLI runs anywhere Node runs. This Action is a convenience layer for GitHub Actions, the single largest CI host.
 
 The rest of the [agent-mode roadmap](/blog/agent-mode-postponed) still stands, with the numbers shifted by one minor version. What was v0.5 (`satus agent`) is now v0.4.0 and still targeted at late September 2026 after the 90-day telemetry-evidence window. What was v0.6 (hosted keys) is now v0.5.0. The renumber is the only substantive change to the previously-published plan.
 

@@ -28,7 +28,7 @@ Someone on our side was setting up a local test, exported `DATABASE_URL` pointin
 
 That typo is the only reason nothing happened. Had the connection string been correct, satus would have introspected a production schema and written generated rows into it, inside one transaction, reporting success. The documented guard that would have stopped it did not exist.
 
-We checked afterwards, carefully: `client.connect()` runs before introspection, before telemetry, before `BEGIN`. The connection never succeeded, no telemetry row was ever posted, and `pg_stat_user_tables` on that database shows only its normal traffic. Nothing was written. But the margin was a malformed URL, not a safeguard.
+We checked afterwards, carefully: `client.connect()` runs before introspection, before telemetry, before `BEGIN`. The connection never succeeded, no telemetry row was ever posted, and `pg_stat_user_tables` on that database shows only its normal traffic. Nothing was written, and the only reason was the malformed URL: satus had no check that would have stopped a valid connection string.
 
 ## What 0.3.8 does
 
@@ -67,6 +67,6 @@ The end-to-end behaviour was verified against live PostgreSQL 16.13: a 550-row d
 
 This is the fifth documented-but-absent behaviour we have found and closed in a week. The others were smaller—profile names, flags that didn't exist, a `--dry-run` that was described as emitting SQL. This one is different in kind, because it is a *safety* claim. A user who reads that page and believes the guard protects them takes less care over which database `DATABASE_URL` points at. Documentation that overstates a safeguard removes caution the reader would otherwise have applied.
 
-We would rather ship the feature than delete the paragraph. But the general rule we're now applying to satus is the harsher one: if the docs describe behaviour, there is a test that fails when the behaviour goes away. `10000` and `11` are now assertions, not prose.
+We would rather ship the feature than delete the paragraph. The rule we now apply to satus: if the docs describe behaviour, a test fails when the behaviour goes away. The test suite now asserts the 10,000-row threshold and exit code `11`.
 
-`satus.config.json` from 0.3.x works unchanged. One behaviour change to note: a run against a database with more than 10,000 rows now fails where it previously succeeded. That is the point. Add `--force` if the target really is a large staging database.
+`satus.config.json` from 0.3.x works unchanged. One behaviour change to note: a run against a database with more than 10,000 rows now fails where it previously succeeded. Add `--force` if the target really is a large staging database.

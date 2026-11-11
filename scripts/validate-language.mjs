@@ -60,6 +60,9 @@ const TELLS = [
   [/\bnot more\b(?!\s+than\b)/i, "state the direction once"],
   [/\bdoesn(?:'|’)?t just\b/i, "state the full effect directly"],
   [/\bsold as\b/i, "state what was documented and what the code did"],
+  // A tested fact described by contrast with prose. Name the test or
+  // check that asserts it.
+  [/\bnot prose\b/i, "name the test or check that asserts it"],
   // Teaser headings and throat-clearing.
   [/\bwhat the receipts\b/i, "name the finding in the heading"],
   [/\bhere'?s the (?:thing|kicker|rub|catch)\b/i, "say the thing"],

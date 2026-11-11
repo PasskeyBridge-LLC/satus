@@ -41,7 +41,7 @@ Exit codes now live in one file as a single contract—`1`, `2`, `10`, `11`—wi
 
 ## What the audit found
 
-We spent the morning diffing every documented claim against the source. This is the list, in full, because a changelog that hides the embarrassing ones isn't worth writing:
+We spent the morning diffing every documented claim against the source. The changelog lists every fix it led to, including the ones that were our own mistakes:
 
 - The homepage said the free tier seeds **500 rows per run**. The caps are 25 rows across 5 tables. The real number is **125**—we overstated our own free tier by 4x on the page most people read first.
 - The **terms of service** told users to run `--dry` to "inspect generated SQL". The flag is `--dry-run` and it emits no SQL. Of all the pages to get that wrong, the one whose job is telling you how not to damage your database is the worst.
@@ -57,7 +57,7 @@ Everything above is corrected. Where the documented behaviour was better than wh
 
 The pattern is the same every time: prose written alongside an intention, shipped, and never re-checked against the code that eventually landed—or didn't. The docs described the product we meant to build, and the code that shipped differed from them.
 
-The fix we're applying isn't "be more careful." It's that documented behaviour with a number in it now has a test asserting that number. `10000`, `11`, `10`, `2`, `1` are assertions in the suite, not prose. When someone changes one, a test fails and says it is a public contract.
+The fix is a test for every documented number. The test suite asserts the 10,000-row threshold and exit codes `11`, `10`, `2` and `1`. When someone changes one, a test fails and says it is a public contract.
 
 Tests cover numbers. A descriptive claim such as "Tarjan's algorithm" has no value to assert. For those, the only defence is reading the page next to the code, which is what we did today and will do at each release.
 
