@@ -311,11 +311,36 @@ function CliPage() {
       >
         <Prose>
           <p>
-            Every command returns <code>0</code> on success and <code>1</code> on any error, with a
-            one-line diagnostic written to stderr. Stable per-failure-mode exit codes are planned
-            for a future minor release; today, scripts that need to branch on failure should match
-            the stderr message.
+            An error that reaches the top level of the CLI is printed to stderr as{" "}
+            <code>error: </code> followed by its message, and the process exits <code>1</code> (
+            <code>packages/cli/src/cli.ts</code>). <code>satus generate</code> handles some failures
+            itself: it prints its own message to stderr, sometimes over several lines, and exits
+            with the code for that failure. A dry run with validator errors prints its findings in
+            the dry-run report on stdout and exits <code>2</code>. The exit codes are defined in{" "}
+            <code>packages/cli/src/exit-codes.ts</code>, and CI scripts can branch on them:
           </p>
+          <ul className="mb-4 ml-5 list-disc space-y-2">
+            <li>
+              <code>0</code>: success.
+            </li>
+            <li>
+              <code>1</code> (<code>E_GENERAL</code>): any unclassified error, such as bad config, a
+              refused connection, or an LLM or database error.
+            </li>
+            <li>
+              <code>2</code> (<code>E_VALIDATION</code>): <code>--dry-run</code> completed and the
+              relational validator reported errors.
+            </li>
+            <li>
+              <code>10</code> (<code>E_FK_CYCLE</code>): a foreign-key cycle in which no edge can be
+              broken, because every FK column on the cycle is NOT NULL. Nothing was written.
+            </li>
+            <li>
+              <code>11</code> (<code>E_DB_NOT_EMPTY</code>): the safety guard refused because the
+              target database already holds more than 10,000 rows. Nothing was written.{" "}
+              <code>--force</code> bypasses the guard.
+            </li>
+          </ul>
           <p>
             satus never sends your schema, your data, or your column names to satus.sh. The only
             network call to satus.sh is the license verify, which sends your license key and nothing

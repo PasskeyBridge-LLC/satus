@@ -110,9 +110,11 @@ function HowItWorksPage() {
       >
         <Prose>
           <p>
-            Every <code>satus generate</code> run makes three promises to your database. They
-            aren&rsquo;t marketing copy—they map directly to three pieces of code in the CLI, and
-            each one has a named exit code you can branch on in CI.
+            Every <code>satus generate</code> run makes three promises to your database. Each one
+            maps to a piece of code in the CLI. The planner exits <code>10</code> (
+            <code>E_FK_CYCLE</code>) when it cannot break a cycle, the guard exits <code>11</code> (
+            <code>E_DB_NOT_EMPTY</code>) when it refuses, and a run that fails inside the
+            transaction exits <code>1</code> (<code>E_GENERAL</code>) after it rolls back.
           </p>
           <ol className="ml-5 list-decimal space-y-2">
             <li>
