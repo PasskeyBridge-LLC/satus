@@ -38,7 +38,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 ```
 
-Three choices in that block matter. They read the same way in the roadmap post, and they read the same way in the docs. Each one prevents a specific failure: an empty `database-url`, a `max-cost` value that YAML turns into a float, or a provider key exposed to a compromised Action version.
+Three choices in that block matter. The roadmap post and the docs describe them the same way. Each one prevents a specific failure: an empty `database-url`, a `max-cost` value that YAML turns into a float, or a provider key exposed to a compromised Action version.
 
 1. **`database-url` is an action input.** GitHub redacts inputs in logs the same way it redacts env vars. Making it an input means it appears in the Marketplace UI as a required field, so a caller cannot leave it empty by accident.
 2. **`max-cost` is a string.** YAML parses `0.5` as a float, and the CLI's zod validator expects a string for `--max-cost` so it can normalise the format itself. The Action forwards it verbatim. Quote it in your workflow.
