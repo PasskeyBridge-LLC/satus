@@ -17,9 +17,25 @@ export function Mono({ children, className = "" }: { children: ReactNode; classN
   return <span className={`font-mono ${className}`}>{children}</span>;
 }
 
+/**
+ * Hairline-framed terminal block shared by /cli, /quickstart and /recipes.
+ * The pre scrolls on the x axis, so it is in the tab order (axe
+ * scrollable-region-focusable) and keyboard users can scroll it with the
+ * arrow keys. The global :focus-visible ring marks it when focused.
+ */
+export function Terminal({ children }: { children: ReactNode }) {
+  return (
+    <div className="mt-8 max-w-[760px] border-y border-[var(--ink)]">
+      <pre tabIndex={0} className="overflow-x-auto px-1 py-6 font-mono text-[13px] leading-[1.85]">
+        {children}
+      </pre>
+    </div>
+  );
+}
+
 export function Prose({ children }: { children: ReactNode }) {
   return (
-    <div className="max-w-[62ch] text-[15.5px] leading-[1.7] text-[var(--ink)]/85 [&_code]:font-mono [&_code]:text-[14px] [&_code]:text-[var(--ink)] [&_em]:not-italic [&_em]:text-[var(--ink)] [&_strong]:font-medium [&_strong]:text-[var(--ink)] [&_p]:mb-4 last:[&_p]:mb-0">
+    <div className="max-w-[62ch] text-[15.5px] leading-[1.7] text-[var(--ink)]/85 [&_code]:font-mono [&_code]:text-[14px] [&_code]:text-[var(--ink)] [&_code]:[overflow-wrap:anywhere] [&_code]:[word-break:break-word] [&_em]:not-italic [&_em]:text-[var(--ink)] [&_strong]:font-medium [&_strong]:text-[var(--ink)] [&_p]:mb-4 last:[&_p]:mb-0">
       {children}
     </div>
   );

@@ -6,7 +6,7 @@
  * releases after 10 and 11 shipped. packages/cli/README.md ships in the
  * npm tarball, so its exit-code table is checked too. The expected list here is built from
  * the module's exports, so adding a code to exit-codes.ts fails this test
- * until both pages list it with its constant name.
+ * until /llms.txt, /cli and the CLI README all list it with its constant name.
  */
 
 import { readFileSync } from "node:fs";
