@@ -140,7 +140,10 @@ function Overview() {
             varies with the user's schema; the shape (introspect → plan →
             generate per-table → insert in a transaction) is what the CLI
             actually does. See packages/cli/src/generate/runner.ts. */}
-        <pre className="mt-3 overflow-x-auto font-mono text-[12.5px] leading-[1.75] text-[var(--ink)]">
+        <pre
+          tabIndex={0}
+          className="mt-3 overflow-x-auto font-mono text-[12.5px] leading-[1.75] text-[var(--ink)]"
+        >
           {`$ satus generate --profile saas
   introspecting schema           14 tables · 38 FKs
   planning insert order          topological
@@ -424,7 +427,7 @@ function AntiFeatures() {
         </p>
       </Prose>
 
-      <div className="mt-8 max-w-[860px] overflow-x-auto border-y border-[var(--ink)]">
+      <div tabIndex={0} className="mt-8 max-w-[860px] overflow-x-auto border-y border-[var(--ink)]">
         <table className="w-full min-w-[640px] border-collapse font-mono text-[13px]">
           <thead>
             <tr className="border-b border-[var(--hairline)]">

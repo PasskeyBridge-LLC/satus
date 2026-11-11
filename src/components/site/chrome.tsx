@@ -205,10 +205,13 @@ export function LeftRail({
           const isActive = active === s.id;
           return (
             <li key={s.id}>
+              {/* No colour transition here. The number span switches colour at
+                  once, so a fading background left it under 4.5:1 for 150ms
+                  each time the active section changed. */}
               <a
                 href={`#${s.id}`}
                 aria-current={isActive ? "location" : undefined}
-                className={`flex items-baseline gap-3 px-2 py-1.5 font-mono text-[12.5px] transition-colors ${
+                className={`flex items-baseline gap-3 px-2 py-1.5 font-mono text-[12.5px] ${
                   isActive
                     ? "bg-[var(--ink)] text-[var(--paper)]"
                     : "text-[var(--mute)] hover:text-[var(--ink)]"
