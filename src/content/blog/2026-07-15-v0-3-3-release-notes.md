@@ -40,7 +40,7 @@ jobs:
 
 Three choices in that block are load-bearing and deliberate. They read the same way in the roadmap post, and they read the same way in the docs, because none of them are things you want to discover after a compromised release tag or a silently-empty preview database.
 
-1. **`database-url` is an action input.** GitHub redacts inputs in logs the same way it redacts env vars. Making it an input means it appears in the Marketplace UI as a required field, so a caller cannot leave it empty by accident. That is the entire justification; there is no clever plumbing underneath.
+1. **`database-url` is an action input.** GitHub redacts inputs in logs the same way it redacts env vars. Making it an input means it appears in the Marketplace UI as a required field, so a caller cannot leave it empty by accident.
 2. **`max-cost` is a string.** YAML parses `0.5` as a float, and the CLI's zod validator expects a string for `--max-cost` so it can normalise the format itself. The Action forwards it verbatim. Quote it in your workflow.
 3. **The provider key stays in `env:`, not `with:`.** The Action never touches your OpenAI or Anthropic key; the CLI reads it directly from the environment, [as it has since v0.3.0](/blog/v0-3-0-anthropic-and-machine-readable-output). That keeps the key off the Action's public input schema and out of anything a compromised Action version could exfiltrate through inputs.
 
