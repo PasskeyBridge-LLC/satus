@@ -16,7 +16,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PageShell } from "@/components/site/chrome";
 import { FURTHER_READING, FurtherReading } from "@/components/site/further-reading";
-import { Prose, Section, type SectionMeta } from "@/components/site/primitives";
+import { Prose, Section, Terminal, type SectionMeta } from "@/components/site/primitives";
 import { SATUS_VERSION, SATUS_VERSION_TAG, SATUS_RELEASED_AT } from "@/lib/version";
 
 const SITE_URL = "https://satus.sh";
@@ -363,15 +363,6 @@ function CliPage() {
 
 /* -------------------- Local primitives -------------------- */
 
-function Terminal({ children }: { children: ReactNode }) {
-  return (
-    <div className="mt-8 max-w-[760px] border-y border-[var(--ink)]">
-      <pre className="overflow-x-auto px-1 py-6 font-mono text-[13px] leading-[1.85]">
-        {children}
-      </pre>
-    </div>
-  );
-}
 function Cmt({ children }: { children: ReactNode }) {
   return <div className="px-4 text-[var(--mute)]">{children}</div>;
 }

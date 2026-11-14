@@ -124,7 +124,10 @@ jobs:
 
 function CodeBlock({ children }: { children: ReactNode }) {
   return (
-    <pre className="my-4 overflow-x-auto border border-[var(--ink)] bg-[var(--paper)] p-4 font-mono text-[12.5px] leading-[1.55] text-[var(--ink)]">
+    <pre
+      tabIndex={0}
+      className="my-4 overflow-x-auto border border-[var(--ink)] bg-[var(--paper)] p-4 font-mono text-[12.5px] leading-[1.55] text-[var(--ink)]"
+    >
       <code>{children}</code>
     </pre>
   );
@@ -203,7 +206,7 @@ function GitHubActionPage() {
 
       <Section id="inputs" n="03" label="Inputs" title={<>every knob, defaulted.</>}>
         <Prose>
-          <div className="my-4 overflow-x-auto">
+          <div tabIndex={0} className="my-4 overflow-x-auto">
             <table className="w-full border-collapse border border-[var(--ink)]">
               <thead>
                 <TableRow header cells={["name", "required", "default", "description"]} />
@@ -281,7 +284,7 @@ function GitHubActionPage() {
             They are also uploaded verbatim as the <code>satus-run-manifest</code> workflow artifact
             so a downstream job can read the full record.
           </p>
-          <div className="my-4 overflow-x-auto">
+          <div tabIndex={0} className="my-4 overflow-x-auto">
             <table className="w-full border-collapse border border-[var(--ink)]">
               <thead>
                 <TableRow header cells={["name", "description"]} />

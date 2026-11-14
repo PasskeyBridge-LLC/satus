@@ -27,7 +27,17 @@ function contrast(foreground: string, background: string): number {
 
 describe("recipes axe regressions", () => {
   it("makes every terminal pre keyboard-focusable", () => {
-    const tags = [...source().matchAll(/<pre\b[^>]*>/g)].map((match) => match[0]);
+    // The terminal frame is the shared Terminal in primitives.tsx.
+    expect(source()).toMatch(
+      /import \{[^}]*\bTerminal\b[^}]*\} from "@\/components\/site\/primitives"/,
+    );
+    const primitives = readFileSync(
+      new URL("../components/site/primitives.tsx", import.meta.url),
+      "utf8",
+    );
+    const tags = [source(), primitives].flatMap((src) =>
+      [...src.matchAll(/<pre\b[^>]*>/g)].map((match) => match[0]),
+    );
     expect(tags.length).toBeGreaterThan(0);
     for (const tag of tags) expect(tag).toMatch(/tabIndex=\{0\}/);
   });
