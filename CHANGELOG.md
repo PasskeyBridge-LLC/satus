@@ -14,7 +14,7 @@ The CLI tarball ships from `packages/cli/` under `@passkeybridge/satus`. The mar
 - `gpt-6-luna` requests send `reasoning_effort: "none"` and `temperature: 0.7`. With `temperature: 0.7` and no `reasoning_effort`, the API returns 400 for this model. Requests for other `gpt-5` and `gpt-6` model ids send neither parameter. Requests for every other model are unchanged.
 - `gpt-6-luna` is priced at $0.10 per million input tokens and $0.50 per million output tokens for the dry-run estimate and `--max-cost`. The four models above stay priced until 2027-01-14.
 - `satus init` offers the same default model ids as `satus generate`.
-- The GitHub Action runs on Node 24, pins `actions/setup-node` and `actions/upload-artifact` to commit SHAs, and passes every input to its script through `env:`. Input values are no longer pasted into the script text. `satus-version` defaults to `0.3.13`.
+- The GitHub Action runs on Node 24, pins `actions/setup-node` and `actions/upload-artifact` to commit SHAs, and passes every input to its script through `env:`. Input values are no longer pasted into the script text. The `satus-version` default moves to `0.3.13` after 0.3.13 is on npm, as it did for 0.3.12 in #69.
 - CI tests the CLI on Node 20, 22, 24 and 26. `engines.node` stays `>=20`.
 - Dev tooling: vitest 4.1.12, typescript-eslint 8.72.2, `@types/pg` 8.23.1, and overrides for `brace-expansion` 1.1.22 and `js-yaml` 4.3.2. The published runtime dependencies are unchanged; the lockfile resolves `pg` 8.23.1.
 
