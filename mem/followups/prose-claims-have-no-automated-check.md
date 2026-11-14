@@ -30,3 +30,10 @@ Three Team features on `/pricing` — shared team profiles, CI mode, audit log
 deliberate choice, not an oversight. Whether to build them, drop them, or
 define an actual support SLA (`/compare` previously advertised one that was
 never published anywhere) is a business decision, still open.
+
+## Live gap found 2026-11-13
+
+`/blog/generated-columns-are-load-bearing-now` (2026-07-13) shows
+`satus plan --schema public` output and links `satus plan` to /quickstart.
+There is no `plan` command, and the post has no correction note, unlike
+the 2026-06-17, 2026-06-22 and 2026-07-17 posts. Content fix, not built.
