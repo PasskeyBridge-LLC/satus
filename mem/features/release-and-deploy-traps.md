@@ -131,3 +131,24 @@ The finding itself: four 200s from the then-production deployment, cache
 MISS, no deploy in flight, no error cluster. Google judged a 200 page as
 not-found content; the server side gave it nothing to judge from. The
 page passed Google's live test the same week. No code change.
+
+## Release order for a CLI version bump (from 0.3.12 and 0.3.13)
+
+validate-docs check 7 keeps two version groups: the CLI files
+(`packages/cli/package.json`, lockfile root, `src/version.ts`) and the
+published files (`src/lib/version.ts`, the `action.yml` `satus-version`
+default, the Action README). Merge the CLI group first and tag. Move the
+published group only after `npm view @passkeybridge/satus@<v>` answers.
+The Action default is what `npx` installs for callers without `satus`
+on PATH, so a default that is not on npm fails their workflow. 0.3.12:
+published 15:26 UTC 2026-10-26, Action moved in #69 at 15:41. 0.3.13
+merged in #87 with the published group held at 0.3.12.
+
+## No Vercel preview for agent branches
+
+The project's Ignored Build Step is
+`[ "$VERCEL_ENV" = production ] && exit 1; case "$VERCEL_GIT_COMMIT_REF" in claude/*|cursor/*|dependabot/*) exit 0;; esac; ...`.
+Previews for `claude/*` and `cursor/*` branches are canceled by design
+(seen on #87, 2026-11-14). For viewport checks on such a PR, build
+locally (`bun run build`, then `npx vite preview`) and note that
+`/_vercel/insights/script.js` 404s off Vercel.
