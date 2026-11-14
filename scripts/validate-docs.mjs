@@ -24,6 +24,11 @@
  *      the published version is identical across the site and Action files.
  *      Those two groups may differ until a release lands on npm.
  *   8. The RFC 9116 security.txt has not expired (and is not about to).
+ *   9. Node lines named in the docs equal the cli-ci.yml matrix, any OS
+ *      named with them is one cli-ci.yml runs on, and "Node N+" names the
+ *      engines.node floor (scripts/docs-parity.mjs).
+ *  10. No page says commands exit only 0 or 1, or that per-failure exit
+ *      codes are planned, while exit-codes.ts exports other codes.
  *
  * It cannot check prose — "Tarjan's algorithm" is still a human's job.
  * It covers the categories that actually broke.
@@ -34,6 +39,13 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  checkExitCodeDenials,
+  checkNodeClaims,
+  ciNodeMatrix,
+  ciOperatingSystems,
+  enginesFloor,
+} from "./docs-parity.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -270,6 +282,33 @@ if (!existsSync(join(ROOT, SECURITY_TXT))) {
   }
 }
 
+/* ---------- 9. Node lines, OS and floor ---------- */
+const cliCi = read(".github/workflows/cli-ci.yml");
+const nodeFacts = {
+  matrix: ciNodeMatrix(cliCi),
+  oses: ciOperatingSystems(cliCi),
+  floor: enginesFloor(JSON.parse(read("packages/cli/package.json")).engines?.node),
+};
+if (!nodeFacts.matrix || nodeFacts.floor === null) {
+  fail("could not read the cli-ci.yml node matrix or the engines.node floor");
+} else {
+  const MUST_LIST = new Set(["src/routes/quickstart.tsx", "src/routes/docs.troubleshooting.tsx"]);
+  for (const file of DOC_FILES) {
+    for (const f of checkNodeClaims(file, read(file), {
+      ...nodeFacts,
+      requireList: MUST_LIST.has(file),
+      requireFloor: file === "packages/cli/README.md",
+    })) {
+      fail(f);
+    }
+  }
+}
+
+/* ---------- 10. pages that deny the exit codes ---------- */
+for (const file of DOC_FILES) {
+  for (const f of checkExitCodeDenials(file, read(file), REAL.exitCodes)) fail(f);
+}
+
 /* ---------- report ---------- */
 if (failures.length > 0) {
   console.error(`\n✗ docs contradict the code — refusing to build (${failures.length}):\n`);
@@ -286,5 +325,6 @@ console.log(
   `✓ docs agree with the code ` +
     `(flags, exit codes ${[...REAL.exitCodes].sort((a, b) => a - b).join("/")}, ` +
     `free ${REAL.freeRows}x${REAL.freeTables}, guard ${limitStr}, ` +
-    `${versionLabel}, security.txt current)`,
+    `${versionLabel}, security.txt current, ` +
+    `Node ${nodeFacts.matrix?.join("/")} floor ${nodeFacts.floor})`,
 );

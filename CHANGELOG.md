@@ -6,6 +6,23 @@ The CLI tarball ships from `packages/cli/` under `@passkeybridge/satus`. The mar
 
 ## [Unreleased]
 
+## [0.3.13]
+
+### Changed
+
+- **The OpenAI default model is `gpt-6-luna`.** OpenAI shuts down `gpt-4o-mini` (the previous default), `gpt-4o`, `gpt-4.1-mini` and `gpt-4.1` on 2027-01-14 and names `gpt-6-luna` as their replacement. `--model` and the `model` field in `satus.config.json` still override the default. A config file written by an earlier `satus init` holds `"model": "gpt-4o-mini"` and keeps using it until you change that field.
+- `gpt-6-luna` requests send `reasoning_effort: "none"` and `temperature: 0.7`. With `temperature: 0.7` and no `reasoning_effort`, the API returns 400 for this model. Requests for other `gpt-5` and `gpt-6` model ids send neither parameter. Requests for every other model are unchanged.
+- `gpt-6-luna` is priced at $0.10 per million input tokens and $0.50 per million output tokens for the dry-run estimate and `--max-cost`. The four models above stay priced until 2027-01-14.
+- `satus init` offers the same default model ids as `satus generate`.
+- The GitHub Action runs on Node 24, pins `actions/setup-node` and `actions/upload-artifact` to commit SHAs, and passes every input to its script through `env:`. Input values are no longer pasted into the script text. `satus-version` defaults to `0.3.13`.
+- CI tests the CLI on Node 20, 22, 24 and 26. `engines.node` stays `>=20`.
+- Dev tooling: vitest 4.1.12, typescript-eslint 8.72.2, `@types/pg` 8.23.1, and overrides for `brace-expansion` 1.1.22 and `js-yaml` 4.3.2. The published runtime dependencies are unchanged; the lockfile resolves `pg` 8.23.1.
+
+### Fixed
+
+- /quickstart and /docs/troubleshooting named Node 20 and 22 on macOS and Linux. They now name the Node lines and the OS that CI tests.
+- /docs/troubleshooting named a `satus plan` command, which does not exist. It now names `satus generate --dry-run` and `satus generate`, and says what each one needs.
+
 ## [0.3.12] — 2026-10-26
 
 ### Added
