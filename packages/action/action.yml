@@ -52,7 +52,7 @@ inputs:
   satus-version:
     description: "npm version of @passkeybridge/satus to install."
     required: false
-    default: "0.3.12"
+    default: "0.3.13"
 
 outputs:
   run-id:
@@ -77,10 +77,16 @@ outputs:
 runs:
   using: "composite"
   steps:
+    # Node 24: the line cli-publish.yml builds the tarball on. Pinned to the
+    # same setup-node commit as .github/workflows/cli-ci.yml. setup-node v5
+    # turns on dependency caching when the caller's package.json has a
+    # `packageManager` field; this action installs nothing from the caller's
+    # lockfile, so caching stays off, as it was under v4.
     - name: Set up Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
       with:
-        node-version: "20"
+        node-version: "24"
+        package-manager-cache: false
 
     - name: Run satus generate
       id: run
@@ -90,28 +96,41 @@ runs:
         # database-url is passed to the CLI via env so it never lands in a
         # command line that could show up in an accidental `set -x` trace.
         DATABASE_URL: ${{ inputs.database-url }}
+        # Every other input also reaches the script through env and is read
+        # as a quoted shell variable. An inputs expression written inside
+        # `run:` is pasted into the script text before bash parses it, so an
+        # input such as `"; echo injected` would run as a command.
+        INPUT_ROWS: ${{ inputs.rows }}
+        INPUT_PROFILE: ${{ inputs.profile }}
+        INPUT_PROVIDER: ${{ inputs.provider }}
+        INPUT_MODEL: ${{ inputs.model }}
+        INPUT_MAX_COST: ${{ inputs.max-cost }}
+        INPUT_DRY_RUN: ${{ inputs.dry-run }}
+        INPUT_TRUNCATE: ${{ inputs.truncate }}
+        INPUT_FORCE: ${{ inputs.force }}
+        INPUT_SATUS_VERSION: ${{ inputs.satus-version }}
       run: |
         set -euo pipefail
 
         # Build the CLI flag list from action inputs. Only pass flags the
         # user actually set so the CLI's own defaults still apply.
-        FLAGS=(--json --rows "${{ inputs.rows }}" --profile "${{ inputs.profile }}" --max-cost "${{ inputs.max-cost }}")
-        if [ -n "${{ inputs.provider }}" ]; then
-          FLAGS+=(--provider "${{ inputs.provider }}")
+        FLAGS=(--json --rows "$INPUT_ROWS" --profile "$INPUT_PROFILE" --max-cost "$INPUT_MAX_COST")
+        if [ -n "$INPUT_PROVIDER" ]; then
+          FLAGS+=(--provider "$INPUT_PROVIDER")
         fi
-        if [ -n "${{ inputs.model }}" ]; then
-          FLAGS+=(--model "${{ inputs.model }}")
+        if [ -n "$INPUT_MODEL" ]; then
+          FLAGS+=(--model "$INPUT_MODEL")
         fi
-        if [ "${{ inputs.dry-run }}" = "true" ]; then
+        if [ "$INPUT_DRY_RUN" = "true" ]; then
           FLAGS+=(--dry-run)
         fi
-        if [ "${{ inputs.truncate }}" = "true" ]; then
+        if [ "$INPUT_TRUNCATE" = "true" ]; then
           FLAGS+=(--truncate)
         fi
         # Without this passthrough the 10,000-row guard added in CLI 0.3.8
         # is unbypassable from the action: a preview database with real
         # fixtures would exit 11 with no way to override.
-        if [ "${{ inputs.force }}" = "true" ]; then
+        if [ "$INPUT_FORCE" = "true" ]; then
           FLAGS+=(--force)
         fi
 
@@ -122,7 +141,7 @@ runs:
         if command -v satus >/dev/null 2>&1; then
           RUNNER=(satus)
         else
-          RUNNER=(npx --yes "@passkeybridge/satus@${{ inputs.satus-version }}")
+          RUNNER=(npx --yes "@passkeybridge/satus@$INPUT_SATUS_VERSION")
         fi
         # --json emits one JSON object on stdout; human output goes to stderr.
         # Tee stdout into the artifact file and preserve the CLI's exit code
@@ -147,9 +166,11 @@ runs:
 
         exit $EXIT
 
+    # v4 resolved to ea165f8d65b6e75b540449e92b4886f43607fa02 on 2026-11-13
+    # (`git ls-remote https://github.com/actions/upload-artifact refs/tags/v4`).
     - name: Upload run manifest
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: satus-run-manifest
         path: ${{ inputs.working-directory }}/.satus/last-run.json

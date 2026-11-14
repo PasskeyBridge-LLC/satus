@@ -245,7 +245,7 @@ function CliPage() {
             [
               "--model <id>",
               "provider default",
-              "Model id. Defaults to gpt-4o-mini for openai, claude-haiku-4-5 for anthropic and grok-4.20-0309-non-reasoning for xai. Cross-provider model names are not validated client-side.",
+              "Model id. Defaults to gpt-6-luna for openai, claude-haiku-4-5 for anthropic and grok-4.20-0309-non-reasoning for xai. Cross-provider model names are not validated client-side.",
             ],
             [
               "--truncate",

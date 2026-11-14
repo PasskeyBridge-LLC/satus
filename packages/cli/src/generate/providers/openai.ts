@@ -15,11 +15,15 @@ import type { Provider, ProviderRequest, ProviderResponse } from "./types.js";
 const DEFAULT_BASE = process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1";
 
 /**
- * USD per million tokens. Keep ordered with the most specific prefixes
- * first if we ever add overlapping ids. Last verified: 2026-05 against
- * OpenAI's public pricing page.
+ * USD per million tokens, keyed by model-id prefix (longest prefix wins).
+ * Last verified: 2026-11-13 against OpenAI's model pages.
+ *
+ * gpt-4o-mini, gpt-4o, gpt-4.1-mini and gpt-4.1 shut down on 2027-01-14
+ * (OpenAI deprecations page, announced 2026-10-14). They stay priced until
+ * then so a user who pins one with --model still gets a cost estimate.
  */
-const PRICING: Record<string, { input: number; output: number }> = {
+export const OPENAI_PRICING: Record<string, { input: number; output: number }> = {
+  "gpt-6-luna": { input: 0.1, output: 0.5 },
   "gpt-4o-mini": { input: 0.15, output: 0.6 },
   "gpt-4o": { input: 2.5, output: 10 },
   "gpt-4.1-mini": { input: 0.4, output: 1.6 },
@@ -34,31 +38,47 @@ const PRICING: Record<string, { input: number; output: number }> = {
  * were under-billed — the wrong direction for a budget guardrail. This is
  * a deliberate upper bound, not a claim about any particular model.
  */
-const FALLBACK_PRICE = { input: 2.5, output: 10 };
+export const OPENAI_FALLBACK_PRICE = { input: 2.5, output: 10 };
 
 /**
  * Longest matching prefix wins, so `gpt-4o-mini` cannot be shadowed by
  * `gpt-4o` regardless of object key order.
  */
-function priceFor(model: string) {
+export function openaiPriceFor(model: string) {
   let best: { input: number; output: number } | undefined;
   let bestLen = -1;
-  for (const [key, price] of Object.entries(PRICING)) {
+  for (const [key, price] of Object.entries(OPENAI_PRICING)) {
     if (model.startsWith(key) && key.length > bestLen) {
       best = price;
       bestLen = key.length;
     }
   }
-  return best ?? FALLBACK_PRICE;
+  return best ?? OPENAI_FALLBACK_PRICE;
 }
 
 /**
- * GPT-5 family pins temperature at 1; sending any other value is a 400.
- * Detect by prefix so future minor releases (gpt-5.x, gpt-5-mini, ...)
- * are covered without code changes.
+ * Sampling and reasoning parameters sent with each request, by model id.
+ *
+ * - gpt-6-luna: `reasoning_effort: "none"` and `temperature: 0.7`. Checked
+ *   live on 2026-11-13 against /v1/chat/completions with strict json_schema:
+ *   temperature 0.7 without reasoning_effort returned 400 unsupported_value
+ *   ("Only the default (1) value is supported"); with reasoning_effort
+ *   "none" it returned 200. "none" also means no reasoning-token spend on a
+ *   structured-output job, the same reason the xAI default is a
+ *   non-reasoning model.
+ * - Other gpt-5 and gpt-6 ids: neither parameter. These models accept only
+ *   the default temperature unless reasoning effort is "none", and not all
+ *   of them accept "none" (OpenAI's GPT-6 migration guide lists GPT-6 Astra
+ *   and GPT-6.1 Sol as returning 400 for it).
+ * - Everything else (gpt-4o, gpt-4.1, ...): `temperature: 0.7`, as in 0.3.12.
  */
-function supportsCustomTemperature(model: string): boolean {
-  return !/^gpt-5/i.test(model);
+export function openaiRequestParams(model: string): {
+  temperature?: number;
+  reasoning_effort?: "none";
+} {
+  if (/^gpt-6-luna/i.test(model)) return { reasoning_effort: "none", temperature: 0.7 };
+  if (/^gpt-[56]/i.test(model)) return {};
+  return { temperature: 0.7 };
 }
 
 export interface OpenAiProviderOptions {
@@ -68,7 +88,7 @@ export interface OpenAiProviderOptions {
 
 export function createOpenAiProvider(opts: OpenAiProviderOptions): Provider {
   const { apiKey, model } = opts;
-  const price = priceFor(model);
+  const price = openaiPriceFor(model);
   return {
     id: "openai",
     model,
@@ -76,6 +96,7 @@ export function createOpenAiProvider(opts: OpenAiProviderOptions): Provider {
     async generate<T>(req: ProviderRequest): Promise<ProviderResponse<T>> {
       const body: Record<string, unknown> = {
         model,
+        ...openaiRequestParams(model),
         messages: [
           { role: "system", content: req.system },
           { role: "user", content: req.user },
@@ -89,9 +110,6 @@ export function createOpenAiProvider(opts: OpenAiProviderOptions): Provider {
           },
         },
       };
-      if (supportsCustomTemperature(model)) {
-        body.temperature = 0.7;
-      }
 
       const res = await fetch(`${DEFAULT_BASE}/chat/completions`, {
         method: "POST",
@@ -122,6 +140,11 @@ export function createOpenAiProvider(opts: OpenAiProviderOptions): Provider {
         throw new Error(`Failed to parse model JSON: ${(err as Error).message}`);
       }
 
+      // completion_tokens already includes reasoning tokens: in the live
+      // gpt-6-luna response of 2026-11-13, total_tokens equalled
+      // prompt_tokens + completion_tokens while completion_tokens_details
+      // listed 34 reasoning tokens. Adding them again would double-bill.
+      // (xAI reports reasoning tokens outside completion_tokens; see xai.ts.)
       const inputTokens = payload.usage?.prompt_tokens ?? 0;
       const outputTokens = payload.usage?.completion_tokens ?? 0;
       const usd =

@@ -33,8 +33,8 @@ export const ConfigSchema = z.object({
   provider: z.enum(["openai", "anthropic", "xai"]).optional(),
   /**
    * Model id. When omitted, falls back to the selected provider's
-   * default (gpt-4o-mini for openai, claude-haiku-4-5 for anthropic,
-   * grok-4.20-0309-non-reasoning for xai).
+   * default (DEFAULT_MODELS in commands/generate.ts: gpt-6-luna for openai,
+   * claude-haiku-4-5 for anthropic, grok-4.20-0309-non-reasoning for xai).
    * Cross-provider model names are not validated client-side.
    */
   model: z.string().optional(),

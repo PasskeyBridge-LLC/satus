@@ -110,7 +110,7 @@ License keys are verified against `https://satus.sh/api/public/license/verify` a
 
 | Provider | Env var | Default model | Get a key |
 |---|---|---|---|
-| OpenAI | `OPENAI_API_KEY` | `gpt-4o-mini` | <https://platform.openai.com/api-keys> |
+| OpenAI | `OPENAI_API_KEY` | `gpt-6-luna` | <https://platform.openai.com/api-keys> |
 | Anthropic | `ANTHROPIC_API_KEY` | `claude-haiku-4-5` | <https://console.anthropic.com/settings/keys> |
 | xAI | `XAI_API_KEY` | `grok-4.20-0309-non-reasoning` | <https://console.x.ai> |
 
@@ -126,7 +126,7 @@ Precedence (highest first):
 
 If both `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` are exported and you pass no flag and no config, the run aborts with a clear message — auto-detect deliberately refuses to guess so a misplaced key never spends on the wrong invoice. `XAI_API_KEY` is auto-detected only when neither of the other two is set; otherwise pass `--provider xai`.
 
-Model resolution is the same shape: `--model` flag wins, otherwise the config field, otherwise the provider's default model. Cross-provider model names are not validated client-side; the upstream 4xx surfaces verbatim if you pass `gpt-4o-mini` with `--provider anthropic`.
+Model resolution is the same shape: `--model` flag wins, otherwise the config field, otherwise the provider's default model. Cross-provider model names are not validated client-side; the upstream 4xx surfaces verbatim if you pass `gpt-6-luna` with `--provider anthropic`.
 
 ### Cost reporting
 
@@ -141,7 +141,7 @@ For per-call detail, pass `-v` / `--verbose` — every batch logs a line:
 For CI, pass `--json` to get a single newline-terminated JSON object on stdout while all human output is redirected to stderr. This report stays on your machine, so unlike the telemetry payload it does name your tables and schema:
 
 ```json
-{"run_id":"...","status":"success","provider":"openai","model":"gpt-4o-mini","profile":"saas","target_schema":"public","tables":[{"name":"users","rows_generated":25}],"total_rows":25,"total_cost_usd":0.001100,"input_tokens":842,"output_tokens":1310,"duration_ms":3142}
+{"run_id":"...","status":"success","provider":"openai","model":"gpt-6-luna","profile":"saas","target_schema":"public","tables":[{"name":"users","rows_generated":25}],"total_rows":25,"total_cost_usd":0.000739,"input_tokens":842,"output_tokens":1310,"duration_ms":3142}
 ```
 
 Both cost numbers you see for a run — the `--dry-run` estimate and the live meter — read the same per-model rate table, selected by `--provider` and `--model`. Rates are pinned and dated in `packages/cli/src/generate/providers/openai.ts`, `anthropic.ts` and `xai.ts`; a model id not in its provider's table falls back to the most expensive entry in its own table, so an unpriced model can only make `--max-cost` abort early, never overshoot. Rates drift — treat every figure as an estimate and your provider's dashboard as the invoice.
