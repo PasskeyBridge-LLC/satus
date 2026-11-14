@@ -9,6 +9,8 @@ tags: [postgres, generated-columns, schema, seeding]
 draft: false
 ---
 
+Correction, November 14, 2026: The original post said satus runs the `pg_attribute` query below at planning time, showed output from a `satus plan` command, said that command surfaces every generated column, its expression and the constraints that depend on it, and said the built-in profiles handle `tsvector` columns, computed totals and case-folded uniqueness. There is no `plan` command: in `@passkeybridge/satus` 0.3.12 and 0.3.13, `satus plan` prints `error: unknown command 'plan'` and exits 1. The CLI reads `is_generated` from `information_schema.columns` and leaves generated columns out of the rows it asks the model for, out of the `INSERT` column list, and out of the dry-run validator. A `UNIQUE` constraint on a generated column is therefore checked by Postgres at insert time, not by `satus generate --dry-run`. The three profiles (`saas`, `ecommerce`, `b2b`) are prose hints with no rules for generated columns. The plan block in the worked example is kept as a description of what a seeder needs to know about the table; the sentences and the table row that attributed the query, the plan and the sampling to satus have been changed.
+
 A `GENERATED` column in Postgres is a column whose value is not written by the client but computed from other columns in the same row by an expression the database enforces. Since [PostgreSQL 12](https://www.postgresql.org/docs/12/ddl-generated-columns.html) the `STORED` variant has been in the core; since [PostgreSQL 18](https://www.postgresql.org/docs/18/ddl-generated-columns.html) the `VIRTUAL` variant is in the core too, and the default. For a tool like [satus](/) that has to produce rows the database will accept on the first try, that is a category change: the column looks like every other column to a `SELECT`, but any `INSERT` that names it in the column list is a hard error, and any `INSERT` that omits it still has to satisfy every downstream constraint, index, and foreign key that references the value the database is about to compute. This post is the field guide to reading them out of the catalog, planning around them, and two anti-patterns worth naming in schemas that adopted them recently.
 
 ## The short version
@@ -27,7 +29,7 @@ Postgres computes the value of a generated column from an immutable expression o
 | Expression can use a user-defined function or type | Yes | No; built-ins only, including transitively via operators and casts |
 | Written to `pg_attribute.attgenerated` | `'s'` | `'v'` |
 | Backfilled by an `ALTER TABLE ADD COLUMN` rewrite | Yes | No; there is nothing to store |
-| Consequence for `satus` sampling | Compute and check against downstream indexes and FKs the same as any other column | Compute the value client-side to reason about downstream CHECKs; the column itself cannot be indexed or referenced |
+| Consequence for a seeder | Compute and check against downstream indexes and FKs the same as any other column | Compute the value client-side to reason about downstream CHECKs; the column itself cannot be indexed or referenced |
 
 The user-defined-type and built-in-only restrictions are in the [PostgreSQL 18 DDL reference](https://www.postgresql.org/docs/18/ddl-generated-columns.html). The rejection messages for indexes, unique constraints, primary keys, and foreign keys on virtual generated columns are enforced by the Postgres source (`src/backend/commands/indexcmds.c` and `src/backend/commands/tablecmds.c`) in the initial PG18 release. That means a schema that wants "join on the computed value" needs either a `STORED` generated column, or an expression index and a shadow column that a `FOREIGN KEY` can point at; the two options are schema decisions, not seeder decisions. The point of naming them here is that a schema which was `GENERATED ALWAYS AS (…) STORED` under PG12–17 and re-declared without the keyword under PG18 will look different in the catalog and will fail differently at DDL time.
 
@@ -43,7 +45,7 @@ Each of those idioms is documented in the PostgreSQL manual and in shipping appl
 
 ## Reading them out of the catalog
 
-The one field that matters is `pg_attribute.attgenerated`. It is `''` (empty) for a regular column, `'s'` for a stored generated column, and `'v'` for a virtual generated column. The expression itself is not stored in `pg_attribute`; it lives in `pg_attrdef.adbin` and is resolved to text with `pg_get_expr(adbin, adrelid)`. The idiomatic query, and the one satus runs at planning time:
+The one field that matters is `pg_attribute.attgenerated`. It is `''` (empty) for a regular column, `'s'` for a stored generated column, and `'v'` for a virtual generated column. The expression itself is not stored in `pg_attribute`; it lives in `pg_attrdef.adbin` and is resolved to text with `pg_get_expr(adbin, adrelid)`. The idiomatic query:
 
 ```sql
 SELECT
@@ -92,7 +94,7 @@ CREATE TABLE orders (
 );
 ```
 
-`satus plan --schema public` for this table prints, in the same format used elsewhere in the CLI:
+A seeder needs this plan for the table. satus does not print it; see the correction at the top of this post.
 
 ```text
 table public.orders
@@ -135,7 +137,7 @@ The support tickets that involve generated columns cluster into two shapes.
 
 Generated columns in Postgres are computed by the database from the row you write, not by the client. The observable rule is that `INSERT` cannot supply a value; the deeper rule is that the value participates in every downstream `UNIQUE`, `CHECK`, index, and (for stored columns) foreign key exactly as if the client had computed and written it. A seeder that reads `pg_attribute.attgenerated` and reasons about the composed constraints produces rows the database accepts on the first try. A seeder that treats the column as ordinary produces the error that reads, out of context, like a Postgres bug: a duplicate-key on a column nobody wrote, a check-constraint failure on a column nobody chose. Neither is a bug. The catalog told you the answer; the seeder had to read it.
 
-If you have not looked at `attgenerated` in your own schema recently, [`satus plan`](/quickstart) will surface every generated column, its expression, and every downstream constraint whose value space now depends on that expression. The [/profiles](/profiles) page lists which built-in profiles already know about the common shapes (`tsvector` search columns, computed totals, case-folded uniqueness).
+If you have not looked at `attgenerated` in your own schema recently, the catalog query in "Reading them out of the catalog" lists every generated column and its expression. `satus generate --dry-run` leaves generated columns out of the rows it simulates and out of the `INSERT`, and does not print their expressions.
 
 ## References
 

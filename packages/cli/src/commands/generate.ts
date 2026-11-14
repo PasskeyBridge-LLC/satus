@@ -32,6 +32,7 @@ import {
   createXaiProvider,
 } from "../generate/providers/index.js";
 import type { Provider } from "../generate/providers/index.js";
+import { shutdownNotice } from "../generate/providers/deprecations.js";
 import { createSimulatedProvider } from "../generate/simulate.js";
 import { groupFindings } from "../generate/validate.js";
 
@@ -219,6 +220,14 @@ export function registerGenerate(program: Command): void {
       const profile = resolveProfile(opts.profile, cfg);
       const model = opts.model ?? cfg?.model ?? DEFAULT_MODELS[providerId];
       const exclude = cfg?.exclude ?? [];
+      // A config written by `satus init` before 0.3.13 pins gpt-4o-mini,
+      // which shuts down on 2027-01-14. Say so on stderr; the run continues.
+      const retiring = shutdownNotice(
+        providerId,
+        model,
+        opts.model ? "--model" : cfg?.model ? "satus.config.json" : "default",
+      );
+      if (retiring) console.error(pc.yellow(`! ${retiring}`));
 
       // Hosted Postgres (Supabase, Neon, RDS) terminates TLS with certs that
       // node-postgres can't verify out of the box. If the DSN asks for SSL or

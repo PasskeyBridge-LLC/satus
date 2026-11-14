@@ -69,3 +69,37 @@ export function shutdownFor(provider: string, model: string): ModelShutdown | un
     (row) => row.provider === provider && (row.model === model || row.snapshots.includes(model)),
   );
 }
+
+const SOURCE_NAMES: Record<ModelShutdown["provider"], string> = {
+  openai: "OpenAI deprecations page",
+  anthropic: "Anthropic model deprecations page",
+  xai: "xAI models page",
+};
+
+/** Where the model id the run uses was set. */
+export type ModelOrigin = "--model" | "satus.config.json" | "default";
+
+/**
+ * One line for stderr when the model a run resolves has an announced
+ * shutdown, or null. A satus.config.json written by `satus init` before
+ * 0.3.13 holds "model": "gpt-4o-mini", and the config wins over
+ * DEFAULT_MODELS, so upgrading the CLI alone does not move those runs off
+ * the model. `today` is YYYY-MM-DD.
+ */
+export function shutdownNotice(
+  provider: string,
+  model: string,
+  origin: ModelOrigin,
+  today: string = new Date().toISOString().slice(0, 10),
+): string | null {
+  const row = shutdownFor(provider, model);
+  if (!row) return null;
+  const when = today >= row.shutdown ? "shut down on" : "shuts down on";
+  const fix =
+    origin === "satus.config.json"
+      ? `It comes from "model" in satus.config.json; set it to ${row.replacement}, or pass --model.`
+      : origin === "--model"
+        ? `It comes from --model; pass --model ${row.replacement}.`
+        : `Pass --model ${row.replacement}.`;
+  return `${model} ${when} ${row.shutdown} (${SOURCE_NAMES[row.provider]}). ${fix}`;
+}

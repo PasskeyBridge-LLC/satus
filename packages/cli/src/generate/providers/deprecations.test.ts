@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MODEL_SHUTDOWNS, shutdownFor } from "./deprecations.js";
+import { MODEL_SHUTDOWNS, shutdownFor, shutdownNotice } from "./deprecations.js";
 import { DEFAULT_MODELS } from "../../commands/generate.js";
 import { OPENAI_PRICING } from "./openai.js";
 
@@ -48,6 +48,32 @@ describe("the shutdown list", () => {
   it("names a replacement that is itself not on the list", () => {
     for (const row of MODEL_SHUTDOWNS) {
       expect(shutdownFor(row.provider, row.replacement), row.replacement).toBeUndefined();
+    }
+  });
+});
+
+describe("shutdownNotice", () => {
+  it("names the model, the date, where the id came from, and the replacement", () => {
+    expect(shutdownNotice("openai", "gpt-4o-mini", "satus.config.json", "2026-11-14")).toBe(
+      'gpt-4o-mini shuts down on 2027-01-14 (OpenAI deprecations page). It comes from "model" ' +
+        "in satus.config.json; set it to gpt-6-luna, or pass --model.",
+    );
+    expect(shutdownNotice("openai", "gpt-4o-2024-11-20", "--model", "2026-11-14")).toBe(
+      "gpt-4o-2024-11-20 shuts down on 2027-01-14 (OpenAI deprecations page). " +
+        "It comes from --model; pass --model gpt-6-luna.",
+    );
+  });
+
+  it("uses the past tense on and after the shutdown date", () => {
+    expect(shutdownNotice("openai", "gpt-4.1", "--model", "2027-01-14")).toMatch(
+      /^gpt-4\.1 shut down on 2027-01-14 /,
+    );
+  });
+
+  it("says nothing for a model with no announced shutdown", () => {
+    expect(shutdownNotice("openai", "gpt-6-luna", "default", "2026-11-14")).toBeNull();
+    for (const [provider, model] of Object.entries(DEFAULT_MODELS)) {
+      expect(shutdownNotice(provider, model, "default", "2026-11-14"), model).toBeNull();
     }
   });
 });
