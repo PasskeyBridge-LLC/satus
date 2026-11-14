@@ -1,6 +1,6 @@
 # OpenAI default moved to gpt-6-luna in 0.3.13
 
-**Status:** open, 2026-11-14
+**Status:** open, 2026-11-14 (item 1 done in #89)
 
 OpenAI shuts down gpt-4o-mini, gpt-4o, gpt-4.1-mini and gpt-4.1 on
 2027-01-14. #87 made gpt-6-luna the default and recorded the four
@@ -10,10 +10,11 @@ shutdowns in `packages/cli/src/generate/providers/deprecations.ts`.
 
 1. **Configs written by `satus init` before 0.3.13 pin the old model.**
    init wrote `"model": "gpt-4o-mini"` into satus.config.json, and the
-   config wins over DEFAULT_MODELS. Those runs fail on 2027-01-14 even on
-   0.3.13. Nothing warns the user. Candidate fix: a stderr warning in
-   `satus generate` when the resolved model is in MODEL_SHUTDOWNS. A
-   release-notes line also covers it. Not built; needs a decision.
+   config wins over DEFAULT_MODELS. Done in #89 (2026-11-14): `satus
+   generate` prints one stderr line with the shutdown date, where the id
+   was set and the replacement (`shutdownNotice` in deprecations.ts). It
+   reaches users once 0.3.13 is on npm. A release-notes line would also
+   help; that is content work.
 2. **Keep deprecations.ts current.** It is read by hand from the provider
    pages. The roadmap item "model and price freshness check" (brief
    2026-11-09, section 8.1) would fail CI 60 days before a default's

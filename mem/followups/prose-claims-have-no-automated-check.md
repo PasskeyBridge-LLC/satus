@@ -35,5 +35,7 @@ never published anywhere) is a business decision, still open.
 
 `/blog/generated-columns-are-load-bearing-now` (2026-07-13) shows
 `satus plan --schema public` output and links `satus plan` to /quickstart.
-There is no `plan` command, and the post has no correction note, unlike
-the 2026-06-17, 2026-06-22 and 2026-07-17 posts. Content fix, not built.
+There is no `plan` command, and the post had no correction note, unlike
+the 2026-06-17, 2026-06-22 and 2026-07-17 posts. Fixed in #89
+(2026-11-14): dated correction, plus the sentences and the table row that
+attributed the query, the plan and the sampling to satus.
