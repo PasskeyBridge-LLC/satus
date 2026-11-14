@@ -300,7 +300,7 @@ function How() {
         {STEPS.map((s, i) => (
           <li
             key={s.n}
-            className={`grid grid-cols-[40px_140px_1fr] items-baseline gap-x-6 py-4 ${
+            className={`grid grid-cols-[32px_minmax(0,1fr)] items-baseline gap-x-4 gap-y-1 py-4 sm:grid-cols-[40px_140px_minmax(0,1fr)] sm:gap-x-6 sm:gap-y-0 ${
               i !== STEPS.length - 1 ? "border-b border-[var(--hairline)]" : ""
             }`}
           >
@@ -308,7 +308,11 @@ function How() {
             <span className="font-mono text-[14px] font-medium tracking-tight text-[var(--ink)]">
               {s.t}
             </span>
-            <span className="text-[15px] leading-[1.6] text-[var(--ink)]/85">{s.d}</span>
+            {/* Below 640px the description sits under the step name; three
+                fixed columns left it too narrow for its longest word at 320px. */}
+            <span className="col-start-2 text-[15px] leading-[1.6] text-[var(--ink)]/85 sm:col-start-auto">
+              {s.d}
+            </span>
           </li>
         ))}
       </ol>
@@ -581,7 +585,7 @@ function Next() {
             <Link
               key={item.to}
               to={item.to}
-              className="group grid grid-cols-[200px_1fr] gap-x-8 border-b border-[var(--hairline)] py-5 transition-colors hover:bg-[var(--ink)]/[0.02]"
+              className="group grid grid-cols-1 gap-y-1 border-b border-[var(--hairline)] py-5 transition-colors hover:bg-[var(--ink)]/[0.02] sm:grid-cols-[200px_minmax(0,1fr)] sm:gap-x-8 sm:gap-y-0"
             >
               <span className="font-mono text-[14px] font-medium text-[var(--ink)]">
                 {item.label}
