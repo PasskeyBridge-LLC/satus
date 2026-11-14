@@ -15,7 +15,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import type { Column, Table } from "./introspect.js";
 import { buildRowSchema } from "./schema.js";
 import { validateTable } from "./validate.js";
-import { planRun } from "./runner.js";
+import { planRun, runGenerate } from "./runner.js";
 import { synthesizePkRows, createSimulatedProvider } from "./simulate.js";
 import {
   classifyError,
@@ -28,6 +28,8 @@ import { INTROSPECT_SQL } from "./introspect.js";
 import { createAnthropicProvider } from "./providers/anthropic.js";
 import { createOpenAiProvider } from "./providers/openai.js";
 import type { Provider } from "./providers/types.js";
+import type { Client } from "pg";
+import { DEFAULT_MODELS } from "../commands/generate.js";
 
 function col(name: string, udt: string, opts: Partial<Column> = {}): Column {
   return {
@@ -479,6 +481,72 @@ describe("regression: run telemetry is opt-in", () => {
     } finally {
       globalThis.fetch = originalFetch;
       configureTelemetry(false);
+    }
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * 0.3.13 — the OpenAI default moved to gpt-6-luna.
+ *
+ * The --max-cost guard reads the provider's rates, so a new default with a
+ * new price must still drive both the dry-run estimate and the live meter,
+ * and the live meter must still stop the run before anything is written.
+ * ------------------------------------------------------------------ */
+describe("regression: --max-cost with the gpt-6-luna default", () => {
+  const luna = createOpenAiProvider({ apiKey: "x", model: DEFAULT_MODELS.openai });
+  const tables = [tbl("t", [col("a", "text"), col("b", "text")])];
+
+  it("estimates with gpt-6-luna rates and reports a cap the estimate exceeds", () => {
+    expect(DEFAULT_MODELS.openai).toBe("gpt-6-luna");
+    expect(luna.rates).toEqual({ inputPerMTok: 0.1, outputPerMTok: 0.5 });
+    const plan = planRun(tables, {
+      rowsPerTable: 10,
+      batchSize: 25,
+      profile: "saas",
+      provider: luna,
+      maxCostUsd: 0.0001,
+      dryRun: true,
+    });
+    // 2 cols x 10 rows = 20 cells -> 1600 input + 800 output tokens.
+    const est = plan[0]!.estimatedCostUsd;
+    expect(est).toBeCloseTo((1600 / 1e6) * 0.1 + (800 / 1e6) * 0.5, 12);
+    expect(est).toBeGreaterThan(0.0001);
+  });
+
+  it("aborts after the batch that crosses the cap, before any SQL and before the next call", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            choices: [{ message: { content: '{"rows":[{"a":"x","b":"y"}]}' } }],
+            // 1000 in @ $0.10/M + 1000 out @ $0.50/M = $0.0006 per call.
+            usage: { prompt_tokens: 1000, completion_tokens: 1000 },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const queries: string[] = [];
+    const client = {
+      async query(sql: string) {
+        queries.push(sql);
+        return { rows: [], rowCount: 0 };
+      },
+    } as unknown as Client;
+    try {
+      const run = runGenerate(client, tables, {
+        rowsPerTable: 50,
+        batchSize: 25,
+        profile: "saas",
+        provider: luna,
+        maxCostUsd: 0.0005,
+        dryRun: false,
+      });
+      await expect(run).rejects.toThrow(/Cost budget exceeded mid-table/);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(queries).toEqual([]);
+    } finally {
+      vi.unstubAllGlobals();
     }
   });
 });

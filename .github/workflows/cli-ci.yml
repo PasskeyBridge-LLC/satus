@@ -17,12 +17,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 20 is the declared floor (`engines` in packages/cli/package.json)
-        # and has been EOL since 2026-04-30; it stays in the matrix only so
-        # the floor is still tested, not because anything should run on it.
-        # 24 is what the publish workflow builds the tarball on. Raising the
-        # floor is a published-compatibility decision, made separately.
-        node: ["20", "24"]
+        # Lines tested as of 2026-11-13 (nodejs/Release schedule.json):
+        #   20  declared floor (`engines` >=20 in packages/cli/package.json),
+        #       EOL since 2026-04-30; kept so the floor is still tested.
+        #   22  maintenance LTS to 2027-04-30.
+        #   24  maintenance LTS to 2028-04-30; cli-publish.yml builds the
+        #       tarball on it.
+        #   26  Active LTS since 2026-10-28.
+        # /quickstart and /docs/troubleshooting name these lines;
+        # scripts/validate-docs.mjs fails the build when they differ.
+        # Raising the floor is a published-compatibility decision, made
+        # separately.
+        node: ["20", "22", "24", "26"]
     defaults:
       run:
         working-directory: packages/cli
@@ -37,3 +43,19 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # The binary that ships: it starts on this Node line and reports the
+      # package version, and the tarball holds only the four published files.
+      - name: tarball
+        run: |
+          set -euo pipefail
+          want=$(node -p "require('./package.json').version")
+          got=$(node dist/cli.js --version)
+          echo "node $(node -v): satus --version $got"
+          test "$got" = "$want"
+          npm pack --dry-run --json > pack.json
+          node -e '
+            const files = require("./pack.json")[0].files.map((f) => f.path).sort();
+            const want = ["LICENSE", "README.md", "dist/cli.js", "package.json"];
+            console.log(files.join("\n"));
+            if (JSON.stringify(files) !== JSON.stringify(want)) process.exit(1);
+          '

@@ -40,7 +40,10 @@ export type ProviderId = "openai" | "anthropic" | "xai";
 const PROVIDER_IDS: readonly ProviderId[] = ["openai", "anthropic", "xai"];
 
 export const DEFAULT_MODELS: Record<ProviderId, string> = {
-  openai: "gpt-4o-mini",
+  // Pinned 2026-11-13. OpenAI shuts down gpt-4o-mini, the 0.3.12 default,
+  // on 2027-01-14 and names gpt-6-luna as its replacement. The request
+  // parameters this model needs are in providers/openai.ts.
+  openai: "gpt-6-luna",
   // Pinned 2026-06-20 from Anthropic's model lineup. Override with
   // --model or the `model` field in satus.config.json.
   anthropic: "claude-haiku-4-5",

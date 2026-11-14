@@ -15,10 +15,16 @@ function read(rel: string): string {
 
 describe("supply-chain pins", () => {
   it("pins third-party GitHub Actions to a commit and names the tag", () => {
-    const dir = new URL(".github/workflows/", ROOT);
-    const files = readdirSync(dir).filter((name) => name.endsWith(".yml"));
+    // The composite Action runs in other people's workflows, so its two
+    // `uses:` lines are held to the same rule as ours.
+    const files = [
+      ...readdirSync(new URL(".github/workflows/", ROOT))
+        .filter((name) => name.endsWith(".yml"))
+        .map((name) => `.github/workflows/${name}`),
+      "packages/action/action.yml",
+    ];
     const uses = files.flatMap((name) => {
-      const text = readFileSync(new URL(name, dir), "utf8");
+      const text = read(name);
       return [...text.matchAll(/^[ \t]*(?:- )?uses:\s+(\S+)(?:\s+#\s*(\S+))?/gm)].map((match) => ({
         file: name,
         ref: match[1] ?? "",

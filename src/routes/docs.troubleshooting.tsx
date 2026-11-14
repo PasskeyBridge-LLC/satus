@@ -41,11 +41,11 @@ const FAQS: Faq[] = [
   },
   {
     q: "Which Node versions are supported?",
-    a: "Node 20 and 22 on macOS and Linux (the package declares engines >=20). Windows is supported via WSL2. Older Node versions are not tested and will likely fail at install or first run.",
+    a: "CI tests Node 20, 22, 24 and 26 on Linux, and the package declares engines >=20. macOS and Windows are not tested; on Windows, run it under WSL2. Node versions below 20 are not tested.",
   },
   {
     q: "Do I need any environment variables to run `satus init`?",
-    a: "No. `init` only writes files into ./satus/ and needs neither DATABASE_URL nor OPENAI_API_KEY. The two variables become required at `satus plan` and `satus generate`.",
+    a: "No. `satus init` writes satus.config.json in the current directory and needs neither a database connection nor an API key. `satus generate --dry-run` needs a database connection (DATABASE_URL, --dsn, or databaseUrl in satus.config.json) and no API key. `satus generate` needs both the connection and the provider's key: OPENAI_API_KEY, ANTHROPIC_API_KEY or XAI_API_KEY.",
   },
 
   // -------- Schema errors --------

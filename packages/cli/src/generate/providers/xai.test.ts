@@ -110,7 +110,7 @@ describe("provider selection with xai", () => {
   it("accepts --provider xai and keeps the existing defaults", () => {
     expect(resolveProviderId("xai", undefined)).toBe("xai");
     expect(DEFAULT_MODELS).toEqual({
-      openai: "gpt-4o-mini",
+      openai: "gpt-6-luna",
       anthropic: "claude-haiku-4-5",
       xai: "grok-4.20-0309-non-reasoning",
     });

@@ -122,8 +122,8 @@ function QuickstartPage() {
       >
         <Prose>
           <p>
-            satus ships as a single Node binary. We test on Node 20 and 22 across macOS and Linux.
-            Windows is supported via WSL2.
+            satus ships as a single Node binary. CI tests it on Node 20, 22, 24 and 26 on Linux.
+            macOS and Windows are not tested; on Windows, run it under WSL2.
           </p>
         </Prose>
         <Terminal>

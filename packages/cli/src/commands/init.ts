@@ -10,6 +10,7 @@ import { stdin, stdout } from "node:process";
 import { access } from "node:fs/promises";
 import { resolve } from "node:path";
 import { CONFIG_FILE, writeConfig, ConfigSchema } from "../generate/config.js";
+import { DEFAULT_MODELS } from "./generate.js";
 
 export function registerInit(program: Command): void {
   program
@@ -40,12 +41,13 @@ export function registerInit(program: Command): void {
       const schema = await ask("Schema to seed:", "public");
       const profile = await ask("Reference profile (saas | ecommerce | b2b):", "saas");
       const provider = await ask("LLM provider (openai | anthropic | xai):", "openai");
+      // Read from DEFAULT_MODELS so init and generate cannot disagree. Until
+      // 0.3.13 this was a second copy of the ids, and it would have kept
+      // writing gpt-4o-mini into new configs after the default moved.
       const defaultModel =
-        provider === "anthropic"
-          ? "claude-haiku-4-5"
-          : provider === "xai"
-            ? "grok-4.20-0309-non-reasoning"
-            : "gpt-4o-mini";
+        provider === "anthropic" || provider === "xai"
+          ? DEFAULT_MODELS[provider]
+          : DEFAULT_MODELS.openai;
       const model = await ask("Model id:", defaultModel);
       // v0.3.11 opt-in: the run record itself. Off by default, and the
       // prompt says what the record contains so consent means something.
