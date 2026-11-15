@@ -39,3 +39,14 @@ There is no `plan` command, and the post had no correction note, unlike
 the 2026-06-17, 2026-06-22 and 2026-07-17 posts. Fixed in #89
 (2026-11-14): dated correction, plus the sentences and the table row that
 attributed the query, the plan and the sampling to satus.
+
+## Live gap found 2026-11-14 (home page)
+
+The "How it works" list on `/` (`STEPS` in `src/routes/index.tsx`) says
+step 01 reads "unique constraints, checks, and enums directly from
+pg_catalog" and step 04 uses "a zod schema generated from the table".
+`introspect.ts` reads only `contype` p, f and u (no CHECK, no `pg_enum`),
+and `validate.ts` is hand-written; zod is used only for satus.config.json.
+Step 03 says rows come back "via tool-calling"; that is true for Anthropic
+only (OpenAI and xAI use `response_format: json_schema`). Copy fix, not
+built.
