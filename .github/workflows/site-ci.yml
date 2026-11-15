@@ -5,10 +5,12 @@ on:
     paths-ignore:
       - "packages/cli/**"
       - "mem/**"
+  # Every pull request starts this workflow, so the `check` status always
+  # reports and the main ruleset can require it. A PR that touches only
+  # packages/cli or mem/ skips the job (a skipped required check passes);
+  # the `changes` job decides. A workflow-level path filter would leave the
+  # required check pending forever on those PRs.
   pull_request:
-    paths-ignore:
-      - "packages/cli/**"
-      - "mem/**"
 
 # `packages/cli` has its own workflow (cli-ci.yml) and its own lockfile;
 # `mem/` is session notes with nothing to check.
@@ -18,7 +20,39 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      site: ${{ steps.diff.outputs.site }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Push runs keep the path filter above, so only PRs are classified.
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" != "pull_request" ]; then
+            echo "site=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          CHANGED="$(git diff --name-only "$BASE...$HEAD")"
+          echo "$CHANGED"
+          if printf '%s\n' "$CHANGED" | grep -vE '^(packages/cli/.*|mem/.*|)$' > /dev/null; then
+            echo "site=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "site=false" >> "$GITHUB_OUTPUT"
+          fi
+
   check:
+    needs: changes
+    if: needs.changes.outputs.site == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
