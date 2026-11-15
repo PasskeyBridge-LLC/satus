@@ -12,8 +12,8 @@ shutdowns in `packages/cli/src/generate/providers/deprecations.ts`.
    init wrote `"model": "gpt-4o-mini"` into satus.config.json, and the
    config wins over DEFAULT_MODELS. Done in #89 (2026-11-14): `satus
    generate` prints one stderr line with the shutdown date, where the id
-   was set and the replacement (`shutdownNotice` in deprecations.ts). It
-   reaches users once 0.3.13 is on npm. A release-notes line would also
+   was set and the replacement (`shutdownNotice` in deprecations.ts).
+   Published in 0.3.13 on 2026-11-15. A release-notes line would also
    help; that is content work.
 2. **Keep deprecations.ts current.** It is read by hand from the provider
    pages. The roadmap item "model and price freshness check" (brief

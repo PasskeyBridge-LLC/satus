@@ -141,8 +141,15 @@ default, the Action README). Merge the CLI group first and tag. Move the
 published group only after `npm view @passkeybridge/satus@<v>` answers.
 The Action default is what `npx` installs for callers without `satus`
 on PATH, so a default that is not on npm fails their workflow. 0.3.12:
-published 15:26 UTC 2026-10-26, Action moved in #69 at 15:41. 0.3.13
-merged in #87 with the published group held at 0.3.12.
+published 15:26 UTC 2026-10-26, Action moved in #69 at 15:41. 0.3.13:
+CLI merged in #87 and #89 with the published group held at 0.3.12;
+tag `v0.3.13` on `3f647b0` published at 12:40 UTC 2026-11-15 (run
+43714825913); the published group moved afterwards.
+
+The tag is pushed from a machine with GitHub push. From the agent the
+push was refused by the session's permission check (2026-11-14). A local
+clone must `git fetch origin main` first, or the tag command fails with
+"Failed to resolve '<sha>' as a valid ref" (seen 2026-11-15).
 
 ## No Vercel preview for agent branches
 
