@@ -100,10 +100,10 @@ function BlogIndexPage() {
                     {p.date}
                   </time>
                   <div className="min-w-0">
-                    <h3 className="font-mono text-[16px] font-medium leading-[1.3] text-[var(--ink)] transition-colors group-hover:text-[var(--signal)]">
+                    <h3 className="font-mono text-[16px] font-medium leading-[1.3] text-[var(--ink)] [overflow-wrap:anywhere] transition-colors group-hover:text-[var(--signal)]">
                       {p.title}
                     </h3>
-                    <p className="mt-1.5 max-w-[62ch] text-[14px] leading-[1.55] text-[var(--ink)]/75">
+                    <p className="mt-1.5 max-w-[62ch] text-[14px] leading-[1.55] text-[var(--ink)]/75 [overflow-wrap:anywhere]">
                       {p.description}
                     </p>
                     {p.tags.length > 0 && (
@@ -124,7 +124,7 @@ function BlogIndexPage() {
         )}
       </Section>
 
-      <Section id="subscribe" n="01" label="Subscribe" title={<>RSS, no email required.</>}>
+      <Section id="subscribe" n="01" label="Subscribe" title={<>Follow the blog by RSS.</>}>
         <p className="max-w-[62ch] text-[15px] leading-[1.65] text-[var(--ink)]/85">
           We do not run a newsletter. The full feed lives at{" "}
           <a

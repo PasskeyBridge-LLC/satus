@@ -257,7 +257,7 @@ const STEPS = [
   {
     n: "01",
     t: "introspect",
-    d: "Read tables, columns and their types, primary keys, foreign keys, and single-column unique constraints from pg_catalog and information_schema. No annotations. No ORM plugins.",
+    d: "Read tables, columns and their types, primary keys, foreign keys, and single-column unique constraints from pg_catalog and information_schema. It reads the schema from the database itself, so your code and schema stay unchanged.",
   },
   {
     n: "02",
