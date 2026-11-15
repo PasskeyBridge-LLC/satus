@@ -197,7 +197,7 @@ const COMPARE: [string, string][] = [
   ["random strings per column", "rows that reference real parents"],
   ["ignores foreign keys", "topological insert from pg_catalog"],
   ["John Doe, Acme, Lorem Ipsum", "Maren Holloway, Northwind, Burlington VT"],
-  ["constraints fail at runtime", "zod validation before any INSERT"],
+  ["constraints fail at runtime", "--dry-run validation before any INSERT"],
   ["one shape per table", "tone & distribution from a profile"],
 ];
 
@@ -257,22 +257,22 @@ const STEPS = [
   {
     n: "01",
     t: "introspect",
-    d: "Read tables, columns, types, foreign keys, unique constraints, checks, and enums directly from pg_catalog. No annotations. No ORM plugins.",
+    d: "Read tables, columns and their types, primary keys, foreign keys, and single-column unique constraints from pg_catalog and information_schema. No annotations. No ORM plugins.",
   },
   {
     n: "02",
     t: "plan",
-    d: "Build a dependency DAG from your foreign keys and topologically sort the insert order. Parents before children, always.",
+    d: "Build a dependency DAG from your foreign keys and topologically sort the insert order, parents before children. A cycle is broken at a nullable foreign key, which is filled in after every table is seeded.",
   },
   {
     n: "03",
     t: "generate",
-    d: "Per table, send schema, parent-row samples, and the active profile to the LLM. Receive rows as structured JSON via tool-calling, never free-text.",
+    d: "Per table, in batches, ask the model for rows that match a JSON schema built from the columns, guided by the active profile. Foreign-key values come from parent rows already inserted, never from the model.",
   },
   {
     n: "04",
     t: "validate",
-    d: "A zod schema generated from the table catches type, length, enum, unique, and invariant violations before they ever reach the database.",
+    d: "With --dry-run, simulated rows are checked for NOT NULL, type, length, foreign-key and single-column unique violations before anything is written. Errors exit 2.",
   },
   {
     n: "05",

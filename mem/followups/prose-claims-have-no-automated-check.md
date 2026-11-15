@@ -48,5 +48,6 @@ pg_catalog" and step 04 uses "a zod schema generated from the table".
 `introspect.ts` reads only `contype` p, f and u (no CHECK, no `pg_enum`),
 and `validate.ts` is hand-written; zod is used only for satus.config.json.
 Step 03 says rows come back "via tool-calling"; that is true for Anthropic
-only (OpenAI and xAI use `response_format: json_schema`). Copy fix, not
-built.
+only (OpenAI and xAI use `response_format: json_schema`). Fixed
+2026-11-15: steps 01-04 and the "zod validation" comparison row now state
+what `introspect.ts`, `dag.ts`, `runner.ts` and `validate.ts` do.
