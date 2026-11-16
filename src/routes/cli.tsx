@@ -100,15 +100,14 @@ function CliPage() {
             provider keys are read from the environment by default so secrets never land in shell
             history; equivalent overrides are documented per command below.
           </p>
+          {/* prettier-ignore */}
           <p>
             This page is the command reference. To install and run satus for the first time, start
             with the{" "}
             <a
               href="/quickstart"
               className="underline decoration-[var(--signal)] underline-offset-4"
-            >
-              quickstart.
-            </a>
+            >quickstart</a>.
           </p>
         </Prose>
 

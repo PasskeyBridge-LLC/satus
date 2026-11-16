@@ -286,9 +286,9 @@ function How() {
     <Section id="how" n="02" label="How it works" title={<>five steps, run from one CLI.</>}>
       <Prose>
         <p>
-          The CLI runs on your machine and talks to your database. It sends each table&rsquo;s
-          column schema to the LLM provider you configure. Existing row values are not sent, and
-          telemetry does not include row contents.
+          The CLI runs on your machine or a CI runner and talks to your database. It sends each
+          table&rsquo;s column schema and constraints to the LLM provider you configure. Existing
+          row values are not sent, and telemetry does not include row contents.
         </p>
       </Prose>
 
@@ -341,7 +341,7 @@ const GUARANTEES = [
   {
     k: "G-04",
     h: "Row-data locality",
-    d: "The CLI sends each table's column schema to the LLM provider you configure with your own API key. Existing row values are not sent, and telemetry does not include row contents.",
+    d: "The CLI sends each table's column schema and constraints to the LLM provider you configure with your own API key. Existing row values are not sent, and telemetry does not include row contents.",
   },
 ];
 
