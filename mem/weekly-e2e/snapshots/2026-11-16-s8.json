@@ -1,0 +1,126 @@
+{
+  "date": "2026-11-16",
+  "production_sha": "c3606bd612edab4546701ec927d0c7b7f0e78ec1",
+  "deployment": "dpl_H7h6gShKLLbD7sHYTCt4trS6uM1Z",
+  "deployment_state": "READY",
+  "deployment_target": "production",
+  "result": "PASS",
+  "lighthouse": {
+    "tool": "lighthouse@12.8.2",
+    "chrome": "Google Chrome 157.0.8103.50",
+    "throttling": "simulated",
+    "thresholds": {"lcp_ms": 2500, "cls": 0.1, "tbt_ms": 200},
+    "home_mobile": [
+      {"lcp_ms": 2600.455, "cls": 0, "tbt_ms": 0, "score": 95},
+      {"lcp_ms": 1979.207, "cls": 0, "tbt_ms": 0, "score": 99},
+      {"lcp_ms": 2418.922, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "home_mobile_median_lcp_ms": 2418.922,
+    "pricing_mobile": [{"lcp_ms": 2433.089, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "docs_mobile": [{"lcp_ms": 1973.036, "cls": 0, "tbt_ms": 0, "score": 99}],
+    "blog_mobile": [{"lcp_ms": 2426.917, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "home_desktop": [{"lcp_ms": 581.585, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "pricing_desktop": [{"lcp_ms": 584.765, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "docs_desktop": [{"lcp_ms": 419.852, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_desktop": [{"lcp_ms": 479.081, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_path": "/blog/satus-0-3-11-exit-codes",
+    "thresholds_met": true,
+    "note": "Home mobile ran three times; median LCP 2418.922. One sample was 2600.455, above 2500, the other two were under. Desktop used --preset=desktop (rtt 40 ms / 10 Mbps / 1x CPU). Mobile used default Slow-4G simulated throttling."
+  },
+  "axe": {
+    "tool": "axe-core 4.14.0 WCAG 2.2 A/AA",
+    "browser": "Chrome 157.0.8103.50 headless",
+    "serious_or_critical": {},
+    "zero_on": [
+      "/",
+      "/pricing",
+      "/checkout",
+      "/checkout/success",
+      "/checkout/cancel",
+      "/cli",
+      "/quickstart",
+      "/docs",
+      "/docs/how-it-works",
+      "/docs/troubleshooting",
+      "/docs/github-action",
+      "/profiles",
+      "/recipes",
+      "/compare",
+      "/demo",
+      "/security",
+      "/privacy",
+      "/terms",
+      "/blog",
+      "/blog/satus-0-3-11-exit-codes",
+      "/blog/how-satus-decides-a-database-is-too-full-to-seed",
+      "/blog/pg-dump-snapshots-as-test-fixtures"
+    ]
+  },
+  "h1": 1,
+  "console_errors": 0,
+  "same_origin_4xx": 0,
+  "now_public": ["satus-0-3-11-exit-codes"],
+  "embargoed_404": [
+    "what-satus-0-3-11-does-with-an-enum-column",
+    "what-satus-truncate-empties-and-what-it-refuses-to"
+  ],
+  "slug_redirects": [
+    {
+      "from": "/blog/cost-estimates-are-guardrails-not-accounting",
+      "to": "/blog/how-the-dry-run-cost-estimate-is-calculated",
+      "status": 301
+    }
+  ],
+  "rss_items": 50,
+  "sitemap_urls": 66,
+  "sitemap_blog_posts": 50,
+  "llms_txt": {
+    "status": 200,
+    "content_type": "text/plain; charset=utf-8",
+    "bytes": 17951,
+    "nov13_present": true,
+    "embargoed_present": false
+  },
+  "demo_pglite": {
+    "ran": false,
+    "generatePressed": false,
+    "generateRequests": 0,
+    "note": "render only; the Run button also POSTs /api/public/demo/generate, so generate was not pressed"
+  },
+  "checkout": {
+    "rendered": true,
+    "paymentFieldsFilled": false,
+    "h1": "choose a tier first.",
+    "note": "render only; payment fields were not filled"
+  },
+  "pages": [
+    {"path": "/", "status": 200, "h1": 1},
+    {"path": "/pricing", "status": 200, "h1": 1},
+    {"path": "/checkout", "status": 200, "h1": 1},
+    {"path": "/checkout/success", "status": 200, "h1": 1},
+    {"path": "/checkout/cancel", "status": 200, "h1": 1},
+    {"path": "/cli", "status": 200, "h1": 1},
+    {"path": "/quickstart", "status": 200, "h1": 1},
+    {"path": "/docs", "status": 200, "h1": 1},
+    {"path": "/docs/how-it-works", "status": 200, "h1": 1},
+    {"path": "/docs/troubleshooting", "status": 200, "h1": 1},
+    {"path": "/docs/github-action", "status": 200, "h1": 1},
+    {"path": "/profiles", "status": 200, "h1": 1},
+    {"path": "/recipes", "status": 200, "h1": 1},
+    {"path": "/compare", "status": 200, "h1": 1},
+    {"path": "/demo", "status": 200, "h1": 1},
+    {"path": "/security", "status": 200, "h1": 1},
+    {"path": "/privacy", "status": 200, "h1": 1},
+    {"path": "/terms", "status": 200, "h1": 1},
+    {"path": "/blog", "status": 200, "h1": 1},
+    {"path": "/blog/satus-0-3-11-exit-codes", "status": 200, "h1": 1},
+    {"path": "/blog/how-satus-decides-a-database-is-too-full-to-seed", "status": 200, "h1": 1},
+    {"path": "/blog/pg-dump-snapshots-as-test-fixtures", "status": 200, "h1": 1},
+    {"path": "/blog/rss.xml", "status": 200, "h1": 0, "content_type": "application/rss+xml"},
+    {"path": "/sitemap.xml", "status": 200, "h1": 0, "content_type": "application/xml"},
+    {"path": "/llms.txt", "status": 200, "h1": 0, "content_type": "text/plain"},
+    {"path": "/blog/what-satus-0-3-11-does-with-an-enum-column", "status": 404, "h1": 0},
+    {"path": "/blog/what-satus-truncate-empties-and-what-it-refuses-to", "status": 404, "h1": 0},
+    {"path": "/blog/cost-estimates-are-guardrails-not-accounting", "status": 301, "h1": 0, "location": "/blog/how-the-dry-run-cost-estimate-is-calculated"}
+  ]
+}
