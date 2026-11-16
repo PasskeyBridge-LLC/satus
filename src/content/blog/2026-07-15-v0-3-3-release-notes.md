@@ -58,7 +58,7 @@ The other change in v0.3.3 is a new opt-in field in the CLI's run telemetry: an 
 
 **What we never collect, whether the knob is on or off:**
 
-- Row contents. Ever. The CLI has no code path that reads generated rows into the telemetry payload.
+- Row contents are never included in the telemetry payload. The CLI has no code path that reads generated rows into it.
 - DDL text, table names, column names, enum labels, check-constraint expressions, or default expressions.
 - Your database URL, provider key, or any environment variable.
 

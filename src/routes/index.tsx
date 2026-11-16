@@ -103,13 +103,13 @@ function Overview() {
       id="overview"
       n="00"
       label="RFC · SATUS-001"
-      title={<>seed data that looks like a real business, not a faker dump.</>}
+      title={<>seed data for Postgres that keeps every foreign key valid.</>}
     >
       <Prose>
         <p>
           <Mono>satus</Mono> reads your live Postgres schema and writes rows that respect every
-          foreign key, constraint, and business rule you didn&rsquo;t write down. Built for the
-          demo, the screenshot, and the QA run, not for load testing.
+          foreign key, constraint, and business rule you didn&rsquo;t write down. Use it to seed
+          databases for demos, screenshots and QA runs.
         </p>
       </Prose>
 
@@ -283,16 +283,12 @@ const STEPS = [
 
 function How() {
   return (
-    <Section
-      id="how"
-      n="02"
-      label="How it works"
-      title={<>five quiet steps. no magic. no daemons.</>}
-    >
+    <Section id="how" n="02" label="How it works" title={<>five steps, run from one CLI.</>}>
       <Prose>
         <p>
-          The CLI runs on your machine and talks to your database. There is no hosted runtime, no
-          telemetry of your row data, and no surprise infrastructure.
+          The CLI runs on your machine and talks to your database. It sends each table&rsquo;s
+          column schema to the LLM provider you configure. Existing row values are not sent, and
+          telemetry does not include row contents.
         </p>
       </Prose>
 
@@ -359,8 +355,7 @@ function Guarantees() {
     >
       <Prose>
         <p>
-          Marketing copy is cheap. These are the four invariants the binary itself refuses to
-          violate. If any is broken in a release, it is a P0 bug.
+          The binary enforces these four invariants. If any is broken in a release, it is a P0 bug.
         </p>
       </Prose>
 

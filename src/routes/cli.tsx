@@ -101,14 +101,14 @@ function CliPage() {
             history; equivalent overrides are documented per command below.
           </p>
           <p>
-            New here? Walk through the{" "}
+            This page is the command reference. To install and run satus for the first time, start
+            with the{" "}
             <a
               href="/quickstart"
               className="underline decoration-[var(--signal)] underline-offset-4"
             >
-              quickstart
-            </a>{" "}
-            first—this page is the reference, not the tutorial.
+              quickstart.
+            </a>
           </p>
         </Prose>
 
