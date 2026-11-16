@@ -207,7 +207,7 @@ function Problem() {
       id="problem"
       n="01"
       label="Problem statement"
-      title={<>faker writes strings. your customers read businesses.</>}
+      title={<>seed data that respects your schema.</>}
     >
       <Prose>
         <p>
@@ -341,7 +341,7 @@ const GUARANTEES = [
   {
     k: "G-04",
     h: "Row-data locality",
-    d: "Your row values are sent only to the LLM provider you configure with your own API key. We have no hosted runtime, no proxy, and no telemetry that includes generated content.",
+    d: "The CLI sends each table's column schema to the LLM provider you configure with your own API key. Existing row values are not sent, and telemetry does not include row contents.",
   },
 ];
 
@@ -613,7 +613,8 @@ function ClosingBand() {
       <div className="grid grid-cols-1 items-baseline gap-x-10 gap-y-5 md:grid-cols-[1fr_auto]">
         <p className="max-w-[52ch] font-sans text-[16px] leading-[1.55] text-[var(--ink)]">
           The free tier seeds up to 25 rows per table across 5 tables&mdash;125 rows per
-          run&mdash;against any Postgres database. No account, no credit card, no hosted runtime.
+          run&mdash;against any Postgres database. Install it from npm and run it with your own
+          provider key.
         </p>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[13px] md:justify-end">
           <Link to="/quickstart" className="link-underline text-[var(--ink)]">
