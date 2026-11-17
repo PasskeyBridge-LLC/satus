@@ -12,7 +12,7 @@ draft: false
 
 The dry run validates simulated rows. A real run sends generated rows to Postgres, which enforces its constraints on insert. A seeded order whose `total_cents` is not `subtotal_cents + tax_cents` can still pass the dry-run validator when the row satisfies the checks that validator actually runs. The dry-run validator does not check this arithmetic relationship. Foreign keys, types, and `NOT NULL` are separate checks. The [README at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/README.md) lists the arithmetic gap under "Honest limits (v0.x)": "cross-column arithmetic is not reconciled".
 
-`@passkeybridge/satus@0.3.12` is the current npm release. The checks below are the ones in the v0.3.11 source linked at the end. The transcripts were re-run on 2026-11-06 with `@passkeybridge/satus@0.3.12` against PostgreSQL 17.11 (`PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2)`), `psql` 17.11, and Node v24.21.0, with no provider key. `DATABASE_URL` is `postgresql://postgres:postgres@127.0.0.1:5433/check_dev`. The session time zone for the inserts below is `UTC`.
+`@passkeybridge/satus@0.3.12` was the current npm release when these transcripts were run; 0.3.13 shipped on 2026-11-15 and changes the OpenAI default model. The checks below are the ones in the v0.3.11 source linked at the end. The transcripts were re-run on 2026-11-06 with `@passkeybridge/satus@0.3.12` against PostgreSQL 17.11 (`PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2)`), `psql` 17.11, and Node v24.21.0, with no provider key. `DATABASE_URL` is `postgresql://postgres:postgres@127.0.0.1:5433/check_dev`. The session time zone for the inserts below is `UTC`.
 
 ## The schema
 

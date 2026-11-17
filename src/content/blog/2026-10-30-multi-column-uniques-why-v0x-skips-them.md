@@ -11,7 +11,7 @@ draft: false
 
 For its unique-column checks, `@passkeybridge/satus@0.3.11` reads single-column `UNIQUE` constraints. Primary keys are read by a separate catalog query and are what foreign keys attach to. A `unique (workspace_id, email)` is skipped, and so is any uniqueness declared with `create unique index` instead of a constraint. The [README at v0.3.11](https://github.com/PasskeyBridge-LLC/satus/blob/v0.3.11/packages/cli/README.md) lists the multi-column gap under "Honest limits (v0.x)". The index gap is in a comment in the introspection query.
 
-`@passkeybridge/satus@0.3.12` is the current npm release. The transcripts were re-run on 2026-11-06 with that binary against PostgreSQL 17.11 (`PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2)`), `psql` 17.11, and Node v24.21.0, with no provider key. `DATABASE_URL` is `postgresql://postgres:postgres@127.0.0.1:5433/uniq_dev`. The unique-column query linked below is the v0.3.11 source.
+`@passkeybridge/satus@0.3.12` was the current npm release when these transcripts were run; 0.3.13 shipped on 2026-11-15 and changes the OpenAI default model. The transcripts were re-run on 2026-11-06 with that binary against PostgreSQL 17.11 (`PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2)`), `psql` 17.11, and Node v24.21.0, with no provider key. `DATABASE_URL` is `postgresql://postgres:postgres@127.0.0.1:5433/uniq_dev`. The unique-column query linked below is the v0.3.11 source.
 
 ## The schema
 
