@@ -136,7 +136,7 @@ Multi-column `UNIQUE` constraints are not enforced during generation either, and
 
 **Determinism, again.** Two runs produce two different sets of rows. If a test needs to know what is in the table, generate cannot be the thing that put it there.
 
-**It needs a provider for real rows.** The dry run is free; the run that writes needs an OpenAI or Anthropic key. You bring your own, and the spend is small. Our own [telemetry](/blog/how-the-dry-run-cost-estimate-is-calculated) puts three real 125-row runs at $0.000652 to $0.000669 each, against a dry-run estimate of $0.0207 that is deliberately conservative. Small is not zero, and a fixture is zero.
+**It needs a provider for real rows.** The dry run is free; the run that writes needs an OpenAI, Anthropic or xAI key. You bring your own, and the spend is small. Our own [telemetry](/blog/how-the-dry-run-cost-estimate-is-calculated) puts three real 125-row runs at $0.000652 to $0.000669 each, against a dry-run estimate of $0.0207 that is deliberately conservative. Small is not zero, and a fixture is zero.
 
 **It is only as good as the constraints.** A schema that says `text` where it means an email, and `integer` where it means cents, gives the generator less to work with than a schema that says so. Fixtures do not have this problem because a human typed the values. Generation inherits every ambiguity in the DDL.
 
