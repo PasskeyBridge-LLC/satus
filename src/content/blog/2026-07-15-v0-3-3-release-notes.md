@@ -56,11 +56,13 @@ The other change in v0.3.3 is a new opt-in field in the CLI's run telemetry: an 
 - `validator_class`: the name of the first `error`-severity finding on a dry-run failure (e.g. `fk_missing_parent`, `unique_duplicate`). Bounded to 64 characters at the ingest.
 - `invocation_sequence`: the subcommand and flag *names* from the CLI invocation, never flag values. Example: `["generate", "--dry-run", "--rows"]`. Bounded to 16 entries.
 
-**What we never collect, whether the knob is on or off:**
+**What the fingerprint knob does not add:**
 
-- Row contents. Ever. The CLI has no code path that reads generated rows into the telemetry payload.
-- DDL text, table names, column names, enum labels, check-constraint expressions, or default expressions.
+- The CLI has no code path that copies generated rows into the telemetry payload.
+- DDL text, column names, enum labels, check-constraint expressions, or default expressions.
 - Your database URL, provider key, or any environment variable.
+
+**Correction (2026-11-16):** This post originally said the CLI never collected row contents or table names, whether that knob was on or off. That was not true of v0.3.3. The `share_failure_fingerprints` knob only gated the fingerprint fields listed above. The run record itself was sent on every `satus generate` through v0.3.10; there was no switch to turn it off. Through v0.3.6 the payload also carried table names, the target schema name, and the raw error message. A Postgres unique-violation message can embed a row value. v0.3.7 removed those three fields and replaced the error message with a fixed-vocabulary error class.
 
 **How to opt in:**
 

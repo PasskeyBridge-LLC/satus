@@ -103,13 +103,13 @@ function Overview() {
       id="overview"
       n="00"
       label="RFC · SATUS-001"
-      title={<>seed data that looks like a real business, not a faker dump.</>}
+      title={<>seed data for Postgres that keeps every foreign key valid.</>}
     >
       <Prose>
         <p>
           <Mono>satus</Mono> reads your live Postgres schema and writes rows that respect every
-          foreign key, constraint, and business rule you didn&rsquo;t write down. Built for the
-          demo, the screenshot, and the QA run, not for load testing.
+          foreign key, constraint, and business rule you didn&rsquo;t write down. Use it to seed
+          databases for demos, screenshots and QA runs.
         </p>
       </Prose>
 
@@ -207,7 +207,7 @@ function Problem() {
       id="problem"
       n="01"
       label="Problem statement"
-      title={<>faker writes strings. your customers read businesses.</>}
+      title={<>seed data that respects your schema.</>}
     >
       <Prose>
         <p>
@@ -283,16 +283,12 @@ const STEPS = [
 
 function How() {
   return (
-    <Section
-      id="how"
-      n="02"
-      label="How it works"
-      title={<>five quiet steps. no magic. no daemons.</>}
-    >
+    <Section id="how" n="02" label="How it works" title={<>five steps, run from one CLI.</>}>
       <Prose>
         <p>
-          The CLI runs on your machine and talks to your database. There is no hosted runtime, no
-          telemetry of your row data, and no surprise infrastructure.
+          The CLI runs on your machine or a CI runner and talks to your database. It sends each
+          table&rsquo;s column schema and constraints to the LLM provider you configure. Existing
+          row values are not sent, and telemetry does not include row contents.
         </p>
       </Prose>
 
@@ -345,7 +341,7 @@ const GUARANTEES = [
   {
     k: "G-04",
     h: "Row-data locality",
-    d: "Your row values are sent only to the LLM provider you configure with your own API key. We have no hosted runtime, no proxy, and no telemetry that includes generated content.",
+    d: "The CLI sends each table's column schema and constraints to the LLM provider you configure with your own API key. Existing row values are not sent, and telemetry does not include row contents.",
   },
 ];
 
@@ -359,8 +355,7 @@ function Guarantees() {
     >
       <Prose>
         <p>
-          Marketing copy is cheap. These are the four invariants the binary itself refuses to
-          violate. If any is broken in a release, it is a P0 bug.
+          The binary enforces these four invariants. If any is broken in a release, it is a P0 bug.
         </p>
       </Prose>
 
@@ -618,7 +613,8 @@ function ClosingBand() {
       <div className="grid grid-cols-1 items-baseline gap-x-10 gap-y-5 md:grid-cols-[1fr_auto]">
         <p className="max-w-[52ch] font-sans text-[16px] leading-[1.55] text-[var(--ink)]">
           The free tier seeds up to 25 rows per table across 5 tables&mdash;125 rows per
-          run&mdash;against any Postgres database. No account, no credit card, no hosted runtime.
+          run&mdash;against any Postgres database. Install it from npm and run it with your own
+          provider key.
         </p>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[13px] md:justify-end">
           <Link to="/quickstart" className="link-underline text-[var(--ink)]">
