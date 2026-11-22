@@ -143,6 +143,7 @@ export function classifyError(err: unknown): string {
   if (msg.startsWith("No parent rows available")) return "no_parent_rows";
   if (msg.startsWith("Cannot resolve ")) return "fk_unresolvable";
   if (msg.startsWith("--truncate cannot run")) return "truncate_blocked";
+  if (msg.startsWith("Unsupported Postgres type")) return "unsupported_type";
   if (msg.startsWith("Failed to parse model JSON")) return "provider_bad_json";
   if (msg.startsWith("OpenAI returned no content")) return "provider_empty";
   if (msg.startsWith("xAI returned no content")) return "provider_empty";

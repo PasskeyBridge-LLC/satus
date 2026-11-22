@@ -157,3 +157,66 @@ describe("groupFindings", () => {
     expect(nullGroup?.sampleRows).toEqual([0, 1, 2]);
   });
 });
+
+describe("validateTable array columns", () => {
+  it("accepts an integer array and flags a string on an _int4 column", () => {
+    const table = tbl("invoices", [col("id", "int4"), col("tags", "_int4")]);
+    const ok = validateTable(table, {
+      rows: [{ id: 1, tags: [1, 2, 3] }],
+      pkPool: new Map(),
+    });
+    expect(ok.filter((f) => f.severity === "error")).toEqual([]);
+
+    const bad = validateTable(table, {
+      rows: [{ id: 1, tags: "tags_1" }],
+      pkPool: new Map(),
+    });
+    expect(bad.some((f) => f.rule === "type_mismatch" && f.column === "tags")).toBe(true);
+  });
+
+  it("flags a non-integer element and allows null elements", () => {
+    const table = tbl("invoices", [col("id", "int4"), col("tags", "_int4")]);
+    const mixed = validateTable(table, {
+      rows: [{ id: 1, tags: [1, null, "x"] }],
+      pkPool: new Map(),
+    });
+    expect(mixed.some((f) => f.rule === "type_mismatch")).toBe(true);
+
+    const withNull = validateTable(table, {
+      rows: [{ id: 1, tags: [1, null, 3] }],
+      pkPool: new Map(),
+    });
+    expect(withNull.filter((f) => f.severity === "error")).toEqual([]);
+  });
+
+  it("validates uuid and bool array elements", () => {
+    const table = tbl("t", [
+      col("ids", "_uuid", { typeCategory: "A", elementUdtName: "uuid" }),
+      col("flags", "_bool", { typeCategory: "A", elementUdtName: "bool" }),
+    ]);
+    const findings = validateTable(table, {
+      rows: [
+        {
+          ids: ["00000000-0000-4000-8000-000000000001", "not-a-uuid"],
+          flags: [true, false],
+        },
+      ],
+      pkPool: new Map(),
+    });
+    expect(findings.some((f) => f.rule === "uuid_format" && f.column === "ids")).toBe(true);
+    expect(findings.some((f) => f.column === "flags")).toBe(false);
+  });
+});
+
+describe("validateTable unmapped types", () => {
+  it("reports an unsupported_type error naming the udt_name", () => {
+    const table = tbl("hosts", [col("addr", "inet")]);
+    const findings = validateTable(table, {
+      rows: [{ addr: "127.0.0.1" }],
+      pkPool: new Map(),
+    });
+    expect(findings.some((f) => f.rule === "unsupported_type" && f.message.includes("inet"))).toBe(
+      true,
+    );
+  });
+});

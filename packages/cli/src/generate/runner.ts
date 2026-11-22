@@ -13,7 +13,7 @@
  */
 import pc from "picocolors";
 import type { Client } from "pg";
-import { buildRowSchema } from "./schema.js";
+import { assertSupportedTypes, buildRowSchema } from "./schema.js";
 import type { Table } from "./introspect.js";
 import { CostBudget, type Provider } from "./providers/index.js";
 import { profilePrompt, type ProfileName } from "./profiles.js";
@@ -134,6 +134,7 @@ export async function runGenerate(
   tables: Table[],
   opts: RunOptions,
 ): Promise<RunReport> {
+  assertSupportedTypes(tables);
   const budget = new CostBudget(opts.maxCostUsd);
   const inserted: Record<string, number> = {};
   let totalInputTokens = 0;

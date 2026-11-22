@@ -14,16 +14,19 @@
  *   - Integer range overflow (int2 / int4 / int8 safe range)
  *   - String length > char_max_length
  *   - UUID column got a non-UUID-shaped string
+ *   - Array columns: value is an array; each non-null element matches the element type
  *   - FK reference not present in the parent pool (non-null FK only)
  *   - Single-column UNIQUE duplicates within the batch
  *
  * Out of scope for v0.3.x (documented gaps, not silent ones):
  *   - Multi-column UNIQUE constraints
- *   - CHECK constraints (planned: introspect pg_constraint contype='c')
+ *   - CHECK constraints, including domain CHECKs attached as planner descriptions
  *   - Exclusion constraints
  *   - Cross-batch UNIQUE clashes against rows already in the database
+ *   - Multi-dimensional arrays (an `_int4` column is checked as a 1-D integer array)
  */
 import type { Table, ForeignKey, Column } from "./introspect.js";
+import { elementUdtName, isArrayColumn } from "./schema.js";
 
 export type FindingSeverity = "error" | "warn";
 
@@ -148,6 +151,41 @@ function checkType(
   rowIndex: number,
   findings: Finding[],
 ): void {
+  if (isArrayColumn(col)) {
+    if (!Array.isArray(value)) {
+      push(
+        findings,
+        "error",
+        tableName,
+        col.name,
+        rowIndex,
+        "type_mismatch",
+        `Column "${col.name}" is ${col.udtName} but got ${typeof value}`,
+      );
+      return;
+    }
+    const elemCol: Column = {
+      ...col,
+      udtName: elementUdtName(col),
+      typeCategory: col.isEnum ? "E" : "B",
+      elementUdtName: null,
+    };
+    for (const el of value) {
+      if (el === null || el === undefined) continue;
+      checkScalarType(elemCol, el, tableName, rowIndex, findings);
+    }
+    return;
+  }
+  checkScalarType(col, value, tableName, rowIndex, findings);
+}
+
+function checkScalarType(
+  col: Column,
+  value: unknown,
+  tableName: string,
+  rowIndex: number,
+  findings: Finding[],
+): void {
   const udt = col.udtName.toLowerCase();
 
   switch (udt) {
@@ -223,7 +261,7 @@ function checkType(
     case "json":
     case "jsonb":
       // Accept objects, arrays, and already-stringified JSON. The writer's
-      // serialize() handles both shapes; anything that JSON.stringify can
+      // serializeValue() handles both shapes; anything that JSON.stringify can
       // round-trip will reach Postgres without error.
       if (value === null) return;
       if (typeof value === "string") {
@@ -254,39 +292,63 @@ function checkType(
         );
       }
       return;
+    case "date":
+    case "timestamp":
+    case "timestamptz":
     case "text":
     case "varchar":
     case "bpchar":
     case "citext":
+      checkStringLike(col, value, tableName, rowIndex, findings, udt);
+      return;
     default: {
-      if (typeof value !== "string") {
-        // Many under-mapped Postgres types (inet, cidr, ltree, custom enums)
-        // also fall through to "string". Surface as a warn so users see
-        // the gap without a hard fail.
-        push(
-          findings,
-          "warn",
-          tableName,
-          col.name,
-          rowIndex,
-          "type_unexpected",
-          `Column "${col.name}" (${udt}) expected string-like value, got ${typeof value}`,
-        );
+      if (col.isEnum || (col.enumLabels && col.enumLabels.length > 0)) {
+        checkStringLike(col, value, tableName, rowIndex, findings, udt);
         return;
       }
-      if (typeof col.charMaxLength === "number" && value.length > col.charMaxLength) {
-        push(
-          findings,
-          "error",
-          tableName,
-          col.name,
-          rowIndex,
-          "length_overflow",
-          `Column "${col.name}" length ${value.length} exceeds VARCHAR limit ${col.charMaxLength}`,
-        );
-      }
-      return;
+      push(
+        findings,
+        "error",
+        tableName,
+        col.name,
+        rowIndex,
+        "unsupported_type",
+        `Column "${col.name}" has unsupported type "${udt}"`,
+      );
     }
+  }
+}
+
+function checkStringLike(
+  col: Column,
+  value: unknown,
+  tableName: string,
+  rowIndex: number,
+  findings: Finding[],
+  udt: string,
+): void {
+  if (typeof value !== "string") {
+    push(
+      findings,
+      "error",
+      tableName,
+      col.name,
+      rowIndex,
+      "type_mismatch",
+      `Column "${col.name}" (${udt}) expected a string, got ${typeof value}`,
+    );
+    return;
+  }
+  if (typeof col.charMaxLength === "number" && value.length > col.charMaxLength) {
+    push(
+      findings,
+      "error",
+      tableName,
+      col.name,
+      rowIndex,
+      "length_overflow",
+      `Column "${col.name}" length ${value.length} exceeds VARCHAR limit ${col.charMaxLength}`,
+    );
   }
 }
 

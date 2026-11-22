@@ -39,6 +39,24 @@ export interface Column {
   isIdentity: boolean;
   /** 'ALWAYS' | 'BY DEFAULT' when isIdentity, else null. */
   identityGeneration: string | null;
+  /**
+   * pg_type.typcategory when joined during introspection. 'A' is an
+   * array, 'E' is an enum. Optional so unit tests can omit it.
+   */
+  typeCategory?: string | null;
+  /**
+   * Element typname for an array column. When the element is a domain,
+   * this is the domain's base typname (one level).
+   */
+  elementUdtName?: string | null;
+  /** True when the column, or an array element, is a Postgres enum. */
+  isEnum?: boolean;
+  /** Enum labels in sort order, when isEnum. */
+  enumLabels?: string[];
+  /** information_schema.columns.domain_name, when the column is a domain. */
+  domainName?: string | null;
+  /** Domain CHECK constraint text from pg_get_constraintdef, when present. */
+  domainChecks?: string[];
 }
 
 export interface ForeignKey {
@@ -143,13 +161,54 @@ export const INTROSPECT_SQL = `
   ),
   v_columns as (
     select
-      table_name, column_name, data_type, udt_name, is_nullable,
-      column_default, character_maximum_length, numeric_precision,
-      numeric_scale, is_generated, is_identity, identity_generation,
-      ordinal_position
-    from information_schema.columns
-    where table_schema = $1
-    order by table_name, ordinal_position
+      c.table_name, c.column_name, c.data_type, c.udt_name, c.is_nullable,
+      c.column_default, c.character_maximum_length, c.numeric_precision,
+      c.numeric_scale, c.is_generated, c.is_identity, c.identity_generation,
+      c.ordinal_position,
+      ut.typcategory as typcategory,
+      ut.typtype as typtype,
+      case
+        when ut.typcategory = 'A' then coalesce(elem_base.typname, elem.typname)
+        else null
+      end as element_udt_name,
+      coalesce(ut.typtype = 'e' or elem.typtype = 'e', false) as is_enum,
+      coalesce(enums.labels, '[]'::jsonb) as enum_labels,
+      c.domain_name,
+      coalesce(dchecks.checks, '[]'::jsonb) as domain_checks
+    from information_schema.columns c
+    left join pg_namespace ut_ns
+      on ut_ns.nspname = c.udt_schema
+    left join pg_type ut
+      on ut.typnamespace = ut_ns.oid
+     and ut.typname = c.udt_name
+    left join pg_type elem
+      on elem.oid = ut.typelem
+    left join pg_type elem_base
+      on elem_base.oid = case
+        when elem.typtype = 'd' then elem.typbasetype
+        else elem.oid
+      end
+    left join lateral (
+      select coalesce(jsonb_agg(e.enumlabel order by e.enumsortorder), '[]'::jsonb) as labels
+      from pg_enum e
+      where e.enumtypid = case
+        when ut.typtype = 'e' then ut.oid
+        when elem.typtype = 'e' then elem.oid
+        else 0
+      end
+    ) enums on true
+    left join lateral (
+      select coalesce(jsonb_agg(pg_get_constraintdef(con.oid) order by con.conname), '[]'::jsonb) as checks
+      from pg_constraint con
+      join pg_type dt on dt.oid = con.contypid
+      join pg_namespace dn on dn.oid = dt.typnamespace
+      where con.contype = 'c'
+        and c.domain_name is not null
+        and dt.typname = c.domain_name
+        and dn.nspname = c.domain_schema
+    ) dchecks on true
+    where c.table_schema = $1
+    order by c.table_name, c.ordinal_position
   ),
   v_pks as (
     -- pg_catalog, not information_schema.table_constraints, for the same
@@ -259,6 +318,13 @@ export async function introspect(
       is_generated: string;
       is_identity: string;
       identity_generation: string | null;
+      typcategory: string | null;
+      typtype: string | null;
+      element_udt_name: string | null;
+      is_enum: boolean | null;
+      enum_labels: unknown;
+      domain_name: string | null;
+      domain_checks: unknown;
     }>;
     pks: Array<{ table_name: string; column_name: string }>;
     fks: Array<{
@@ -302,6 +368,16 @@ export async function introspect(
       isGenerated: !!r.is_generated && r.is_generated !== "NEVER",
       isIdentity: r.is_identity === "YES",
       identityGeneration: r.identity_generation ?? null,
+      typeCategory: r.typcategory ?? null,
+      elementUdtName: r.element_udt_name ?? null,
+      isEnum: r.is_enum === true,
+      enumLabels: Array.isArray(r.enum_labels)
+        ? (r.enum_labels as unknown[]).map((x) => String(x))
+        : [],
+      domainName: r.domain_name ?? null,
+      domainChecks: Array.isArray(r.domain_checks)
+        ? (r.domain_checks as unknown[]).map((x) => String(x))
+        : [],
     });
   }
 

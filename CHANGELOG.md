@@ -6,6 +6,16 @@ The CLI tarball ships from `packages/cli/` under `@passkeybridge/satus`. The mar
 
 ## [Unreleased]
 
+### Fixed
+
+- **Array columns are planned as arrays of the element type.** `information_schema.columns` reports `integer[]` as `udt_name` `_int4`. In 0.3.13 the type switch had no case for array `udt_name`s, so `satus generate --dry-run` planned the column as a string, exited 0, and a real insert then failed when Postgres rejected values such as `tags_1`. Array types whose element is a mapped scalar (`int2`/`int4`/`int8`, `text`/`varchar`/`bpchar`/`citext`, `uuid`, `bool`, `numeric`/`float4`/`float8`, `date`/`timestamp`/`timestamptz`, `json`/`jsonb`, and enums) now produce a JSON Schema array, the dry-run simulator emits JavaScript arrays, and the writer passes those arrays through to the `pg` driver rather than running them through `JSON.stringify`. The invoices schema from [#100](https://github.com/PasskeyBridge-LLC/satus/pull/100) is covered by tests.
+
+- **An unmapped column type fails the dry run and the real run before any rows are planned.** The error names `table.column` and the `udt_name`, and the process exits 1. Previously the column was planned as a string and the dry run exited 0. Mapped types are unchanged: enums are still strings (with labels when introspection returns them), domains still resolve to the base type `information_schema.columns` reports, and `json`/`jsonb`/`citext` keep their existing mapping.
+
+### Added
+
+- Domain `CHECK` constraint text from `pg_get_constraintdef` is attached to the JSON Schema description for a domain column, so the planner sees the check. The dry-run validator still does not evaluate `CHECK` expressions, including domain checks.
+
 ## [0.3.13] — 2026-11-15
 
 ### Changed

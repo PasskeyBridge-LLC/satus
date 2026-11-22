@@ -90,8 +90,17 @@ function synthValue(name: string, node: JsonSchemaNode, i: number, tableTag: str
     }
     case "object":
       return {};
-    case "array":
-      return [];
+    case "array": {
+      const item = node.items ?? { type: "string" };
+      // One to three elements, deterministic on the row index, so a dry
+      // run is stable and the value is a real array rather than "col_1".
+      const n = (i % 3) + 1;
+      const out: unknown[] = [];
+      for (let j = 0; j < n; j++) {
+        out.push(synthValue(name, item, i * 10 + j, tableTag));
+      }
+      return out;
+    }
     case "string":
     default:
       return synthString(name, node, i, tableTag);

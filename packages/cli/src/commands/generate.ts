@@ -20,6 +20,7 @@ import { loadConfig, resolveDsn, resolveProfile } from "../generate/config.js";
 import { introspect } from "../generate/introspect.js";
 import { topoSort } from "../generate/dag.js";
 import { runGenerate, planRun } from "../generate/runner.js";
+import { assertSupportedTypes } from "../generate/schema.js";
 import { truncate } from "../generate/writer.js";
 import { newRunId, reportRun, classifyError, configureTelemetry } from "../generate/telemetry.js";
 import { countUserRows, guardMessage, ROW_LIMIT } from "../generate/guard.js";
@@ -323,6 +324,8 @@ export function registerGenerate(program: Command): void {
         const brokenEdges = sort.brokenEdges.filter(
           (e) => includedNames.has(e.table) && includedNames.has(e.refTable),
         );
+
+        assertSupportedTypes(ordered);
 
         console.log(pc.bold(`\nsatus generate`));
         console.log(pc.dim(`  schema:   ${schemaName}`));
