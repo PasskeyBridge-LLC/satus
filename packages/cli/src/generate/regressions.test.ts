@@ -280,6 +280,9 @@ describe("regression: telemetry error classification leaks nothing", () => {
       "fk_unresolvable",
     );
     expect(classifyError(new Error("--truncate cannot run: ..."))).toBe("truncate_blocked");
+    expect(classifyError(new Error('Unsupported Postgres type "inet" on hosts.addr.'))).toBe(
+      "unsupported_type",
+    );
   });
 
   it("returns a constant rather than a truncated message for anything unknown", () => {
@@ -370,6 +373,15 @@ describe("regression: constraint introspection does not use information_schema",
     // columns is filtered by *column* privilege, which does accept SELECT,
     // so it is correct there and the fix should not have touched it.
     expect(bodyOf("v_columns")).toContain("information_schema.columns");
+  });
+
+  it("joins pg_type for array typcategory, enum labels, and domain checks", () => {
+    const body = bodyOf("v_columns");
+    expect(body).toContain("typcategory");
+    expect(body).toContain("element_udt_name");
+    expect(body).toContain("pg_enum");
+    expect(body).toContain("domain_name");
+    expect(body).toContain("pg_get_constraintdef");
   });
 
   it("only single-column unique constraints are reported", () => {

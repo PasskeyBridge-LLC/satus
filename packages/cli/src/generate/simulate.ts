@@ -18,6 +18,7 @@
  */
 import type { Provider, ProviderRequest, ProviderResponse } from "./providers/types.js";
 import type { Table } from "./introspect.js";
+import { TYPE_PATTERNS } from "./schema.js";
 
 interface JsonSchemaNode {
   type?: string | string[];
@@ -32,6 +33,7 @@ interface JsonSchemaNode {
   minItems?: number;
   maxItems?: number;
   required?: string[];
+  enum?: string[];
 }
 
 export function createSimulatedProvider(): Provider {
@@ -90,8 +92,17 @@ function synthValue(name: string, node: JsonSchemaNode, i: number, tableTag: str
     }
     case "object":
       return {};
-    case "array":
-      return [];
+    case "array": {
+      const item = node.items ?? { type: "string" };
+      // One to three elements, deterministic on the row index, so a dry
+      // run is stable and the value is a real array rather than "col_1".
+      const n = (i % 3) + 1;
+      const out: unknown[] = [];
+      for (let j = 0; j < n; j++) {
+        out.push(synthValue(name, item, i * 10 + j, tableTag));
+      }
+      return out;
+    }
     case "string":
     default:
       return synthString(name, node, i, tableTag);
@@ -99,8 +110,34 @@ function synthValue(name: string, node: JsonSchemaNode, i: number, tableTag: str
 }
 
 function synthString(name: string, node: JsonSchemaNode, i: number, tableTag: string): string {
-  if (node.pattern && /\[0-9a-fA-F\]\{8\}-/.test(node.pattern)) {
+  if (node.enum && node.enum.length > 0) {
+    return node.enum[i % node.enum.length]!;
+  }
+  if (
+    node.pattern === TYPE_PATTERNS.uuid ||
+    (node.pattern && /\[0-9a-fA-F\]\{8\}-/.test(node.pattern))
+  ) {
     return deterministicUuid(i);
+  }
+  if (node.pattern === TYPE_PATTERNS.inet) return `192.0.2.${(i % 254) + 1}`;
+  if (node.pattern === TYPE_PATTERNS.cidr) {
+    // cidr rejects host bits to the right of the mask, so these are network addresses.
+    const nets = ["192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24"];
+    return nets[i % nets.length]!;
+  }
+  if (node.pattern === TYPE_PATTERNS.bytea) {
+    const hex = ((i + 1) % 256).toString(16).padStart(2, "0");
+    return `\\x${hex}`;
+  }
+  if (node.pattern === TYPE_PATTERNS.interval) {
+    const n = (i % 60) + 1;
+    return n === 1 ? "1 second" : `${n} seconds`;
+  }
+  if (node.pattern === TYPE_PATTERNS.time) {
+    return clockTime(i);
+  }
+  if (node.pattern === TYPE_PATTERNS.timetz) {
+    return `${clockTime(i)}+00`;
   }
   if (node.format === "date") return shiftedDate(i).slice(0, 10);
   if (node.format === "date-time") return shiftedDate(i);
@@ -125,6 +162,13 @@ function clamp(v: number, min: number, max: number): number {
   if (v < min) return min;
   if (v > max) return max;
   return v;
+}
+
+function clockTime(i: number): string {
+  const hh = String(i % 24).padStart(2, "0");
+  const mm = String((i * 7) % 60).padStart(2, "0");
+  const ss = String((i * 13) % 60).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
 }
 
 function shiftedDate(i: number): string {

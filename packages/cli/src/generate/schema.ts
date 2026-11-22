@@ -9,8 +9,11 @@
  *     already-inserted parent rows after the model returns — letting the
  *     model invent UUIDs would defeat referential integrity.
  *   - Translate each kept column to the narrowest JSON type we can prove
- *     from the catalog. Unknowns fall through to "string" with the column
- *     name as a hint, which works well for text/varchar/citext.
+ *     from the catalog. Array udt_names (`_int4`, `_text`, …) become arrays
+ *     of the element type. Enums are strings (with labels when introspected).
+ *     Domains keep the base type reported by information_schema, and any
+ *     domain CHECK text is attached as a description for the planner.
+ *     An unmapped type throws rather than being planned as a string.
  *
  * Strict mode forces every property to be required and disallows extras,
  * which OpenAI enforces server-side. Nullability is expressed via type
@@ -29,55 +32,186 @@ export interface RowSchema {
   insertColumns: string[];
 }
 
-function jsonTypeFor(col: Column): {
+export interface JsonType {
   type: string | string[];
   format?: string;
   pattern?: string;
   minimum?: number;
   maximum?: number;
+  items?: JsonType;
+  enum?: string[];
   description?: string;
-} {
-  const t = col.udtName.toLowerCase();
-  const base = (() => {
-    switch (t) {
-      case "bool":
-        return { type: "boolean" as const };
-      case "int2":
-        return { type: "integer" as const, minimum: -32768, maximum: 32767 };
-      case "int4":
-        return { type: "integer" as const, minimum: -2147483648, maximum: 2147483647 };
-      case "int8":
-        // JSON cannot safely represent 64-bit ints; cap at 53-bit safe range.
-        return { type: "integer" as const, minimum: -9007199254740991, maximum: 9007199254740991 };
-      case "numeric":
-      case "float4":
-      case "float8":
-        return { type: "number" as const };
-      case "uuid":
-        return {
-          type: "string" as const,
-          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-        };
-      case "date":
-        return { type: "string" as const, format: "date" };
-      case "timestamp":
-      case "timestamptz":
-        return { type: "string" as const, format: "date-time" };
-      case "json":
-      case "jsonb":
-        // Allow any JSON object. We keep it permissive because the column
-        // semantics are user-defined.
-        return { type: "object" as const };
-      case "text":
-      case "varchar":
-      case "bpchar":
-      case "citext":
-      default:
-        return { type: "string" as const };
-    }
-  })();
+}
 
-  return base;
+/**
+ * Thrown when a column the model or simulator would have to fill has a
+ * Postgres type we cannot plan. The message names every offending
+ * table.column and its udt_name.
+ */
+export class UnsupportedTypeError extends Error {
+  readonly unsupported: Array<{ table: string; column: string; udtName: string }>;
+
+  constructor(unsupported: Array<{ table: string; column: string; udtName: string }>) {
+    const lines = unsupported.map((u) => `  ${u.table}.${u.column} (${u.udtName})`);
+    const heading =
+      unsupported.length === 1
+        ? `Unsupported Postgres type "${unsupported[0]!.udtName}" on ${unsupported[0]!.table}.${unsupported[0]!.column}.`
+        : `Unsupported Postgres types:\n${lines.join("\n")}`;
+    super(heading);
+    this.name = "UnsupportedTypeError";
+    this.unsupported = unsupported;
+  }
+}
+
+/** Patterns placed on the JSON Schema the model and the dry-run simulator see. */
+export const TYPE_PATTERNS = {
+  uuid: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+  inet: "^(?:(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)$",
+  cidr: "^(?:(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)/(?:3[0-2]|[12]?\\d)$",
+  // JSON Schema pattern is a string; `\\x` is a literal backslash-x in the regex.
+  bytea: "^\\\\x(?:[0-9a-fA-F]{2})*$",
+  interval: "^[0-9]+ (seconds?|minutes?|hours?|days?)$",
+  time: "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?$",
+  timetz:
+    "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?([+-]([01][0-9]|2[0-3])(:[0-5][0-9])?)$",
+} as const;
+
+/** typcategory 'A' is an array. The `_int4` name is the fallback when catalog flags are absent (unit tests). */
+export function isArrayColumn(col: Column): boolean {
+  if (col.typeCategory === "A") return true;
+  if (col.typeCategory && col.typeCategory !== "A") return false;
+  if (col.elementUdtName) return true;
+  const udt = col.udtName.toLowerCase();
+  return udt.startsWith("_") && udt.length > 1;
+}
+
+/** Element typname for an array column, with one domain unwrap when introspect supplied it. */
+export function elementUdtName(col: Column): string {
+  if (col.elementUdtName) return col.elementUdtName.toLowerCase();
+  const udt = col.udtName.toLowerCase();
+  return udt.startsWith("_") ? udt.slice(1) : udt;
+}
+
+function scalarJsonType(udt: string, col: Column): JsonType | null {
+  const t = udt.toLowerCase();
+  switch (t) {
+    case "bool":
+      return { type: "boolean" };
+    case "int2":
+      return { type: "integer", minimum: -32768, maximum: 32767 };
+    case "int4":
+      return { type: "integer", minimum: -2147483648, maximum: 2147483647 };
+    case "int8":
+      // JSON cannot safely represent 64-bit ints; cap at 53-bit safe range.
+      return { type: "integer", minimum: -9007199254740991, maximum: 9007199254740991 };
+    case "numeric":
+    case "float4":
+    case "float8":
+      return { type: "number" };
+    case "uuid":
+      return {
+        type: "string",
+        pattern: TYPE_PATTERNS.uuid,
+      };
+    case "inet":
+      return {
+        type: "string",
+        pattern: TYPE_PATTERNS.inet,
+        description: "An IPv4 address, e.g. 192.0.2.1.",
+      };
+    case "cidr":
+      return {
+        type: "string",
+        pattern: TYPE_PATTERNS.cidr,
+        description: "An IPv4 network prefix with host bits clear, e.g. 192.0.2.0/24.",
+      };
+    case "bytea":
+      return {
+        type: "string",
+        pattern: TYPE_PATTERNS.bytea,
+        description: "A Postgres hex bytea literal, e.g. \\x00.",
+      };
+    case "interval":
+      return {
+        type: "string",
+        pattern: TYPE_PATTERNS.interval,
+        description: "A Postgres interval in the form '1 day' or '30 seconds'.",
+      };
+    case "time":
+      return { type: "string", pattern: TYPE_PATTERNS.time };
+    case "timetz":
+      return { type: "string", pattern: TYPE_PATTERNS.timetz };
+    case "money":
+      // A JSON number is passed through to pg as a numeric parameter, which
+      // Postgres coerces to money without going through lc_monetary typinput.
+      return { type: "number" };
+    case "date":
+      return { type: "string", format: "date" };
+    case "timestamp":
+    case "timestamptz":
+      return { type: "string", format: "date-time" };
+    case "json":
+    case "jsonb":
+      // Allow any JSON object. We keep it permissive because the column
+      // semantics are user-defined.
+      return { type: "object" };
+    case "text":
+    case "varchar":
+    case "bpchar":
+    case "citext":
+      return { type: "string" };
+    default:
+      if (col.isEnum || (col.enumLabels && col.enumLabels.length > 0)) {
+        const node: JsonType = { type: "string" };
+        if (col.enumLabels && col.enumLabels.length > 0) node.enum = col.enumLabels;
+        return node;
+      }
+      return null;
+  }
+}
+
+/**
+ * Map one column to a JSON Schema node, or null when the type is unmapped.
+ * Array udt_names reuse the scalar map for the element type.
+ */
+export function jsonTypeFor(col: Column): JsonType | null {
+  if (isArrayColumn(col)) {
+    const inner = scalarJsonType(elementUdtName(col), col);
+    if (!inner) return null;
+    return { type: "array", items: inner };
+  }
+  return scalarJsonType(col.udtName, col);
+}
+
+function modelColumnsOf(table: Table): Column[] {
+  const fkColumnSet = new Set(table.foreignKeys.map((fk) => fk.column));
+  return table.columns.filter((c) => {
+    if (c.isGenerated) return false;
+    if (c.isIdentity) return false;
+    if (fkColumnSet.has(c.name)) return false;
+    if (c.hasDefault) return false;
+    return true;
+  });
+}
+
+/** Collect every model column whose type we cannot plan, across the run set. */
+export function unsupportedModelColumns(
+  tables: Table[],
+): Array<{ table: string; column: string; udtName: string }> {
+  const found: Array<{ table: string; column: string; udtName: string }> = [];
+  for (const table of tables) {
+    for (const col of modelColumnsOf(table)) {
+      if (jsonTypeFor(col) === null) {
+        found.push({ table: table.name, column: col.name, udtName: col.udtName });
+      }
+    }
+  }
+  return found;
+}
+
+export function assertSupportedTypes(tables: Table[]): void {
+  const found = unsupportedModelColumns(tables);
+  if (found.length > 0) throw new UnsupportedTypeError(found);
 }
 
 function colDescription(col: Column): string | undefined {
@@ -100,36 +234,22 @@ function colDescription(col: Column): string | undefined {
   return undefined;
 }
 
-export function buildRowSchema(table: Table, batchSize: number): RowSchema {
-  const fkColumnSet = new Set(table.foreignKeys.map((fk) => fk.column));
+function domainCheckDescription(col: Column): string | undefined {
+  const checks = col.domainChecks ?? [];
+  if (checks.length === 0) return undefined;
+  const name = col.domainName ? `Domain ${col.domainName}` : "Domain check";
+  return `${name}: ${checks.join("; ")}.`;
+}
 
-  // Columns the model should produce: not generated, not identity, not
-  // defaulted (so the DB will not fill them), not an FK (we inject), not a
-  // PK with a sequence default. We DO include nullable columns and let the
-  // schema reflect that.
-  //
-  // Identity columns are excluded for two independent reasons, both
-  // verified against PostgreSQL 16.13:
-  //   - GENERATED ALWAYS AS IDENTITY rejects any explicit value outright
-  //     ("cannot insert a non-DEFAULT value into column"), which rolls back
-  //     the entire run's single transaction.
-  //   - GENERATED BY DEFAULT AS IDENTITY accepts the value but leaves the
-  //     underlying sequence untouched, so the *application's* next insert
-  //     collides with a seeded row.
-  // Omitting them from the INSERT lets Postgres allocate from the sequence,
-  // which is correct for both variants.
-  const modelColumns = table.columns.filter((c) => {
-    if (c.isGenerated) return false;
-    if (c.isIdentity) return false;
-    if (fkColumnSet.has(c.name)) return false;
-    if (c.hasDefault) return false;
-    return true;
-  });
+export function buildRowSchema(table: Table, batchSize: number): RowSchema {
+  assertSupportedTypes([table]);
+
+  const modelColumns = modelColumnsOf(table);
 
   const properties: Record<string, unknown> = {};
   for (const col of modelColumns) {
-    const t = jsonTypeFor(col);
-    const desc = colDescription(col);
+    const t = jsonTypeFor(col)!;
+    const desc = [colDescription(col), domainCheckDescription(col)].filter(Boolean).join(" ");
     const node: Record<string, unknown> = {};
     if (col.isNullable) {
       node.type = Array.isArray(t.type) ? t.type : [t.type, "null"];
@@ -140,6 +260,8 @@ export function buildRowSchema(table: Table, batchSize: number): RowSchema {
     if (t.pattern) node.pattern = t.pattern;
     if (typeof t.minimum === "number") node.minimum = t.minimum;
     if (typeof t.maximum === "number") node.maximum = t.maximum;
+    if (t.items) node.items = t.items;
+    if (t.enum) node.enum = t.enum;
     // Cap string length to the column's declared max so the model does not
     // overshoot varchar(N). Falls back to a sane upper bound for unbounded text.
     if (

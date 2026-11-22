@@ -10,7 +10,8 @@
  * FKs across tables in the same run.
  */
 import type { Client } from "pg";
-import type { Table } from "./introspect.js";
+import type { Column, Table } from "./introspect.js";
+import { elementUdtName, isArrayColumn } from "./schema.js";
 
 export interface InsertResult {
   inserted: number;
@@ -46,6 +47,7 @@ export async function insertRows(
   }
 
   const colSql = columnNames.map(quoteIdent).join(", ");
+  const colByName = new Map(table.columns.map((c) => [c.name, c]));
   const placeholders: string[] = [];
   const values: unknown[] = [];
   let p = 1;
@@ -53,7 +55,7 @@ export async function insertRows(
     const tuple: string[] = [];
     for (const c of columnNames) {
       tuple.push(`$${p++}`);
-      values.push(serialize(row[c]));
+      values.push(serializeValue(row[c], colByName.get(c)));
     }
     placeholders.push("(" + tuple.join(", ") + ")");
   }
@@ -75,15 +77,38 @@ export async function insertRows(
 }
 
 /**
- * Coerce model output to a pg-friendly value. Objects/arrays become JSON
- * strings so jsonb columns accept them; everything else passes through.
+ * Coerce model output to a pg-friendly parameter.
+ *
+ * Postgres array columns get a JavaScript array so the `pg` driver can
+ * encode it as an array literal (including quoting, NULLs, and empty
+ * arrays). json/jsonb columns still go through JSON.stringify, including
+ * when the value is a JSON array.
  */
-function serialize(v: unknown): unknown {
+export function serializeValue(v: unknown, col?: Column): unknown {
   if (v === undefined) return null;
+  if (col && isArrayColumn(col) && Array.isArray(v)) {
+    const elem = elementUdtName(col);
+    return v.map((el) => serializeArrayElement(el, elem));
+  }
   if (v !== null && typeof v === "object") {
     return JSON.stringify(v);
   }
   return v;
+}
+
+function serializeArrayElement(el: unknown, elementUdt: string): unknown {
+  if (el === undefined) return null;
+  if (el === null) return null;
+  if (Array.isArray(el)) {
+    return el.map((inner) => serializeArrayElement(inner, elementUdt));
+  }
+  if (elementUdt === "json" || elementUdt === "jsonb") {
+    return typeof el === "string" ? el : JSON.stringify(el);
+  }
+  if (typeof el === "object") {
+    return JSON.stringify(el);
+  }
+  return el;
 }
 
 /**

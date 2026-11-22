@@ -6,6 +6,20 @@ The CLI tarball ships from `packages/cli/` under `@passkeybridge/satus`. The mar
 
 ## [Unreleased]
 
+### Fixed
+
+- **Array columns are planned as arrays of the element type.** `information_schema.columns` reports `integer[]` as `udt_name` `_int4`. In 0.3.13 the type switch had no case for array `udt_name`s, so `satus generate --dry-run` planned the column as a string, exited 0, and a real insert then failed when Postgres rejected values such as `tags_1`. Array types whose element is a mapped scalar now produce a JSON Schema array, the dry-run simulator emits JavaScript arrays, and the writer passes those arrays through to the `pg` driver rather than running them through `JSON.stringify`. The invoices schema from [#100](https://github.com/PasskeyBridge-LLC/satus/pull/100) is covered by tests, including a live insert against PostgreSQL 17.
+
+- **`inet`, `cidr`, `bytea`, `interval`, `time`, `timetz`, and `money` are planned with values PostgreSQL accepts.** In 0.3.13 those columns were planned as unconstrained strings, so a dry run could exit 0 and a real insert then fail. `inet` uses IPv4 dotted form (for example `192.0.2.1`). `cidr` uses an IPv4 network prefix with host bits clear (for example `192.0.2.0/24`); a value such as `192.0.2.1/24` is rejected. `bytea` uses a hex literal (`\\x00`). `interval` uses a count and a unit (`1 day`, `30 seconds`). `time` and `timetz` use `HH:MM:SS` and `HH:MM:SS+00`. `money` is a JSON number, passed through to `pg` as a numeric parameter so Postgres coerces it without going through `lc_monetary` typinput.
+
+- **Any other unmapped column type still fails the dry run and the real run before any rows are planned.** The error names `table.column` and the `udt_name`, and the process exits 1. Geometric types such as `point` and `line` stay in this set. Enums are still strings (with labels when introspection returns them), domains still resolve to the base type `information_schema.columns` reports, and `json`/`jsonb`/`citext` keep their existing mapping.
+
+- **The dry-run simulator emits an enum label when introspection returned labels, and the validator rejects a value that is not one of those labels.** This applies to a scalar enum and to each element of an enum array. Without that, a dry run on an `enum[]` column could exit 0 and a real insert then fail with `invalid input value for enum ...: "flags_1"`.
+
+### Added
+
+- Domain `CHECK` constraint text from `pg_get_constraintdef` is attached to the JSON Schema description for a domain column, so the planner sees the check. The dry-run validator still does not evaluate `CHECK` expressions, including domain checks.
+
 ## [0.3.13] — 2026-11-15
 
 ### Changed

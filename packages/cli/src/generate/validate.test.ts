@@ -157,3 +157,133 @@ describe("groupFindings", () => {
     expect(nullGroup?.sampleRows).toEqual([0, 1, 2]);
   });
 });
+
+describe("validateTable array columns", () => {
+  it("accepts an integer array and flags a string on an _int4 column", () => {
+    const table = tbl("invoices", [col("id", "int4"), col("tags", "_int4")]);
+    const ok = validateTable(table, {
+      rows: [{ id: 1, tags: [1, 2, 3] }],
+      pkPool: new Map(),
+    });
+    expect(ok.filter((f) => f.severity === "error")).toEqual([]);
+
+    const bad = validateTable(table, {
+      rows: [{ id: 1, tags: "tags_1" }],
+      pkPool: new Map(),
+    });
+    expect(bad.some((f) => f.rule === "type_mismatch" && f.column === "tags")).toBe(true);
+  });
+
+  it("flags a non-integer element and allows null elements", () => {
+    const table = tbl("invoices", [col("id", "int4"), col("tags", "_int4")]);
+    const mixed = validateTable(table, {
+      rows: [{ id: 1, tags: [1, null, "x"] }],
+      pkPool: new Map(),
+    });
+    expect(mixed.some((f) => f.rule === "type_mismatch")).toBe(true);
+
+    const withNull = validateTable(table, {
+      rows: [{ id: 1, tags: [1, null, 3] }],
+      pkPool: new Map(),
+    });
+    expect(withNull.filter((f) => f.severity === "error")).toEqual([]);
+  });
+
+  it("validates uuid and bool array elements", () => {
+    const table = tbl("t", [
+      col("ids", "_uuid", { typeCategory: "A", elementUdtName: "uuid" }),
+      col("flags", "_bool", { typeCategory: "A", elementUdtName: "bool" }),
+    ]);
+    const findings = validateTable(table, {
+      rows: [
+        {
+          ids: ["00000000-0000-4000-8000-000000000001", "not-a-uuid"],
+          flags: [true, false],
+        },
+      ],
+      pkPool: new Map(),
+    });
+    expect(findings.some((f) => f.rule === "uuid_format" && f.column === "ids")).toBe(true);
+    expect(findings.some((f) => f.column === "flags")).toBe(false);
+  });
+});
+
+describe("validateTable unmapped types", () => {
+  it("reports an unsupported_type error naming the udt_name", () => {
+    const table = tbl("hosts", [col("loc", "point")]);
+    const findings = validateTable(table, {
+      rows: [{ loc: "(1,2)" }],
+      pkPool: new Map(),
+    });
+    expect(findings.some((f) => f.rule === "unsupported_type" && f.message.includes("point"))).toBe(
+      true,
+    );
+  });
+});
+
+describe("validateTable mapped network, time, money, and enum types", () => {
+  it("accepts valid inet, cidr, bytea, interval, time, timetz, and money values", () => {
+    const table = tbl("hosts", [
+      col("addr", "inet"),
+      col("net", "cidr"),
+      col("blob", "bytea"),
+      col("span", "interval"),
+      col("t", "time"),
+      col("tz", "timetz"),
+      col("price", "money"),
+    ]);
+    const findings = validateTable(table, {
+      rows: [
+        {
+          addr: "192.0.2.1",
+          net: "192.0.2.0/24",
+          blob: "\\x00",
+          span: "1 day",
+          t: "12:00:00",
+          tz: "12:00:00+00",
+          price: 1.23,
+        },
+      ],
+      pkPool: new Map(),
+    });
+    expect(findings.filter((f) => f.severity === "error")).toEqual([]);
+  });
+
+  it("flags a cidr value with host bits set to the right of the mask", () => {
+    const table = tbl("hosts", [col("net", "cidr")]);
+    const findings = validateTable(table, {
+      rows: [{ net: "192.0.2.1/24" }],
+      pkPool: new Map(),
+    });
+    expect(findings.some((f) => f.rule === "cidr_format")).toBe(true);
+  });
+
+  it("flags an invalid inet and an invalid enum label", () => {
+    const table = tbl("hosts", [
+      col("addr", "inet"),
+      col("status", "invoice_status", { isEnum: true, enumLabels: ["draft", "open"] }),
+    ]);
+    const findings = validateTable(table, {
+      rows: [{ addr: "not-an-ip", status: "flags_1" }],
+      pkPool: new Map(),
+    });
+    expect(findings.some((f) => f.rule === "inet_format")).toBe(true);
+    expect(findings.some((f) => f.rule === "enum_label" && f.column === "status")).toBe(true);
+  });
+
+  it("flags an invalid enum[] element", () => {
+    const table = tbl("invoices", [
+      col("flags", "_invoice_status", {
+        typeCategory: "A",
+        elementUdtName: "invoice_status",
+        isEnum: true,
+        enumLabels: ["draft", "open", "paid"],
+      }),
+    ]);
+    const findings = validateTable(table, {
+      rows: [{ flags: ["draft", "flags_1"] }],
+      pkPool: new Map(),
+    });
+    expect(findings.some((f) => f.rule === "enum_label" && f.column === "flags")).toBe(true);
+  });
+});
