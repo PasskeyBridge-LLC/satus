@@ -63,6 +63,19 @@ export class UnsupportedTypeError extends Error {
   }
 }
 
+/** Patterns placed on the JSON Schema the model and the dry-run simulator see. */
+export const TYPE_PATTERNS = {
+  uuid: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+  inet: "^(?:(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)$",
+  cidr: "^(?:(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)/(?:3[0-2]|[12]?\\d)$",
+  // JSON Schema pattern is a string; `\\x` is a literal backslash-x in the regex.
+  bytea: "^\\\\x(?:[0-9a-fA-F]{2})*$",
+  interval: "^[0-9]+ (seconds?|minutes?|hours?|days?)$",
+  time: "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?$",
+  timetz:
+    "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?([+-]([01][0-9]|2[0-3])(:[0-5][0-9])?)$",
+} as const;
+
 /** typcategory 'A' is an array. The `_int4` name is the fallback when catalog flags are absent (unit tests). */
 export function isArrayColumn(col: Column): boolean {
   if (col.typeCategory === "A") return true;
@@ -98,8 +111,40 @@ function scalarJsonType(udt: string, col: Column): JsonType | null {
     case "uuid":
       return {
         type: "string",
-        pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+        pattern: TYPE_PATTERNS.uuid,
       };
+    case "inet":
+      return {
+        type: "string",
+        pattern: TYPE_PATTERNS.inet,
+        description: "An IPv4 address, e.g. 192.0.2.1.",
+      };
+    case "cidr":
+      return {
+        type: "string",
+        pattern: TYPE_PATTERNS.cidr,
+        description: "An IPv4 network prefix with host bits clear, e.g. 192.0.2.0/24.",
+      };
+    case "bytea":
+      return {
+        type: "string",
+        pattern: TYPE_PATTERNS.bytea,
+        description: "A Postgres hex bytea literal, e.g. \\x00.",
+      };
+    case "interval":
+      return {
+        type: "string",
+        pattern: TYPE_PATTERNS.interval,
+        description: "A Postgres interval in the form '1 day' or '30 seconds'.",
+      };
+    case "time":
+      return { type: "string", pattern: TYPE_PATTERNS.time };
+    case "timetz":
+      return { type: "string", pattern: TYPE_PATTERNS.timetz };
+    case "money":
+      // A JSON number is passed through to pg as a numeric parameter, which
+      // Postgres coerces to money without going through lc_monetary typinput.
+      return { type: "number" };
     case "date":
       return { type: "string", format: "date" };
     case "timestamp":

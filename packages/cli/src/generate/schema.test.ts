@@ -172,8 +172,8 @@ describe("jsonTypeFor currently mapped scalars", () => {
 });
 
 describe("unsupported types fail before planning", () => {
-  it("throws naming table.column and the udt_name for a scalar inet column", () => {
-    const table = tbl("hosts", [col("addr", "inet")]);
+  it("throws naming table.column and the udt_name for a scalar point column", () => {
+    const table = tbl("hosts", [col("loc", "point")]);
     expect(() => buildRowSchema(table, 1)).toThrow(UnsupportedTypeError);
     try {
       assertSupportedTypes([table]);
@@ -181,9 +181,9 @@ describe("unsupported types fail before planning", () => {
     } catch (err) {
       expect(err).toBeInstanceOf(UnsupportedTypeError);
       const e = err as UnsupportedTypeError;
-      expect(e.message).toContain("hosts.addr");
-      expect(e.message).toContain("inet");
-      expect(e.unsupported).toEqual([{ table: "hosts", column: "addr", udtName: "inet" }]);
+      expect(e.message).toContain("hosts.loc");
+      expect(e.message).toContain("point");
+      expect(e.unsupported).toEqual([{ table: "hosts", column: "loc", udtName: "point" }]);
     }
   });
 
@@ -202,15 +202,15 @@ describe("unsupported types fail before planning", () => {
   });
 
   it("lists every unmapped column when more than one is present", () => {
-    const table = tbl("hosts", [col("addr", "inet"), col("route", "cidr")]);
+    const table = tbl("hosts", [col("loc", "point"), col("shape", "line")]);
     try {
       assertSupportedTypes([table]);
       throw new Error("expected throw");
     } catch (err) {
       const e = err as UnsupportedTypeError;
       expect(e.unsupported).toHaveLength(2);
-      expect(e.message).toContain("hosts.addr (inet)");
-      expect(e.message).toContain("hosts.route (cidr)");
+      expect(e.message).toContain("hosts.loc (point)");
+      expect(e.message).toContain("hosts.shape (line)");
     }
   });
 
@@ -220,7 +220,7 @@ describe("unsupported types fail before planning", () => {
       [
         col("id", "int4", { isIdentity: true, identityGeneration: "ALWAYS" }),
         col("created_at", "timestamptz", { hasDefault: true, defaultExpr: "now()" }),
-        col("net_id", "inet"),
+        col("net_id", "point"),
         col("name", "text"),
       ],
       {
@@ -266,6 +266,90 @@ describe("invoices integer[] repro", () => {
       const tags = row.tags as unknown[];
       expect(tags.length).toBeGreaterThan(0);
       for (const t of tags) expect(typeof t).toBe("number");
+    }
+    const findings = validateTable(table, { rows: res.data.rows, pkPool: new Map() });
+    expect(findings.filter((f) => f.severity === "error")).toEqual([]);
+  });
+});
+
+describe("jsonTypeFor newly mapped scalars", () => {
+  it("maps inet, cidr, bytea, interval, time, and timetz as strings with patterns", () => {
+    expect(jsonTypeFor(col("addr", "inet"))?.pattern).toBeTruthy();
+    expect(jsonTypeFor(col("net", "cidr"))?.pattern).toBeTruthy();
+    expect(jsonTypeFor(col("blob", "bytea"))?.pattern).toBeTruthy();
+    expect(jsonTypeFor(col("span", "interval"))?.pattern).toBeTruthy();
+    expect(jsonTypeFor(col("t", "time"))?.pattern).toBeTruthy();
+    expect(jsonTypeFor(col("tz", "timetz"))?.pattern).toBeTruthy();
+  });
+
+  it("maps money as a number", () => {
+    expect(jsonTypeFor(col("price", "money"))).toEqual({ type: "number" });
+  });
+
+  it("maps an inet[] column as an array of inet strings", () => {
+    const node = jsonTypeFor(col("addrs", "_inet", { typeCategory: "A", elementUdtName: "inet" }));
+    expect(node?.type).toBe("array");
+    expect(node?.items?.type).toBe("string");
+    expect(node?.items?.pattern).toBeTruthy();
+  });
+});
+
+describe("simulator honors enum labels and mapped string types", () => {
+  it("emits enum labels, not col_1, for a scalar enum and an enum[]", async () => {
+    const table = tbl("invoices", [
+      col("status", "invoice_status", { isEnum: true, enumLabels: ["draft", "open", "paid"] }),
+      col("flags", "_invoice_status", {
+        typeCategory: "A",
+        elementUdtName: "invoice_status",
+        isEnum: true,
+        enumLabels: ["draft", "open", "paid"],
+      }),
+    ]);
+    const schema = buildRowSchema(table, 3);
+    const res = await createSimulatedProvider().generate<{ rows: Array<Record<string, unknown>> }>({
+      system: "",
+      user: "",
+      jsonSchema: schema.jsonSchema,
+    });
+    const labels = new Set(["draft", "open", "paid"]);
+    for (const row of res.data.rows) {
+      expect(labels.has(row.status as string)).toBe(true);
+      expect(row.status).not.toBe("status_1");
+      const flags = row.flags as unknown[];
+      expect(Array.isArray(flags)).toBe(true);
+      for (const f of flags) {
+        expect(labels.has(f as string)).toBe(true);
+        expect(f).not.toBe("flags_1");
+      }
+    }
+    const findings = validateTable(table, { rows: res.data.rows, pkPool: new Map() });
+    expect(findings.filter((f) => f.severity === "error")).toEqual([]);
+  });
+
+  it("emits values that match the inet, cidr, bytea, interval, time, timetz, and money mappings", async () => {
+    const table = tbl("hosts", [
+      col("addr", "inet"),
+      col("net", "cidr"),
+      col("blob", "bytea"),
+      col("span", "interval"),
+      col("t", "time"),
+      col("tz", "timetz"),
+      col("price", "money"),
+    ]);
+    const schema = buildRowSchema(table, 3);
+    const res = await createSimulatedProvider().generate<{ rows: Array<Record<string, unknown>> }>({
+      system: "",
+      user: "",
+      jsonSchema: schema.jsonSchema,
+    });
+    for (const row of res.data.rows) {
+      expect(row.addr).toMatch(/^192\.0\.2\.\d+$/);
+      expect(["192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24"]).toContain(row.net);
+      expect(row.blob).toMatch(/^\\x[0-9a-f]{2}$/);
+      expect(row.span).toMatch(/seconds?$/);
+      expect(row.t).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+      expect(row.tz).toMatch(/^\d{2}:\d{2}:\d{2}\+00$/);
+      expect(typeof row.price).toBe("number");
     }
     const findings = validateTable(table, { rows: res.data.rows, pkPool: new Map() });
     expect(findings.filter((f) => f.severity === "error")).toEqual([]);
