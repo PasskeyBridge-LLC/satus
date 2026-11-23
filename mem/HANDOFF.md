@@ -4,7 +4,7 @@ Written 2026-11-23 after the weekly E2E. Replace this file next session; do not 
 
 ## State
 
-`main` is `efe80cc` (#104). Production `dpl_C244VHGFmfLyBuym7knypdSSwJGb`, READY, aliases `satus.sh` / `www.satus.sh`, same SHA.
+`main` is `14034fe` (#106 ledger). Production `dpl_APiR3PY4dF4Uyv2mPTp33yjqXY4U`, READY, aliases `satus.sh` / `www.satus.sh`, same SHA. Product code is still `efe80cc` (#104); the squash only added `mem/`.
 
 npm `latest` and `next` are both 0.3.13 (tag `v0.3.13` → `3f647b0`, shasum `70a4126e7cd1dd3d564d2f335e383378efc4a757`, SLSA provenance). `#104` (array udt `_int4` → JSON array) is on `main` and not in that tarball. Weekly E2E 2026-11-23: NEW 0 / FIXED 0 / STILL-OPEN 0 / REGRESSED 0.
 
