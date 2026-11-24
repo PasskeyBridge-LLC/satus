@@ -6,7 +6,7 @@
  *   §01 Problem statement faker vs satus diff table
  *   §02 How it works      five-step pipeline
  *   §03 Guarantees        the four promises the CLI makes at run time
- *   §04 Anti-features     what satus deliberately will not do
+ *   §04 Other tools       related jobs and the tools to use for them
  *   §05 Sample output     one row across three tables from the medical profile
  *   §06 Continue reading  links into the sub-routes
  *
@@ -26,7 +26,7 @@ const SECTIONS: ReadonlyArray<SectionMeta> = [
   { id: "problem", n: "01", label: "Problem statement" },
   { id: "how", n: "02", label: "How it works" },
   { id: "guarantees", n: "03", label: "Guarantees" },
-  { id: "anti-features", n: "04", label: "Anti-features" },
+  { id: "anti-features", n: "04", label: "Other tools" },
   { id: "sample-output", n: "05", label: "Sample output" },
   { id: "next", n: "06", label: "Continue reading" },
 ];
@@ -87,7 +87,7 @@ function HomePage() {
       <Problem />
       <How />
       <Guarantees />
-      <AntiFeatures />
+      <OtherTools />
       <SampleOutput />
       <Next />
     </PageShell>
@@ -103,13 +103,13 @@ function Overview() {
       id="overview"
       n="00"
       label="RFC · SATUS-001"
-      title={<>seed data that looks like a real business, not a faker dump.</>}
+      title={<>seed data for Postgres that keeps every foreign key valid.</>}
     >
       <Prose>
         <p>
           <Mono>satus</Mono> reads your live Postgres schema and writes rows that respect every
-          foreign key, constraint, and business rule you didn&rsquo;t write down. Built for the
-          demo, the screenshot, and the QA run, not for load testing.
+          foreign key, constraint, and business rule you didn&rsquo;t write down. Use it to seed
+          databases for demos, screenshots and QA runs.
         </p>
       </Prose>
 
@@ -207,7 +207,7 @@ function Problem() {
       id="problem"
       n="01"
       label="Problem statement"
-      title={<>faker writes strings. your customers read businesses.</>}
+      title={<>seed data that respects your schema.</>}
     >
       <Prose>
         <p>
@@ -283,16 +283,12 @@ const STEPS = [
 
 function How() {
   return (
-    <Section
-      id="how"
-      n="02"
-      label="How it works"
-      title={<>five quiet steps. no magic. no daemons.</>}
-    >
+    <Section id="how" n="02" label="How it works" title={<>five steps, run from one CLI.</>}>
       <Prose>
         <p>
-          The CLI runs on your machine and talks to your database. There is no hosted runtime, no
-          telemetry of your row data, and no surprise infrastructure.
+          The CLI runs on your machine or a CI runner and talks to your database. It sends each
+          table&rsquo;s column schema and constraints to the LLM provider you configure. Existing
+          row values are not sent, and telemetry does not include row contents.
         </p>
       </Prose>
 
@@ -340,12 +336,12 @@ const GUARANTEES = [
   {
     k: "G-03",
     h: "Cost ceiling",
-    d: "The CLI prints an estimated token cost during the planning phase and refuses to proceed past --max-cost (default $1.00) without explicit confirmation. No silent overruns on your provider bill.",
+    d: "The CLI prints an estimated token cost during the planning phase and refuses to proceed past --max-cost (default $1.00) without explicit confirmation.",
   },
   {
     k: "G-04",
     h: "Row-data locality",
-    d: "Your row values are sent only to the LLM provider you configure with your own API key. We have no hosted runtime, no proxy, and no telemetry that includes generated content.",
+    d: "The CLI sends each table's column schema and constraints to the LLM provider you configure with your own API key. Existing row values are not sent, and telemetry does not include row contents.",
   },
 ];
 
@@ -359,8 +355,7 @@ function Guarantees() {
     >
       <Prose>
         <p>
-          Marketing copy is cheap. These are the four invariants the binary itself refuses to
-          violate. If any is broken in a release, it is a P0 bug.
+          The binary enforces these four invariants. If any is broken in a release, it is a P0 bug.
         </p>
       </Prose>
 
@@ -386,49 +381,46 @@ function Guarantees() {
   );
 }
 
-/* ------------------ §04 Anti-features ------------------ */
+/* ------------------ §04 Other tools ------------------ */
 
 /**
- * The "what we will not build" list. Stating non-goals up front filters out
- * the wrong customer before they file an issue, and signals taste to the
- * right one. Each row pairs a non-goal with the better tool for that job.
+ * Related jobs and the tools to use for them. satus covers seed data for
+ * Postgres. The section id stays "anti-features" so existing /#anti-features
+ * links keep working.
  */
-const ANTI = [
+const RELATED_JOBS = [
   {
-    not: "Production data anonymization",
-    instead: "Use pgAnonymizer or Tonic.ai. We generate fresh data; we don't redact yours.",
+    job: "Production data anonymization",
+    tool: "Use pgAnonymizer or Tonic.ai. satus generates new rows and does not modify existing data.",
   },
   {
-    not: "Load-testing volume (10M+ rows)",
-    instead: "Use pgbench or a faker pipeline. LLM calls cost too much at that scale.",
+    job: "Load-testing volume (10M+ rows)",
+    tool: "Use pgbench or a faker pipeline. LLM calls cost too much at that scale.",
   },
   {
-    not: "A graphical schema editor",
-    instead: "Your migrations are the source of truth. We read pg_catalog, we don't replace it.",
+    job: "A graphical schema editor",
+    tool: "Use your migrations as the source of truth. satus reads the schema from pg_catalog.",
   },
   {
-    not: "ML model training datasets",
-    instead: "Use real, licensed data. Synthetic rows are a demo aid, not a training corpus.",
+    job: "ML model training datasets",
+    tool: "Use real, licensed data. Generated rows are for demos and tests.",
   },
   {
-    not: "Cross-database support (MySQL, Mongo)",
-    instead: "Postgres-only on purpose. We use pg_catalog features that don't translate.",
+    job: "Cross-database support (MySQL, MongoDB)",
+    tool: "satus uses Postgres catalog features that MySQL and MongoDB do not have.",
   },
 ];
 
-function AntiFeatures() {
+function OtherTools() {
   return (
     <Section
       id="anti-features"
       n="04"
-      label="Anti-features"
-      title={<>what satus deliberately will not do.</>}
+      label="Other tools"
+      title={<>other tools for related jobs.</>}
     >
       <Prose>
-        <p>
-          Every line item below is a feature request we&rsquo;ve already decided to decline. Stating
-          them up front saves you an issue and us a wontfix.
-        </p>
+        <p>satus covers seed data for Postgres. For these jobs, use the tools listed.</p>
       </Prose>
 
       <div tabIndex={0} className="mt-8 max-w-[860px] overflow-x-auto border-y border-[var(--ink)]">
@@ -436,22 +428,19 @@ function AntiFeatures() {
           <thead>
             <tr className="border-b border-[var(--hairline)]">
               <th className="w-[44%] py-3 pr-6 text-left text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--mute)]">
-                not for
+                job
               </th>
               <th className="py-3 text-left text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--mute)]">
-                use instead
+                tool
               </th>
             </tr>
           </thead>
           <tbody>
-            {ANTI.map((a) => (
-              <tr key={a.not} className="border-b border-[var(--hairline)] last:border-b-0">
-                <td className="py-3 pr-6 align-top text-[var(--ink)]">
-                  <span className="mr-1 text-[var(--signal)]">✕</span>
-                  {a.not}
-                </td>
+            {RELATED_JOBS.map((a) => (
+              <tr key={a.job} className="border-b border-[var(--hairline)] last:border-b-0">
+                <td className="py-3 pr-6 align-top text-[var(--ink)]">{a.job}</td>
                 <td className="py-3 align-top font-sans text-[14px] leading-[1.55] text-[var(--ink)]/80">
-                  {a.instead}
+                  {a.tool}
                 </td>
               </tr>
             ))}
@@ -618,7 +607,8 @@ function ClosingBand() {
       <div className="grid grid-cols-1 items-baseline gap-x-10 gap-y-5 md:grid-cols-[1fr_auto]">
         <p className="max-w-[52ch] font-sans text-[16px] leading-[1.55] text-[var(--ink)]">
           The free tier seeds up to 25 rows per table across 5 tables&mdash;125 rows per
-          run&mdash;against any Postgres database. No account, no credit card, no hosted runtime.
+          run&mdash;against any Postgres database. Install it from npm and run it with your own
+          provider key.
         </p>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[13px] md:justify-end">
           <Link to="/quickstart" className="link-underline text-[var(--ink)]">
