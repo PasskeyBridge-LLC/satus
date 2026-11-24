@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-23",
+  "production_sha": "efe80cc3fdbe1041e59e8cea1da40f465583a3e6",
+  "deployment": "dpl_C244VHGFmfLyBuym7knypdSSwJGb",
+  "deployment_state": "READY",
+  "deployment_target": "production",
+  "result": "PASS",
+  "lighthouse": {
+    "tool": "lighthouse@12.8.2",
+    "chrome": "Google Chrome 157.0.8103.50",
+    "throttling": "simulated",
+    "thresholds": {"lcp_ms": 2500, "cls": 0.1, "tbt_ms": 200},
+    "home_mobile": [
+      {"lcp_ms": 2416.206, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2416.02, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2419.562, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "home_mobile_median_lcp_ms": 2416.206,
+    "pricing_mobile": [{"lcp_ms": 2435.419, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "docs_mobile_first_sample_lcp_ms": 3324.206,
+    "docs_mobile": [
+      {"lcp_ms": 2417.029, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2432.328, "cls": 0, "tbt_ms": 0, "score": 97},
+      {"lcp_ms": 2428.418, "cls": 0, "tbt_ms": 0, "score": 97}
+    ],
+    "docs_mobile_median_lcp_ms": 2428.418,
+    "blog_mobile": [{"lcp_ms": 2414.419, "cls": 0, "tbt_ms": 0, "score": 97}],
+    "home_desktop": [{"lcp_ms": 571.186, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "pricing_desktop": [{"lcp_ms": 654.551, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "docs_desktop": [{"lcp_ms": 572.991, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_desktop": [{"lcp_ms": 534.761, "cls": 0, "tbt_ms": 0, "score": 100}],
+    "blog_path": "/blog/what-satus-0-3-11-does-with-an-enum-column",
+    "thresholds_met": true,
+    "note": "Home mobile median LCP 2416.206. Docs first sample 3324.206; three immediate reruns 2417 / 2432 / 2428, median 2428. Desktop used --preset=desktop. Mobile used default Slow-4G simulated throttling."
+  },
+  "axe": {
+    "tool": "axe-core 4.14.0 WCAG 2.2 A/AA",
+    "browser": "Chrome 157.0.8103.50 headless",
+    "serious_or_critical": {},
+    "zero_on": [
+      "/",
+      "/pricing",
+      "/checkout",
+      "/checkout/success",
+      "/checkout/cancel",
+      "/cli",
+      "/quickstart",
+      "/docs",
+      "/docs/how-it-works",
+      "/docs/troubleshooting",
+      "/docs/github-action",
+      "/profiles",
+      "/recipes",
+      "/compare",
+      "/demo",
+      "/security",
+      "/privacy",
+      "/terms",
+      "/blog",
+      "/blog/what-satus-0-3-11-does-with-an-enum-column",
+      "/blog/satus-0-3-11-exit-codes",
+      "/blog/how-satus-decides-a-database-is-too-full-to-seed",
+      "/blog/pg-dump-snapshots-as-test-fixtures"
+    ]
+  },
+  "h1": 1,
+  "console_errors": 0,
+  "same_origin_4xx": 0,
+  "now_public": ["what-satus-0-3-11-does-with-an-enum-column"],
+  "embargoed_404": [
+    "what-satus-truncate-empties-and-what-it-refuses-to",
+    "what-satus-0-3-13-does-when-config-names-gpt-4o-mini",
+    "what-satus-0-3-13-fills-in-for-bool-uuid-date-and-jsonb",
+    "satus-0-3-13-has-no-snapshot-command",
+    "what-we-shipped-in-2026-what-we-killed"
+  ],
+  "slug_redirects": [
+    {
+      "from": "/blog/cost-estimates-are-guardrails-not-accounting",
+      "to": "/blog/how-the-dry-run-cost-estimate-is-calculated",
+      "status": 301
+    }
+  ],
+  "rss_items": 51,
+  "sitemap_urls": 67,
+  "sitemap_blog_posts": 51,
+  "llms_txt": {
+    "status": 200,
+    "content_type": "text/plain; charset=utf-8",
+    "bytes": 18209
+  }
+}
